@@ -1,0 +1,3 @@
+gzip -d package
+tar xvf package
+rm package

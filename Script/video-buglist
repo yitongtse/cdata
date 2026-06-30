@@ -1,0 +1,111 @@
+#!/bin/sh
+#
+
+tmpfile=/tmp/bugs.$$
+
+QDDTS=/vws/aak/qddts ; export QDDTS
+PATH=${PATH}:/vws/aak/qddts/bin ; export PATH
+
+resolved_week()
+{
+    findbug -CUVRJD -f -p$1 "Product == $2 && (Resolved-on >= $3 || Duplicate-on >= $3 || Junked-on >= $3 || Verified-on >= $3 || Unproducible-on >= $3)" | summarybug
+}
+
+
+buglist ()
+{
+  String="Product == $3 && Engineer == $4"
+
+  bugs=`findbug -WMIOHPNA -f -p$2 ${String}`
+  if [ "${bugs}" != "" ] 
+  then
+    echo
+    [ "$1" != "" ] && echo $1
+    summarybug ${bugs}
+  fi
+}
+
+buglist_unassigned ()
+{
+  if [ "$4" = "6" ]
+  then
+    String="Product == $3 && Severity == $4 && Engineer == ''"
+  else
+    String="Product == $3 && Engineer == '' && Severity != 6"
+  fi
+  bugs=`findbug -WMIOHPNA -f -p$2 ${String}`
+  if [ "${bugs}" != "" ] 
+  then
+    echo
+    [ "$1" != "" ] && echo $1
+    summarybug ${bugs}
+  fi
+}
+
+buglist_engineer ()
+{
+# $1 = Output string
+# $2 = Project
+# $3 = Component
+# $4 = Severity
+# $5 = Engineer
+
+  if [ "$4" != "" ]
+  then
+      bugs=`query.pl Project:$2 and Product:$3 and Severity:$4 and Engineer:$5 and Status:W,M,I,O,H,P,N,A`
+  else
+      bugs=`query.pl Project:$2 and Product:$3 and Engineer:$5 and Status:W,M,I,O,H,P,N,A`
+  fi
+  if [ "${bugs}" != "" ] 
+  then
+    echo
+    [ "$1" != "" ] && echo $1
+    summarybug ${bugs}
+  fi
+}
+
+englist ()
+{
+    if [ "$3" = "" ]
+    then
+        bugs=`query.pl Project:$1 and Product:$2 and Severity:6 and Status:W,M,I,O,H,P,N,A`
+    else
+        bugs=`query.pl Project:$1 and Product:$2 and Severity:$3 and Status:W,M,I,O,H,P,N,A`
+    fi
+
+    rm -f $tmpfile
+    if [ "$bugs" != "" ]
+    then
+        for bug in $bugs
+        do
+	    dumpbug -f -n -t /users/groeck/ddts/engineer.tmpl $bug >>$tmpfile
+        done
+        engineers=`sort -u $tmpfile | sed -e "/^\$/d"`
+        buglist_unassigned "Unassigned bugs:" $1 $2 $3
+        for engineer in $engineers
+        do
+	    buglist_engineer "Bugs assigned to $engineer (`fullname.pl $engineer`):" $1 $2 "$3" $engineer
+        done
+    fi
+}
+
+getnames ()
+{
+    bugs=`query.pl Project:$1 and Product:$2 and Status:W,M,I,O,H,P,N,A`
+
+    rm -f $tmpfile
+    for bug in $bugs
+    do
+	dumpbug -f -n -t /users/groeck/ddts/engineer.tmpl $bug >>$tmpfile
+    done
+    echo `sort -u $tmpfile | sed -e "/^\$/d"`
+}
+
+echo "Video featurettes:"
+englist CSC.access c6900 6
+
+echo
+echo "Video bugs:"
+englist CSC.access c6900 "1,2,3,4,5"
+
+rm -f $tmpfile

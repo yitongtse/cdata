@@ -1,0 +1,1 @@
+cleartool diff -g $1@@/main/dpi_integ/LATEST $1

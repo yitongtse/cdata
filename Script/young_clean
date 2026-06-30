@@ -1,0 +1,4 @@
+cd /vob/ios/sys
+ct lsprivate -other | xargs rm -fr
+cc_mksymlink_comp -comp_vob /vob/cisco.comp
+

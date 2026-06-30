@@ -1,0 +1,13 @@
+#! /bin/sh
+
+if [ $# != 2 ] ; then
+    echo "Usage: revmark [revision number] [comment]"
+    exit 1
+fi
+
+echo "revision number is: $1 and the comment is: $2"
+
+for i in `ls *.c *.s60 *.h makefile*`; do
+    sccs edit  -r$1 $i
+    sccs delget -y"$2" $i
+done

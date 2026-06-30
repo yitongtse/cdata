@@ -1,0 +1,4 @@
+cd /vob/ios/sys
+rm -f cscope.files
+/router/bin/find . -path './obj-*' -prune -o -follow -name '*.[csh]' -print > /vob/ios/sys/cscope.files
+/router/bin/find . -path './obj-*' -prune -o -follow -name '*.cxx' -print >> /vob/ios/sys/cscope.files

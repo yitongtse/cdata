@@ -1,0 +1,9 @@
+rm -f tmp
+echo "Preprocess Sun version" $1 "	-> "	$1".sun"
+gcc -E -DDO_RC $1 |grep -v '#' | cat -s > tmp
+shrink tmp > $1.sun
+
+echo "Preprocess C60 version" $1 "	-> "	$1".c60"
+gcc -E -D_TMS320C6X -DDO_RC $1 |grep -v '#' | cat -s > tmp
+shrink tmp > $1.c60
+rm -f tmp

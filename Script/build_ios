@@ -1,0 +1,1 @@
+make -j8 cat4000-i5su3-mz GALAXY_IOS_DEVELOPMENT=1 > /dev/null

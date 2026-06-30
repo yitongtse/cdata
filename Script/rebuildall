@@ -1,0 +1,21 @@
+#! /bin/csh
+
+cd $BINOS_ROOT/cable/video/vdman
+rm -rf obj-mips64-ubr lib-mips64-ubr bin-mips64-ubr
+/nfs/nova/tools/latest/bin/gmk -f TARGET=mips64 Plx:=-ubr -j8
+
+cd $BINOS_ROOT/cable/video/vdman/cli
+rm -rf obj-mips64-ubr lib-mips64-ubr bin-mips64-ubr
+/nfs/nova/tools/latest/bin/gmk -f TARGET=mips64 Plx:=-ubr -j8
+
+cd $BINOS_ROOT/cable/video/vdman/server
+rm -rf obj-mips64-ubr lib-mips64-ubr bin-mips64-ubr
+/nfs/nova/tools/latest/bin/gmk -f TARGET=mips64 Plx:=-ubr -j8
+
+cd $BINOS_ROOT/cable/video/vdman/sniffer
+rm -rf obj-mips64-ubr lib-mips64-ubr bin-mips64-ubr
+/nfs/nova/tools/latest/bin/gmk -f TARGET=mips64 Plx:=-ubr -j8
+
+cd $BINOS_ROOT/cable/video/vdman/test
+rm -rf obj-mips64-ubr lib-mips64-ubr bin-mips64-ubr
+/nfs/nova/tools/latest/bin/gmk -f TARGET=mips64 Plx:=-ubr -j8
