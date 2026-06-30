@@ -1,8 +1,0 @@
-#!/bin/sh
-
-set -x
-
-comp="/auto/rfgw/qnx/6.3.0.sp2/host/solaris/sparc/usr/bin/qcc -V gcc_ntoppcbe -Wp,-simplify-pathnames -nostdinc -DTOOLS_VER=c2.95.3-p11b -DCOMPONENT_BUILD -DPARENT_COMPONENT=rfgw -D__QNX__ -DTARGET_CISCO -DOBJECT_8500 -Wp,-imacros -Wp,/vob/cisco.comp/make-lib/preinclude_macros.h -I/vob/cisco.comp -I/vob/ios/sys/h/iosinc -I/vob/ios/sys -I/auto/rfgw/qnx/6.3.0.sp2/target/qnx6/usr/include -I/vob/ios/sys/h -I/auto/rfgw/qnx/6.3.0.sp2/target/qnx6/usr/include -pipe -Wp,-simplify-pathnames -Wall -Wno-main -Wpointer-arith -Wstrict-prototypes -Wformat -Werror -O3 -DMPC8548_EVAL -Wno-strict-prototypes -Wp,-MD"
-
-/auto/ses/bin/sacc -compiler $comp -no_sescpp -f $1
-

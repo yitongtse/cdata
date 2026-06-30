@@ -1,8 +1,0 @@
-setenv QNXLM_LICENSE_FILE 27000@friday.cisco.com:@dechen-ultra5.cisco.com
-setenv QNX_CONFIGURATION /auto/vwsnmq/qnxlicenses
-setenv QNX_TARGET /auto/vwsnmq/qnx650/target/qnx6
-setenv QNX_HOST /auto/vwsnmq/qnx650/host/linux/x86
-setenv QCONFIG $QNX_TARGET/usr/include/qconfig.mk
-setenv MKFILES_ROOT $QNX_TARGET/usr/include/mk/qtargets.mk
-setenv QNX_JAVAHOME /auto/vwsnmq/qnx650/_jvm
-

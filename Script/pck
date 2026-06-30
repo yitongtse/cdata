@@ -1,3 +1,0 @@
-rm package.gz
-tar cvhf package *akefile* *.h *.c *.C *.sh *.s60 *.asm *.par *.lcf *.out *.fls Journal memo
-gzip package

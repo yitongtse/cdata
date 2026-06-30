@@ -1,3 +1,0 @@
-cd /vob/qnx/src-video
-rm -f cscope.files
-find . -follow -name '*.[csh]' -print > /vob/qnx/src-video/cscope.files

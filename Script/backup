@@ -1,4 +1,0 @@
-pck
-ls -l package.gz
-cp package.gz Backup
-echo "Backup completed."

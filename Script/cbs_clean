@@ -1,4 +1,0 @@
-cd /vob/ios/sys
-cbs clean
-cleartool lsprivate -other | xargs rm -fr
-cc_mksymlink_comp -comp_vob /vob/cisco.comp

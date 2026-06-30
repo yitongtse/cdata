@@ -1,4 +1,0 @@
-cp ~/qnx_files/mkcfsbin /tmp
-cp ~/qnx_files/mkxfs.632linux /tmp
-cp ~/qnx_files/elf_parser /tmp
-ln -s /tmp/mkxfs.632linux /tmp/mkifs
