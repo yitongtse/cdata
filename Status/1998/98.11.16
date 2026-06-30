@@ -1,8 +1,0 @@
-Status report of Yi Tong Tse on 11/16/98
-
-Debugged the packetizer.
-
-Tried several techniques to speed up the DPI code, including:
-  - a faster VLC decoder which looks up multiple bit at a time
-  - using profiling to find out core loops, and optimizing those loops
-    at C level (countdown loop, unrolling core loops, etc).

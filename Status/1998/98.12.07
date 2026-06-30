@@ -1,8 +1,0 @@
-Status report of Yi Tong Tse on 12/7/98
-
-Went to the Western Cable Show.
-
-Modify the bit handling routines from byte access into word access, and
-starting to convert some of them to use the intrinsics functions provided
-by the C6x C compiler.
-

@@ -1,7 +1,0 @@
-Status report of Yi Tong Tse on 5/10/99
-
-    Cleaned up the existing DPI, ratemux and statmux code.  
-
-    Continue to integrate of DPI and remux.
-
-    Spent some time to address audio issues.

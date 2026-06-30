@@ -1,8 +1,0 @@
-Status report of Yi Tong Tse on 11/30/98
-
-
-Did some more C level optimizations to the DPI code.
-
-Got familiar with the C6x compiler, linker and simulator.
-
-Start porting the DPI code to C6x.

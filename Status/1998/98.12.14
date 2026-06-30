@@ -1,9 +1,0 @@
-Status report of Yi Tong Tse on 12/14/98
-
-Improve the input bit routines by always keeping at least one macroblock
-of data in buffer.  This way we need to do only one end-of-buffer check
-for each macroblock instead of for each syntax.
-
-Generated a small bitstream to be linked into the code for testing.
-
-Start converting some core routines into assembly.
