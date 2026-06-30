@@ -1,8 +1,0 @@
-To access my lab PC on another PC:
-  log into domain CISCO_ENG
-  run \\rabbit-nt-new\d$
-
-where d is the drive letter that you want to access.
-
-If prompt with user and password, try using \\cisco_eng\{username}
-

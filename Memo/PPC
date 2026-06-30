@@ -1,5 +1,0 @@
-To compile the PPC code for DPI:
-  cd ppc
-  makeall
-  cd ppc/app
-  make SW_REV=xxxx mainxxxx.fls

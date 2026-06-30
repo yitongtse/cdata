@@ -1,7 +1,0 @@
-flo_cable5:
-  RFGW_FLO_CABLE6_IPC_BASE
-
-flo_cable6_ipc branch:
-  FLO_CABLE6_IPC_060626
-  FLO_CABLE6_IPC_060803 - this label is laid before the new RPC scheme is used.
-

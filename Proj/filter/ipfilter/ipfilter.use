@@ -1,8 +1,0 @@
-%C - IP Filter/NAT filter module
-
-This module is loaded by "io-net" and provides filter/NAT support.
-
-Syntax:
-mount -Tio-net ipfilter.so
-
-

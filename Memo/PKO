@@ -1,8 +1,0 @@
-# Check PKO enable
-oct-linux-csr PKO_ENABLE
-
-# Disable PKO
-oct-linux-csr PKO_ENABLE 0
-
-# Enable PKO
-oct-linux-csr PKO_ENABLE 1

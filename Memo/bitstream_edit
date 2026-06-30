@@ -1,5 +1,0 @@
-Plug USB key in Friday.
-Log in as root, pw roZes
-Find out the device name from /var/log/messages
-Mount the drive: mount /dev/xxx /mnt/floppy 
-Don't forget to umount before pulling out the USB key.

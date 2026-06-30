@@ -1,4 +1,0 @@
-* Transport stream filename (string) * /auto/vwsnng/ytse/cp_short.ts
-* Packet size type (1-188 2-204) (int) * 1
-* Bitrate (bps) (int) * 12000000
-* Video PID (int) * 384

@@ -1,8 +1,0 @@
-STATE=Experimental
-INSTALLDIR=ppcbe/lib/dll/
-INSTALLNAME=devn-mpc85xx.so
-NAME=devn-mpc85xx.so
-USER=ywlee
-HOST=video-view1
-DATE=2006/10/12-16:55:56-PDT
-DESCRIPTION=MPC85XX TSEC driver

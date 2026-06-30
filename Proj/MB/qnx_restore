@@ -1,3 +1,0 @@
-flash_erase /dev/fs0p0 0 500000 
-flash_write /dev/fs0p0 /flash/mb_app.lc.keep 0 
-

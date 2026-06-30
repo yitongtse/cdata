@@ -1,3 +1,0 @@
-clock.h, clock.c - PCR related utilities
-
-Seems 64 bit integer arithmetic is used

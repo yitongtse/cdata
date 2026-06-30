@@ -1,4 +1,0 @@
-alias exec mb_dnld copy tftp://223.255.254.254/ytse/mb_app.lc linecard-5-flash:
-alias exec core_upload copy linecard-5-flash:/mb_video.core tftp://223.255.254.254/ytse/
-alias exec tcc_dnld copy tftp://223.255.254.254/ytse/tcc_app.lc linecard-13-flash:
-

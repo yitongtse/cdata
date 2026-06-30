@@ -1,9 +1,0 @@
-Optimization ideas:
-
-Take PAT out of the pid table, and resize pid table to 16 entries.
-
-Use flat pid tbale and lookup.
-
-Remove tpinfo buffer size field (or put it in in_session instead).
-
-

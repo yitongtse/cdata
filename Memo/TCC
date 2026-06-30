@@ -1,5 +1,0 @@
-To boot QNX permament image on TCC:
-dir qnxperm:
-boot qnxperm:<file>
-
-file is one of the files found in the dir command.

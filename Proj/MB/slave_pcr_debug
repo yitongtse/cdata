@@ -1,6 +1,0 @@
-Slave pcr processing:
-  tbo_1st = pcr_time - anchor_out_time
-  tbo_2nd = tbo_1st - tp_itvl * anchor_tp_idx_inc
-
-  out_time = ses->out_time + (ses->tp_itvl >> 10) * tp_idx_inc;   // F.12
-

@@ -1,1 +1,0 @@
-prep-commit <DDTS> -saonly -sa_images=rfgw-entservices-mz -list=file.lst

@@ -1,6 +1,0 @@
-These are commands to start NFS server:
-
-share -F nfs /tmp &
-/usr/lib/nfs/mountd &
-/usr/lib/nfs/nfsd &
-

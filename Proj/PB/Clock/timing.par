@@ -1,6 +1,0 @@
-* Clock Recovery Simulation
-* Number of timestamps (int) * 100000
-* Timestamp period (sec) (float) * 0.1
-* Source clock frequency (Hz) (float) * 27000810
-* Max network jitter (sec) (float) * 0.1
-* PLL loop gain parameter (float) * 0.000001

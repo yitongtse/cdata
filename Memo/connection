@@ -1,6 +1,0 @@
-To connect my Laptop to Cat4k:
-
-Set the Laptop interface with the appropriate IP address and subnet mask.
-Change link speed/duplex to 100 Mbps Full duplex (default will be auto detect,
-    which is not reliable in this case.)
-

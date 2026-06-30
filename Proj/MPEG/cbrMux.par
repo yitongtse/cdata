@@ -1,7 +1,0 @@
-* IP input:
-* Filename (string) * test.in
-* Bitrate (bps) (int) * 3000000
-* IP input:
-* Filename (string) * test.in
-* Bitrate (bps) (int) * 3000000
-* Output filename (string) * test.out

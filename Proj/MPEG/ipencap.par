@@ -1,8 +1,0 @@
-* Input MPEG-2 TS filename (string) * /auto/cproject/shared/szhu/miniVideoServer/data/Divicom3.6Mbps_2048pkt.mp2t
-* Packet size type (1-188 2-204) (int) * 1
-* UDP destination port number (int) * 49152
-* Number of IP packets to generate (int) * 146
-* MPEG-2 packets per IP (int) * 7
-* PIDs to include (max 8) (int) * 1
-* PID (int) * 400
-* Output filename (string) * test.out

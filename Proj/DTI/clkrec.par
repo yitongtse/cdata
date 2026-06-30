@@ -1,9 +1,0 @@
-* Input timestamp filename (string) * in.ts
-* Network jitter filename (string) * my.jit
-* Jitter gain (float) * 19456.
-* Delay offset (float) * 1024.
-* Loop filter parameter (float) * 0.0001
-* PLL loop gain (float) * 0.001
-* Max frequency adjustment (Hz) (float) * 100
-* Output timestamp filename (string) * out.ts
-* Output statistic filename (string) * out.stat

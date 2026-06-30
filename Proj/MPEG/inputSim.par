@@ -1,3 +1,0 @@
-* Input IP/UDP/MPEG stream (string) * /users/ytse/Shared/IP_capture/TomorrowNeverDies.ip
-* Arrival timestamp file (string) * /users/ytse/Shared/IP_capture/TomorrowNeverDies.ats
-* UDP port (int) * 5001

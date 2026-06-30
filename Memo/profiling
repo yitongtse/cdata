@@ -1,5 +1,0 @@
-To obtain profile:
-
-Compile the code using -pg option in gcc.
-Run the code.  This will generate the file gmon.out.
-Rename the executable as a.out and run gprof.

@@ -1,4 +1,0 @@
-* Input filename (string) * /auto/cproject/shared/ytse/Bitstream/nsg_trick.m2t
-* Packet size type (1-188 2-204) (int) * 1
-* Number of TP packets to examine (int) * 1000
-* Number of bytes to skip (int) * 0

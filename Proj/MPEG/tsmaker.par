@@ -1,5 +1,0 @@
-* Input filename (string) * test.in
-* PID (int) * 400
-* Payload size parameter filename (string) * len_par
-* Output transport stream filename (string) * test.m2t
-* Output syntax filename (string) * syn.out

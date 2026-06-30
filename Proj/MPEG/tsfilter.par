@@ -1,9 +1,0 @@
-* This program extracts from a transport stream
-* a PID stream, a PES stream, or an elementary stream
-* 
-* Input transport stream (string) * /users/ytse/Shared/IP_capture/TomorrowNeverDies.m2t
-* Input packet size mode (1-188 2-204) (int) * 1
-* PID to extract (int) * 484
-* Output filename (string) * test.mpg
-* Output mode (1-PID 2-PES 3-ES) (int) * 3
-* Sync to start code? (int) * 1

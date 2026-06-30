@@ -1,7 +1,0 @@
-Branch names:
-  mcp_vbr_binos
-  mcp_vbr_ios
-
-# Pulling view
-acme nw -sb binos -proj mcp_vbr_binos@LATEST
-start_task -l LATEST -b mcp_vbr_ios -t <view-tag> -v /vob/ios -a -d /nobackup/ytse/VBR/CC

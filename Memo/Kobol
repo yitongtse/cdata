@@ -1,8 +1,0 @@
-Kernel patch: (should no longer be needed)
-mkdir $BINOS_ROOT/linkfarm/exernal_kernels
-cp /auto/sjc-ccebuild1/libzhang/cavium_octeon2_cbr-iosxe-linux.tar.bz2 $BINOS_ROOT/linkfarm/exernal_kernels
-
-Available Testbed for Kobol testing:
-A2T: slot 3
-A7T
-

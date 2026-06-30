@@ -1,5 +1,0 @@
-linker reallocation error:
-  - make sure internal/external function/variable declaration is done correctly.
-    EXTERN for external functions, INTERN for internal functions
-    far for external variables
-  - make sure .bss section is beyond 0x8000 (15 bit offset) in size.

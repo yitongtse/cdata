@@ -1,8 +1,0 @@
-* Input filename (string) * tp_info.dat
-* Reference clock frequency (Hz) (float) * 10240000
-* Input sampling interval (us) (float) * 100
-* Dejittering filter parameter (float) * 0.0004
-* Loop filter parameter (float) * 0.0001
-* PLL loop gain (float) * 0.0001
-* System latency (us) (float) * 500
-* Output filename (string) * tp_info.out

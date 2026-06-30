@@ -1,6 +1,0 @@
-# To display line number
-  : set number
-
-# To turn syntax coloring
-  : syntax on
-

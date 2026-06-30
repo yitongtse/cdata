@@ -1,5 +1,0 @@
-* PMT Operation Test
-* Input PMT file (string) * pmt.ca.all_es
-* Output PMT file (string) * pmt.out
-* Operation (1: insert, 2: delete) (int) * 2
-* Target PID (or 0: program, -1: all PIDs) (int) * -1

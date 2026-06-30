@@ -1,5 +1,0 @@
-A router interface has IP address.  The IP addresses of all interfaces address
-the router itself.
-
-A switch interface has no IP address, only MAC address.  You can create
-a VLAN and assign IP address to it.  The IP address belongs to the switch.

@@ -1,3 +1,0 @@
-video set default timer 0 0 0
-video set qam 0 enab on
-video add ses 0 ip 1.1.1.1 udp 1 b 0 q 0 remap 1

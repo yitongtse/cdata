@@ -1,8 +1,0 @@
-cut -c1-3   requant_result > F1
-cut -c21-23 requant_result > DF1
-cut -c43-45 requant_result > DF2
-cut -c65-67 requant_result > DF3
-
-rm data
-paste F1 DF1 DF2 DF3 > data
-rm F1 DF1 DF2 DF3

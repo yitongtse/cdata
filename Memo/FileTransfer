@@ -1,7 +1,0 @@
-To transfer large files from PC to UNIX:
-
-First ftp it to friday@cisco.com (root password roZes).
-Friday can see /vws/xxx partitions.
-
-Then cp it to the final destination.
-

@@ -1,5 +1,0 @@
-* Number of programs to mux (int) * 2
-* Filename (string) * test.in
-* Filename (string) * test.in
-* Total number of IP packets to generate (int) * 100
-* Output filename (string) * test.out
