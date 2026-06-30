@@ -1,0 +1,21 @@
+Status report of Yi Tong Tse on 1/29/99
+
+This is the second week of writing code according to the schedule.
+So far the following items have been done:
+
+- finished main program and top level task routines.  The semaphores
+  and data queues are correctly set up.
+
+- the following data paths have been tested and are working for all
+  EchoStar bitstreams:
+      - live feed channel bypass path (with PID remap)
+      - ad bitstream dropping path
+      - other channel bypass path
+
+- PES, ES header parsing to extract information used for splicing.
+  At this time only big Endian is supported.
+
+- created a test bitstream for DPI testing by muxing echo2 and echo3
+  files into a single transport stream.
+
+

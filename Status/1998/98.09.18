@@ -1,0 +1,8 @@
+Status report of Yi Tong Tse on 9/18/98
+
+Spent time in discussing splicing scenario with patent lawyer.
+
+Finished P-picture coding for the encoder.  The encoder's result matches
+with those from our decoder and the reference decoder from the MPEG SW group
+for at least 30 frames.
+

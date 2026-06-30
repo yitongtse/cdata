@@ -1,0 +1,68 @@
+5/1/2001
+
+  To do:
+    - finish work with empty channel detection
+    - continue design of splicing algorithm for new API support
+
+
+
+------------------------------------------------------------------------------
+
+5/7/01
+  Two problems found in Emma's log file 0504-65-1.txt:
+    - hole in picture parse error handling:
+      Picture coding extension may be missing, but can continue
+      if one of the slice header can be found.
+      Need to review picture parse error handling!
+
+    - False reset may be trigger if the network channel is empty, and
+      if the ad data just comes in to be counted at the input gate, but
+      still has not been dropped yet (no output increment).
+
+  Ported all 2.2.4 throttle branch checkins to dpi_integ branch.
+
+
+------------------------------------------------------------------------------
+
+5/15/01
+  - need to improve error handling capability to reduce number of reset
+    on bad source
+
+  To do:
+    - created api3 view
+    - all data structure modification / cleanup.
+    - support tick-based switch
+
+
+5/18/01
+  Allow old channel to be empty
+    - If the old channel is empty at the splice time, the channel should
+      be tagged READY immediately.  No need to check seamless flag.
+
+
+------------------------------------------------------------------------------
+
+5/21/01
+  To do:
+    - turn on audio to see whether empty->ad works
+    - reload old PPC and test convertion pic-based to time-based switch
+    - work on net->empty mode.
+
+
+5/22/01
+  Try support empty->ad switch by implementing it as a forced switch.
+
+
+5/23/01
+  BUG: When ad is missing in net->ad switch, DPI will timeout,
+       but the new channel empty flag is not set.
+
+
+------------------------------------------------------------------------------
+
+5/30/01
+  Try to track down the new input FPGA problem.  The problem is hardly
+  seen with Divicom and HL, but very serious in Athena feed.
+
+  Noticed that tbOffset definition is different for DPI and for drift.
+  Should be able to simply drift using tbOffset.  Need clean up.

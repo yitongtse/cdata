@@ -1,0 +1,12 @@
+Status report of Yi Tong Tse on 9/25/98
+---------------------------------------
+
+Commented on the DPI patent draft from the patent attorney.
+Written up a description for time stamp correction in the patent.
+
+Finished writing and debugging the MPEG-2 encoder.  The encoder can now
+generate I/P/B pictures.
+
+Fixed some more bugs in the MPEG-2 decoder.  The decoder can now decode
+all EchoStar bitstreams as well as HITS bitstreams.
+

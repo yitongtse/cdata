@@ -1,0 +1,154 @@
+    Software integration phase
+
+
+3/1/99
+    Found a bug in freeBufPool
+
+
+3/2/99
+    Need to modify cleanCut module to count number of TP for a picture.
+    Instead, tpCnt is recalculated in switcher to reflect the correct number.
+
+    Successfully integrated DPI and CleanCut packages.
+
+    Simplified makefile.
+
+    Successfully install flags to turn on/off clean cut module
+
+    Channel in Hits bitstream successfully bypassed as other channel.
+
+
+3/3/99
+    Moved demux_new.c from dpi to rmx since many conditional compilation 
+    flags in rmx makefile are needed.
+
+    Modify PidBuf structure.
+
+
+3/4/99
+    Debug DPI & CleanCut integration
+
+    Integrate with RMX.
+
+
+3/5/99
+    Finish integration with RMX.
+    Code works for echo23.m2t!
+
+    Start debugging using HITS bitstream.
+
+------------------------------------------------------------------------------
+
+3/8/99
+    Ordered the EVM bundle.
+
+    Bug when other channel is used.  This is probably due to conflict between
+    cleanCut and RMX.
+
+    DPI seems to work on EchoStar, Harmonic Lightway and HITS bitstreams when
+    no other channel is used.
+
+    For HITS bitstream, one problem is that the live (80) and ad (400) channels
+    seems to have a large difference in the buffer fullness.  As a result, one
+    channel is ready, waiting for a long for the other channel to become ready.
+    This results in a long PicStat queue.
+
+
+3/9/99
+    Trying to fix the hanging problem.
+    The hanging problem is due to PidBuf leaking.
+
+    PidBuf leaking is because the RMX supports only single channel.
+    PidBuf of other channel will stay on the queue and lost.
+    Solution: Temporarily revert to the original approach for single channel.
+
+    Start compiling in C6x code.
+
+    Created/modified C6x makefiles for each modules.
+    Combined cleanCut .c files into single file due to filename too long.
+
+
+3/10/99
+    Trying to reduce the code size to fit program memory (64K)
+
+    After replacing printf() with tgtPrintf() and 
+    removing scanf() by hard-coded parameters, the code size reduced from
+    120K to 85K.
+
+    Try to use compiler directive
+        #pragma CODE_SECTION(func, "my_sect")
+    to put non-critical code in external memory.
+
+
+3/11/99
+    Successfully in reducing the code size to fit PMEM by moving non-critical
+    code in external RAM.
+
+    Problem: calling a function allocated to a different memory section
+             requires the far modifier.
+
+    Migrating to the V2.0 toolset:
+        - change the environment C6xDIR to /opt/tools/c6xtools.v20 (in .cshrc)
+        - change -Dname to -dname
+
+
+3/12/99
+    Recompiled kernel to use large memory model.
+    Reduced .cram size (used for memBlockAlloc()) from 0x5a00 to 0x5600
+    memBlockAlloc() allocates memory blocks in on-chip RAM (CRAM) or DRAM.
+
+    Contents that are allocated in CRAM are:
+      inBuf[0], outBuf
+    Contents that are allocated in DRAM are:
+      PidBufs, PicStats, PicHandles, SpliceCmds 
+
+    Successful in compiling and linking the code.
+
+    Start Simulator Debugging phase
+    COMMENT OUT memSet() TO SAVE SIMULATOR TIME!  NEED TO TURN BACK ON!!!
+
+
+------------------------------------------------------------------------------
+
+3/15/99
+    Replaced semaGiveN() with semaNGive() provided by the kernel.
+    Moved CleanCut module files to DPI directory.
+    (Note: fpga.c in cleanCut is different from fpga.c in rmx.)
+
+3/16/99
+    Install the new PC.
+    Install TI software.
+    Learn to use TI's Code Composer.
+
+3/17/99
+    Modify the linker command file for the EVM board memory map (evm.cmd)
+
+3/18/99
+    Figure how to use file I/O in Code Composer.
+
+
+------------------------------------------------------------------------------
+
+3/23/99
+    Unsupported channel bypass OK.
+
+3/25/99
+    The bug which corrupted the TP queue is due to wrong setup of the EMIF!
+
+3/26/99
+    Cleaned up debug code.
+    Added multiple TPs for File IO.
+    Passed thru entire input file (~10000 TPs)
+
+------------------------------------------------------------------------------
+
+3/30/99
+    Figured out that the EVM hangs inside the loop which count no. of TPs
+    for a picture in switcher.c.  Since this loop is not necessary for
+    echostar bitstream, temporarily comment out this loop so I can continue
+    my debugging.
+
+    First time pass throught the entire input file of 20000 TPs.
+    (With cleanCut and RMX turned off, on channel bypass only).
+
+    Adding Splice request task

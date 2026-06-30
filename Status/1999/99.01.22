@@ -1,0 +1,15 @@
+Status report of Yi Tong Tse on 1/22/99
+
+I was mainly busy with writing code this week.  At this point, the following
+items have been done:
+
+    - set up directory structure: basically I reuse the tree structure as
+      in RateMux, but added a new directory dpi for the DPI code.
+
+    - set up main program and major task functions: the two new tasks for
+      DPI: bufferer Task and switcher Task, are added to the existing tasks
+      in RateMux.
+
+    - set up data structures: we try to reuse the existing ones in RateMux
+      as much as possible.
+

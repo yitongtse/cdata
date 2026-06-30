@@ -1,0 +1,241 @@
+  Outstanding issues:
+    - lip sync problem
+
+    - Digitran dropout
+      Happens when a channel is reset while it is empty, then dropout happens
+      when the channel restarts.
+
+    - PCR jitter issue
+      Noticed that with TB=1, at the splice point, the PCR interval is reduced,
+      and the PCR jitter is out of bound.  With TB=2, there is no PCR jitter
+      problem at splice point.
+
+      Average drift measurement show that my clock is biased by about +8.
+
+      Removing PCR insertion in splice point does not solve the jitter problem
+        => not because of PCR.
+
+    - STB behaviour at splice point
+      Seems like Digitran artifact is also gone when we remove the PCR,
+      but keep EOS.
+
+
+11/1/01
+  - Controlling schedule table jitter does not have direct effect on PCR drift.
+    Controlling PCR drift directly seems more promising.
+
+  - Tried drift = accu drift / 1024
+    After startup, drift climbs slowly from 0 to values like 18.
+    Takes about 90 sec to go from 0 to 18.
+    HP analyzer works well.  Tektronics however, went crazy when drift
+    increases gradually.
+    May need to either increase or decrease the filter response.
+
+  - Tried drift = accu drift / 64
+    Mux Error 100
+
+
+-----------------------------------------------------------------------------
+
+11/5/01
+  Increase time stamp precision
+    ChanInfo:
+      - prevDet: add new variable tsExt, to track the 90x8 kHz remainder
+      - prevRefDI: increase its precision to 90x8 kHz.  No new variable
+      - tsDelay: increase precision
+
+    PicStat:
+      - DI: increase its precision to 90x8 kHz
+      - dtsExt: lsb of DTS
+      - ptsExt: lsb of PTS
+      - tbOffset: increase precision
+
+  Digitran dropout:
+    Edward noticed that the statmux inserts some PCR packets after the
+    signal gone down with very small PCR values.  Seems the PCR is reset
+    to 0.
+    After using Sencore to remove those bad PCR packets, the bitstream
+    works fine with Digitran.  No dropout, very clean start.
+
+
+11/6/01
+  New watch dog (with outTbAdj in PicStat) has false warning message at splice
+  point:
+    - move outTbAdj sampling from Bufferer to Splicer
+    - adjust entry anchor's outTbAdj
+    - move remapping pet and det to output TB from checkOutPic() passPic()
+
+
+11/7/01
+  Found TOT has audio lip problem that seems to be absent in 2.4.9DP3.
+  Reverting the latest output watchdow fix does not solve the problem.
+
+
+11/8/01
+  Noticed that the latest audio mapping scheme does not support autoSwitch mode.
+
+
+11/9/01
+  Code optimization:
+   Section      Debug   Optimized	Available
+    PMEM	f8e0	 d260		 720->2da0
+    SBRAM	d354	 d1b8		2cac->2e48
+    SDRAM	265e8	1f088
+    CRAM	d5ac	 d5ac		  2a54
+
+  CRAM
+    .tables	37c8
+    .stack	 100
+    .bss	4b84
+    .switch	  5c
+    .system	5100
+
+  SBRAM
+    .trace	8000
+    .cinit	24c4
+    .const	2be8
+    .far	 10c
+
+  SDRAM
+    data_ext	3544
+
+
+  Ways to increase supported bitrate -> increase PidBufs:
+    - turn off debugging tools (+117 TPs)
+    - reduce input/rateconv task halt threshold
+    - make use of available SBRAM
+    - reduce trace buffer size
+    - reduce PicStats
+    - reduce task stack size
+
+  Verified that Patch for 2.3a does fix the video flash problem.
+
+
+-------------------------------------------------------------------------------
+
+11/12/01
+  Learned that the heap is placed in CRAM.
+  By reducing the task stack size, we have created about 2K byte more space
+  in CRAM.
+
+  With all the optimization, the max bandwidth that DPI can substain is about
+  17 Mbps
+
+
+11/13/01
+  Tandberg has problem in hearing the audio of one of the HL encoder channels.
+  But no audio buffer is detected.
+  Other decoders work fine.
+
+  When switching with that channel, lip sync will develop which will not be
+  recovered.
+
+  WCS set up discovers some issue when either network or the ad channel
+  has no audio PIDs.
+
+  When network has no audio PID, PPC will still send audio PIDs for ad,
+  causing DPI to reset.  Edward has a patch to solve the problem.  For long
+  term, we need to fix on PPC side.
+
+
+11/14/01
+  When network has audio but ad has not, DPI will reset.  Edward has another
+  patch to fix this problem.
+
+
+11/15/01
+  Network has 2 audio PIDs, one is empty.  Noticed that when we have timeout,
+  one audio PID is lost.  Eventually the next switch cannot be completed,
+  causing a reset.
+
+  Noticed that on two out of the 6 channels, we have several short ad.
+  The 1st picture after switch is always the same number for the same
+  channel.  This should not have been caused by bad arm time.
+  Further study shows that about 100 to 200 TPs have been missing
+  at the beginning of the ad.  Need to capture SeaChange ad server source
+  to see who is dropping the TPs.
+
+  Remaining two issues to be tackled after WCS:
+    - why timeout cause audio PID to be dropped
+    - why the beginning of ad is missing
+
+
+11/16/01
+  Jinbo station shows continuous video underflow on one of the bypass channel.
+  JinChurn is looking into the problem.
+
+  Tony reported a bug found on DP3 regression test.  One particular channel has
+  reset every 3 to 4 minutes.  Reason: audio TP get stuck, causing PidBuf to
+  run out.
+
+
+
+------------------------------------------------------------------------------
+
+11/19/01
+  Weekend test: no audio lipsync problem found.  No resets.
+
+  Jim Clark on Cox:
+    - Problem in DSP allocation:
+      - Select no channels, but 6 DSPs, certain output rate.  Apply => OK.
+      - Add channels.  Apply => DSP allocation error 25.
+    - Need to support same input going to different output with different
+      program number and PIDs mapping!
+    - Problem starting with Rel 2.5:
+      no longer can pre-allocate DSP numbers without selecting input.
+
+  The Cox's problem is because Jim did not update the environment file.
+  It is using the 2.3.8DP environment file on 2.4.9DP.  Since flash partition
+  has been changed, the code is not correctly loaded to the DSP.
+
+  Learned how to use the bootp server to update code:
+    Need to point the bootp server to the appropriate ini file.
+    In the ini file, need to specify the release directory.
+    Since TFTP server will be used for actual data transfer, and TFTP requires
+    a root directory, both the bootp ini file and the release directory must
+    be under the same TFTP root directory.
+
+  Tony's regression problem: seems he is using an old channel configuration
+    which is no longer valid.  But still don't understand why this will cause
+    the reset problem.  Will load debug code into his station for debugging
+    since I cannot reproduce the same setup on my station.
+
+
+11/20/01
+  Fix to Tony's problem works!
+
+  Error robustness test:
+    PPC will still generate PTSoffset request for non-spliceable channels.
+
+  Non-RC test: 5/6 error channels
+    Survive all single error test.
+    All error test: 
+
+  RC test: 5/6 error channels
+    DSP reset due to mux holdup.
+    Don't understand why because this has nothing to do with RC!?
+
+
+
+------------------------------------------------------------------------------
+
+11/26/01
+  Come up with better audio packet allocation algorithm.
+  Edward will implement and verify it.
+
+
+11/27/01
+  - Consider combining monitor task, splice request task, and alarm task into
+    one task to save CRAM space for task stack.
+
+
+11/30/01
+  - Noticed that for DPI=2 mode, if we pick more net channel than ad channel,
+    that it will be stuck in a state that the switch always timeout.
+  - Found out this has to do with the way we set the maxDelay of each channel.
+    If a network channel is non-spliceable, then the maxDelay is set to 0.
+    Therefore it will be very difficult to do a seamless switch into a
+    non-spliceable network chennel.  Making the channel spliceable should
+    solve the problem.
+
+

@@ -1,0 +1,53 @@
+Status report of Yi Tong Tse on 5/15/00
+
+NCTA Show
+
+The show was on last week.  Because one of the two rateMux boxes that we sent
+has (hardward?) problem, we set up the remaining one and run the dpi code on it
+for both the rateMux and dpi demo.  The dpi demo was quite successful, but
+for the ratemux demo, some channels lost video after several hours.  
+
+After talking to the people who went to the show, I collected the following
+action items that we need to address:
+
+- Need to do more testing of the dpi code in ratemux mode (eventually the
+  dpi code will replace the ratemux code in the future.)
+
+- Need to add black frame insertion to dpi
+  (The latest API added a field which may request black frames at end of
+   the ad.)
+
+- Need to improve dpi's error handling capability (that is, when the input
+  bitstream has errors in it.)
+
+Some work has been done to address the last issue.  We have updated our
+requant module with the latest version from the ratemux code because it
+has much better error handling.  However, we found that the improvement
+will not work for some cases when the bitstream contains field pictures.
+Wayne Lee is working on the fix.
+
+I have also added some code to dpi to disregard the rate conversion request
+when we detect errors in a picture.
+
+I am also in the process of rewriting part of the bitstream parsing core
+routines to remove some unnecessary assumptions as well as some bugs which
+may cause the code to die.
+
+
+DPI Development
+
+We managed to reproduce in our lab the vertical sync problem that SeaChange
+reported.  The symptom is that with GI's DCT 1000 setop box, the upper part
+of the picture is unstable when we run the dpi code.  The problem disappears
+when we run ratemux code.  However, after we do some more tests, we found out
+that the real reason is that for some reason, the GI setop box cannot handle
+bitstreams whose picture header is aligned with PES header.  This aligned
+picture header is one particular case in MPEG stream, and is actually required
+in ATSC version.  We will try to see whether the same problem appears in
+newer versions of setop boxes, while at the same time I am working on modifying
+the output bitstream to avoid such problem.
+
+I have fixed a bug in sequence end code insertion in the splice point.
+I also found and fixed a bug which causes dpi code the hang when the
+statmux clock and the dpi clock are out of sync.
+

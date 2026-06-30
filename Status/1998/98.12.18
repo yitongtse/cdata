@@ -1,0 +1,23 @@
+Status report of Yi Tong Tse on 12/18/98
+
+I generated a small bitstream of 96x80 resolution for testing.  When scaled
+up to D1 resolution, the bitstream has an equivalent bit rate of about 15 Mbps.
+It has an average of about 10 coefficients per 8x8 block.  Benchmark shows
+that a 200 MHz C6x can decode at 500 macroblocks per second.  For D1 resolution
+at 10 I/P frames per second, this is about 26 times of real time.
+
+Figured out how to compile the code and run the simulator in big Endian mode.
+
+Spent some time to study TI's IDCT assembly routine and tried to integrate it
+with my code.  However, I found out that TI's IDCT assembly routine can only
+work in little Endian mode.  It needs to be modified to support big Endian
+before it can integrate with my code.  The IDCT result also has a scale factor
+of 4 in it.
+
+Obtained a more accurate cycle count of the VLD assembly routine:
+    Overhead for function call: ~8
+    VLD with single lookup: 10
+    VLD with double lookup, short codeword: 13
+    VLD with double loopup, long codeword: 19
+The total VLD table size is about 8K bytes.
+

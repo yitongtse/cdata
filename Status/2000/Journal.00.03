@@ -1,0 +1,474 @@
+3/1/00
+  The new dpi code after ver 166 continue to have bad PidBuf problem.
+  Reverted to ver 166 (from top of tree).
+
+  Turned statmux to account for long delay.
+  Buffer problem still occurs during the switch.  This is because the next AD's
+  has not been received before we reach EOS of the previous AD due to the gap.
+  As a result, tsDelay will be assumed to be zero in this case, with position
+  deadTime.  This is definitely WRONG!
+
+  Solution: we need to add data field in ChanInfo to indicate expected channel
+  start up time.  TsDelay will be initialized using this field, if present.
+  Also need to initial startingFlag appropriately based on closedGopFlag.
+
+  A more difficult problem is the leading B pictures in closed GOP case.
+  We need to wait for one more picture, after the I, to find the starting PTS,
+  and hence tsDelay.  Unfortunately we only process one picture (first one)
+  in CHAN_ON mode.  If we delay the decision for the first I, then we will
+  always have one more picture wait on the queue, until the next switch.
+  Currently we just let it be this way to minimize code change.
+
+  The above method doesn't quite work!
+
+  Use a tsDelayCnt instead:
+  - For free start channel, set it to 0.
+  - For non-free start channel, init it to 1.
+  - For the first I picture with tr==0, compute tsDelay and set tsDelayCnt to 0.
+    Adjust PTS/DTS of current picture.
+  - For the first I picture with tr>0, postpone processing of this picture,
+    and set tsDelayCnt to 2.  When the next picture (tr should be 0) arrives,
+    compute tsDelay, and go back to adjust PTS/DTS of previous and current
+    pictures.  Set tsDelayCnt to 0.
+
+  On second thought, the current EOS splice implementation has several
+  disadvantages:
+    - Doesn't quite follow what the other modes do => more changes
+      (Actually a differnt channel start up method is required.)
+    - Cannot fix field parity conflict at splice point in some cases.
+    - Cannot actually calculate dead time
+    - Cannot correctly give forced switch signal
+
+  A differernt implementation is therefore considered:
+    FG processing:
+      When a picture with EOS is found, set spliceReady flag.
+      When an anchor picture is received, send all previous pictures
+        (until not possible).
+        - Actually you will always be able to send all but the last anchor
+          picture because any pending PTS would have been resolved by the
+          next reference frame.
+      Simply wait on receiving B picture.
+
+    BG processing:
+      Simple hold as many pictures as possible in buffer (until cleared by
+      buffer overflow).
+      Also update spliceReady flag as normal.
+      If FG becomes ready, get the first entry candidate found.  Compute either
+      tsDelay or deadTime.  Do splice.
+
+   Bug found in procBgSpliceChan(): when bndryPicFnd is set, arrival of
+   next picture will make BG to be spliceReady.  We also adjust spliceTime
+   if there is a leading B picture.  We should have only adjust if leading B
+   exists and this is a closed GOP!
+
+
+3/3/00
+   New ES splice mode implemented.  Works pretty well.
+
+
+------------------------------------------------------------------------------
+
+3/6/00
+   Noticed severe video/audio mismatch (audio leading video for about 1 sec).
+   The mismatch changes at splice point.
+
+   In some forced switch case, the last picture is hold by mux.  As a result,
+   the last picture never got sent out by the output task, and indication
+   signal to PPC cannot be sent.  This eventaully lead to trapping.
+   Sangeeta said it is difficult to change statmux.
+
+
+3/7/00
+  Down signal problem:
+    When splicing into a channel whose signal is down, if the timeout mode
+    is forced switch, we have a problem.  This is because after the forced
+    switch, there will be no incoming picture from the new channel
+    (signal down), as a result, the last picture from the previous channel
+    will be hold by the mux and will never be output be the output task.
+    This means the splice indication signal will never be sent out to PPC.
+    Eventually the dpi code will trap itself due to video stopped.
+
+  Solution:
+    At forced switch, the splicer task generates additions DUMMY PICSTATs
+    to the mux.  This will flush the mux so that the last picture from the
+    previous channel will be returned and output by the output task, causing
+    the splice indication to be sent to PPC.  Those dummy PicStats have a
+    unique address (DUMMY_PICSTAT==0) and hence can be detected and dropped
+    by the rate conversion task.  Also those pictures have 0 size, avoiding
+    rate conversion request and hence no need to send updated picstat to mux.
+
+  The above solution seems to work, but stay problem afterward.
+
+
+3/8/00
+  Zero TP dropping at input:
+    Seems there are lots of zero packets in the ads from SeaChange server.
+    Modified bufferer task so that zero packets would not even be queued.
+    This way we don't need to rely on the statmux to consider on the zero
+    packets info, and we don't need to get rid of zero TPs in rate conversion
+    task.  Only disadvantage is that the input TPs are not preserved.
+
+  Note: there is a chance that some of the zeros bits in a zero TP belongs to
+    part of a VLC or start code.  In this case, dropping a zero TP at input
+    would cause data corruption!
+  The above approach is dropped!
+
+
+3/9/00
+  Trying to debug for the down signal problem.  However the server is very
+  unstable.  Didn't get too much done.
+
+
+3/10/00
+  Found out that we forget to set packets in PicStat.  After this is fixed,
+  down signal handling works!
+
+
+------------------------------------------------------------------------------
+
+3/13/00
+  I was told that the bug in FPGA is fixed.  Switched to use FPGA start code
+  search.
+
+  Noticed that the statmux used old value of delay parameters, which is
+  probably causing the audio buffer underflow problem.  Should fix it ASAP.
+  
+
+3/14/00
+  Noticed that Statmux will fail if the ACTIVE_THRESHOLD parameter is set
+  larger than 32.  Need to wait for Sangeeta to look at this bug.
+
+  Integrated with Wayne's new audio package.  The package fill gaps with
+  silent audio TPs and fixed a bug in forced audio switching.
+
+  Successfully moved spidMap to external data memory using DATA_SECTION.
+
+  BUG: Noticed some DTS jump warning in log file.
+
+
+3/15/00
+  Running out of memory in EXTRAM for external program space.  Moved rare
+  section to SDRAM.
+
+  Detailed study of the SeaChange bitstream shows that the PTS of the exit
+  anchor may be wrong, especially if the regular PBBP pattern is changed.
+  This cause the DTS jump at splice point.
+  P B B P B . P  : last PTS jump by one frame time
+  P B B P . . P  : last PTS jump by two frame time
+
+  Trying to fix the bad PTS problem in procFgSpliceChan().
+
+
+3/16/00
+  Matt has a version of statmux which correctly implement the ACTIVE_THRESHOLD.
+  This version, I believe, is based on top of tree, which has the TRACK_SIZE
+  feature.  However, I don't think Sangeeta's fix on DTS jumping back and forth
+  there.  Need to have a statmux which combines all these fixes.
+
+  Trying to look for a version of DPI which works the best:
+     dpi 174,  statmux 112.
+
+
+3/17/00
+  Use older version of statmux for testing.
+  dpi180: latest code but unstable.  Died soon.
+  dpi181: FIX_EXIT_TIME turned off
+
+  statmux120: latest mux with all the fixes
+              (Track size, initial startup delay, picture holding problem)
+
+  dpi181 and statmux120: lose audio at 5Mbps live.
+      Finally died due to mux holding pictures.
+
+  In the process of adding code for FIX_EXIT_TIME, there is some change in
+  splicer.c which determines whether to adjust entry picture DTS and PTS
+  if tsDelay > 0.  The reset of tsDelay to 0 is moved to a later part of
+  the code.  This may be the cause of some current pointer problem!?
+
+  Integrate latest audio package from Wayne.  Also check in all changes.
+
+  dpi182: use latest audio package, FIX_EXIT_TIME=1
+    This code die in the first AD1->AD2 switch.  sendVideo problem in Pic 2-0.
+    The second run is still running.
+
+  Seems like there are a lot of different problems in the latest dpi code.
+
+  Testing of dpi 174 and statmux 112:
+    On Wayne's machine, without RC and single channel, last more than 7 hrs.
+    On Jimbo's machine, with RC and 2 channel, dies quite often.
+
+  Overnight test:
+    dpi182 and statmux120: with no RC.
+    Die after 150 minutes.  Video stopped, probably due to mux problem.
+
+    On Wayne's machine: dpi 174 and statmux 112, single channel with no RC
+      died after 30 hrs because splice indication is not sent,
+      probably due to problem in audio switching.
+
+    On Jinbo's machine: dpi 174 and statmux 112, two channels with no RC
+      one channel died after 30 hrs, Jinbo said it is due to bad pointer
+      problem. 
+
+------------------------------------------------------------------------------
+
+3/20/00
+  Statmux 121: use Matt's statmux.c with more diagnostic messages.
+
+  Too many input halt problem.  Try to reduce max ts delay from 30 to 18
+  to reduce buffer fullness.
+
+  Plan for debugging:
+    Turn Audio flag first.  See whether we still have bad pointer problem
+    with RC. => dpi 184.
+
+  New feature: Added SEACHANGE compilation flag.
+    In case of SEACHANGE, if a splice is TIME_BASED, then adjust the splice
+    time in procInPicInfo() according to the DTS of the first AD picture.
+    => dpi 185
+
+  Running dpi 185 and mux 121 on my machine without RC.
+  Same code running in Wayne's machine with RC.
+    The run on Wayne's machine died due to sendVideo problem.
+    i.e. last TP does not mathch with that in picStat!
+
+  Also read profileLevel info from sequence extension and copy it to every
+  PicStat. => dpi 186
+
+  SeaChange sent us an email saying that DPI died at wrap around point of the
+  live feed (actually an ad itself).  Seems like the Bufferer did not send the
+  next PicStat after a sequence end code to the Splicer.
+  Added some tgtPrintf's in Bufferer Task (dpi 187).  Will ask them to rerun it.
+
+  To debug the sendVideo problem, label output TPs in packet.c also.
+    => dpi 188
+
+
+3/21/00
+  Overnight test running on my machine survives!
+    dpi 187, statmux 110, no RC
+
+  Got back log file from Seachange.  The symptom is at wrap around, there
+  are two "head:1  tail:0" in Bufferer.  As a result, one more PicStat
+  is generated but not passed to Switcher.  Wayne is looking into this.
+  Jinbo can help to set up Ad Server to repeat the result here.  But this
+  will interrupt the other tests.
+
+  Matt found the cause of the picture holding problem.
+    -> statmux 123.
+       This runs for more than 3 hrs.
+
+  Turn RC on. 
+
+  Problem: first few frame in ad dropped, due to Large TS problem.
+  Change the request splice time adjustment: I pic DTS + 12 frm time.
+  -> dpi 189
+
+  Potential Bug: a problem in rate conversion is found.
+  In rate conversion, we remove PidBufs of original picture, and update
+  pPicStat->firstTp to points to the next TP after the removal.
+  Therefore right after removal of the last TP, the first TP will points
+  to the firstTp of the next picture.  If the picture being rate converted
+  is the last picture in a channel, the following pictures may be deleted
+  by splicer.  As a result, the firstTp of the picture being rate converted
+  will be free by splicer and no longer valid.
+
+  To avoid this problem, the new approach does not remove PidBufs of the
+  original picture.  Then, when the rate conversion is done, the original
+  TPs are removed and new packets inserted in an atomic operation.
+  firstTp and lastTp never change and will always pointing to the right TP.
+  (Nobody else should touch this picture being RC excepted the rate conversion
+  task).
+
+  Need to introduce one global variable curTp to points to the TP being
+  read.  A new compilation flag, RC_DEBUG, will be used for this change.
+
+  JinChong has finished the PCR_PID project.  The code can be found in 
+  ~jcchong/release/pcrPid/.
+
+  Overnight test: dpi 187 and statmux 123, no RC
+
+
+3/22/00
+  Overnight test survives!  Dropping of beginning of AD1 still there!
+
+  Integrated Wayne's for the server wrap around problem.  (cleanCut.c)
+    AUDIO=1, RC_DEBUG=0.  -> dpi 191
+  dpi 191 has bad splice point.
+
+  Notice that there is picutre jump and blocking at splicing point after
+  I turned the audio back on.
+
+  Found the bug in the new request splice time adjustment:
+    FgCh->spliceTime got adjust without reseting bndryPicFnd and spliceReady
+    flags.
+  Fix in dpi 192.
+  dpi 192 is the latest code sent to SeaChange.
+ 
+  JinChong found a bug in the compClkExt() in timestamp.c.  In stead of
+  exU(clk1, 24, 31), the second argument should be 22.  After this fix,
+  Jin said that the PCR jitter problem is solved.  PCR jitter is same
+  as in Bitshaper.
+
+  JinChong started looking into the problems found in his DPI test.
+
+  Back to the RC_DEBUG path:
+  dpi 193: turn RC_DEBUG back on.  Use statmux 123 for testing.
+
+  Test seems OK so far.
+
+
+3/23/00
+  Mux: Matt checked in the latest changes to mux tree.
+  Checked out from top of mux tree again in mux5/.
+  Did customization for DPI
+  Also need to add Wayne's audio fix to mux.
+  => statmux 124.
+
+  Overnight test result: seems like there is a power outage.
+  The log file shows the somehow DPI code got reset.
+
+  Rerun it again, but same reset occurs.
+  Jinbo suspects that it is due to stack overflow.
+  Double the stack size of the Rateconv task.
+  -> dpi 194.
+  The self resetting problem seems to go away after this change.
+
+  SeaChanges said dpi192 did not work.  Seems we forgot to put Wayne's fix
+  of wrap around problem in.  Sent them dpi193.
+
+  BUG: Two indications for the same DPI request sent.
+  Reason: forgot to reset videoDone flag in procFgSpliceChan()'s que overflow
+          handling.  As a result, if a picture tagged endPicStat is processed
+          by the outputTask but latter untagged due to que overflow, the
+          videoDone flag remains on, and as a result, at the real splice
+          point, if audio turn off is ahead of video, we will have both
+          indications from video and audio turn off.
+  Fix: reset videoDone flag in procFgSpliceChan().  Care must be taken for
+       possible task switching at critical points.
+       => dpi 195.
+       
+  BUG: dpi code got trapped with not particular message.  After searching
+       the entire tree, only the two traps in tpTools.c seem to cause this
+       problem.  Added dbgPrintf and re-run to verify.
+       Wayne suggested to replace trap() by goto ERROR_PROCESS.  This will
+       cause the PES header in problem to be missed, without cause any
+       significant problem.
+       => dpi 196
+
+  BUG: found same bug of two indications for same DPI request in Jinbo's
+       log file (using dpi 195).
+  Reason: there are two more places which will have similar problem as
+       described above.  Need to fix them all.
+       => dpi 197
+
+
+3/24/00
+  Brian has a log file which shows the TRAP problem with no explain message.
+  I think it is probably one of the traps in tpTools.c.  Sent them dpi197
+  to retest.
+
+  Seems all test died because of the repeated indication problem.  Need to
+  further track down the bug.
+  Added more printfs  => dpi 198
+
+  Too many que overflow message.  Turned that off.  => dpi 199
+
+  Try to investigate stack overflow problem.  Added utilities to print
+  task info.
+
+  Noticed that the audio task did overflow!
+  Doubled audio task stack size.  But cannot link.
+  Moved audChanInfo out in external memory so I can link.
+  => dpi 200
+
+  Turn off TRAP, CHECK_PIDBUFLINK, and DEBUG2 compilation flags.
+  => dpi 201 (for SeaChange demo in NAB)
+
+  Weekend test: dpi 200, statmux 124
+
+
+------------------------------------------------------------------------------
+
+3/27/00
+  Weekend test result:
+    dpi200 on my machine died after 5 hrs due to pointer problem (pointing into
+    picChansHandle) in countPicTps().  This is during the first call in
+    skipPic().
+
+    dpi200 on Wayne's machine died after 4 hrs: similar to repeated indication
+    problem.  When splice time is adjusted according to the first ad pic's DTS,
+    forget to reset videoDone flag.
+
+    Add a utility resetFgSplice() to correctly reset the foreground splice
+    ready mode.
+
+    dpi200 on Jinbo's machine:
+      Potential stack overflow in splice control task!  Need to double its size.
+
+    spCtrl stack size fix and resetFgSplice() fix => dpi 202
+    Since I forgot to turn on TRAP, CHECK_PIDBUFLINK and DEBUG2 flags, dpi202
+    will not trap!
+
+    Turn back those compilation flags on.
+    skipPic fix => dpi 203
+
+    Deep rate conversion test.
+    At deep rate conversion, freeTpCnt can become -2.
+    This is probably due to the TP alloc in packetize()!
+    Halt packetization when freeTpCnt is low. => dpi 203
+
+    Still died at deep RC because statmux moved PCR back.
+    => back to the steal pic issue.
+
+    Turn off TRAP flag => dpi 203
+
+    SeaChange's NAB release:
+      DSP flashes: dpi203.fls, statmux124.fls
+      Archive: dpi.000327
+      SCCS rev: common-6.1, dpi-17.1 (except for modetab.c because
+                the file system is almost full).
+   
+
+3/28/00
+  Overnight test result:
+      Jinbo: One of the channel died after 10 hr. due to stack overflow
+             in output task.
+             The other channel survives, but have some picture breakup
+             and lip sync problem.
+      Tong:  Survived.  Ran over 24 hrs.
+      Wayne: Died due to running out of PidBufs.  The mux is holding up
+             pictures.
+
+  JinChurn's log file shows there is stack overflow problem in splicer task.
+  Re-prioritize the tasks to try to avoid stack overflow.
+
+  Move free pidbuf level check in packetize() to outside of the TP loop.
+  Test new FPGA code (FPGA_SEARCH on).
+  Since code did not fit, separate some function in util.c into util_ext.c
+  => dpi 204.
+
+
+3/29/00
+  Since the lab is pull down, the log files for the overnight test is not
+  available.
+
+  Brian reported some field reversal problem at the splice point.
+
+  Need to revert back to the SeaChange release status.
+  - FPGA_SEARCH off
+  - TRAP off
+  - Added message for field conflict
+  - Increase splicer task stack size
+  - move chanInfo to external memory
+  - Added progSeq flag in ChanInfo, remove prog_seq flag from PicStat.
+    Changed getSeqHdr to read to progSeq in ChanInfo instead.
+  => dpi 204
+
+
+3/30/00
+  Modify makefile.c6x for the new workstations.
+------------------------------------------------------------------------------
+
+
+  Latest test: dpi 203, statmux 124.
+

@@ -1,0 +1,15 @@
+Status report of Yi Tong Tse on 3/15/99
+
+  The DPI simulation code works now for EchoStar, Harmonic Lightway and
+  HITS bitstreams.  For HITS the splicing is non-seamless.
+
+  I am currently in the processing of porting the simulation code to
+  the C6x platform.  One problem I encountered is code size.  The combined
+  code is about 90 KBytes.  The solution is to put non critical code in
+  external memory, and use the large memory model to compile the code.
+  The new version 2 C6x tools are used and a new version of the Kernel
+  is also needed for the large memory model.
+
+  Will try to run and debug the code in real hardware this week.
+
+

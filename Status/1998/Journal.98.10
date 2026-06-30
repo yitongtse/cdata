@@ -1,0 +1,131 @@
+10/1/98
+  Study 2nd draft on the DPI patent.
+
+  Restructured the mpeg2dec program.
+  Use similar structure to the splicer program.
+
+
+10/2/98
+  Give final comments on 2nd draft on the DPI patent.
+
+  Working on the re-encoding routine.
+
+------------------------------------------------------------------------------
+
+10/5/98
+  Major restructuring of the Splicing program.
+  Wen announced his resignation.
+
+10/6/98
+  Continue working on the Splicing program.
+
+10/7/98
+  Worked on the BufferInfo class and buffering strategy.
+  Received final draft of the DPI patent.
+
+10/8/98
+  Finally the new buffer strategy works for the MPEG-2 decoder!
+
+10/9/98
+  Visited patent lawyer and signed the final draft of DPI.
+  Finish third version of splicer program.
+  Imporved underlying buffering strategy.
+
+------------------------------------------------------------------------------
+
+10/12/98
+  Finish coding the imporved buffering strategy
+  Imporved the echo capability of inport and output by allowing the use of
+    NULL label to turn off echo.
+
+  Continue to debug the dpi proram:
+    - need to make sure BYTE ALIGNMENT after generating header and switching
+      to copy buffer content.
+
+10/13/98
+  Remove all implicit definitions in the code.
+  Strip off reconstruction part of mpeg2dec.c to get mpeg2parser.c
+    for fast syntax checking.
+
+10/14/98
+  Some restructuring of the code to reduce repetition.
+  Finish requant routines.  Still need to debug recodeAnchorPic().
+
+10/15/98
+  Debugging recodeAnchorPic().
+    - need to update recoded MB DC predictors
+    - need to update orignal intra MB DC predictors (requant case)
+    - need to adjust DC predictors differences between original and recoded
+      MBs by changing the DC_diff values
+    - need to make sure DC is a spearate RL pair, even when DC==0
+  Debugging recodeBPic().
+
+  The entire state diagram works, although there is still some parsing error.
+
+10/16/98
+  Two problems to fix:
+    - syntax problem in ENTRY_B_PIC
+      => problem is due to skipped MB in B picture.
+      => need to change MB coding type if different QS is used.
+    - temporal reference adjustment
+
+  New B-picture skipped MB handling:
+    if prediction direction is correct => remain coded as skipped MB.
+    otherwise, recode (as Intra MB for the moment).
+
+------------------------------------------------------------------------------
+
+To do this week:
+  - fix temporal reference problem (Done)
+  - improve bit buffer (Working)
+  - improve vld
+  - support change of resolution
+
+
+10/19/98
+  Put all utility modules into a library
+  Simplify makefile
+
+10/20/98
+  Generate some demo bitstream for DPI using HITS.
+  Fixed the temporal reference adjustment problem.
+
+10/21/98
+  Improved the inport structure
+    - get rid of internal 8-bit buffer
+    - it supports now only the buffer mode.  File mode is support through
+      another structure inFile.
+
+10/22/98
+  Debug new InPort and InFile using mpeg2parser
+  mpeg2dec produces identical results
+
+10/23/98
+  Finished the new version of InPort which uses a different convention.
+  Further optimize the code.
+  Add packet re-alignment capability to mpeg2parser.c
+
+------------------------------------------------------------------------------
+
+To do this week:
+  - finish bit buffer improvement (Done)
+  - fix TR adjustment problem at buffer wrap-around
+  - implement re-quant (Finish code, not tested yet)
+  - overall re-structuring
+
+10/26/98
+  Debugged mpeg2dec and dpi with the new InPort
+
+10/27/98
+  requantPic() passed the mpeg2parser test.  The picture however degrades even
+  when the same MQUANT is used!
+
+10/28/98
+  requantPic() generate identical pictures when identical QS is used.
+  Written and debugged recodePic().
+
+10/29/98
+  Simplify info structures.
+
+10/30/98
+  Re-structuring to combine the two decoder tasks into a generic one.

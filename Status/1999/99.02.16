@@ -1,0 +1,11 @@
+Status report of Yi Tong Tse on 2/16/99
+
+
+The following items are completed in last week:
+
+- Endian independent bits and bytes handling routines
+- Handling of open and closed GOP structure
+- adjust picture for frame alignment
+- null P picture generation
+
+

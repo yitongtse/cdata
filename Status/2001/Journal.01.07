@@ -1,0 +1,60 @@
+7/10/01
+  Revert FCS code to use TB=1 as default, and port bug fix for forced switch.
+
+
+7/11/01
+  In TB=1 mode, a jump in time base will cause output watch dog to complain
+  all the way to the picture when such jump occurs!
+
+
+------------------------------------------------------------------------------
+
+7/16/01
+  Lay label DPI01_07_16 to dpi_integ branch
+  Performed incremental sync to dpi_newapi_integ.
+  Performed terminal sync of dpi_newapi_integ.
+
+
+7/17/01
+  - finished terminating the dpi_newapi_integ branch
+  - built release 2.3.8DP1 on dpi_integ branch right after termination
+    of dpi_newapi_integ.
+  - Talked to Madahavi & Jimmy on clock compensation of MPTS
+  - Updated feature list and send it to the group
+  - Vincent: changes to support 204 byte packet format: done
+    Will talk to Dan.  Will modify to search for start code for the
+    188 only, and put the result right after 188 Byte, overwriting
+    possible CRC data in 204-byte format.
+  - sent changes to test plan to Emma
+  - Edward: found out standard about language descriptor: in systems spec.
+  - Edward: support of audio remapping
+
+
+------------------------------------------------------------------------------
+
+7/23/01
+  - Emma reported a system with corrupted ad.
+    Found out that it is due to the bad source from SeaChange Server.
+    The bad source has lots of DTS jumps, which also causes statmux to
+    operate in bad mode, with very severe underflow.
+  - Attended PidGrp discussion for NorthStar
+
+
+7/24/01
+  - Attended DPI teleconference for second phase Cablelab demo
+
+
+------------------------------------------------------------------------------
+
+7/30/01
+  To do:
+    - add Server support info to DVS380 feature list
+    - debug lip sync problem in 2.3.8DP1
+    - Frank: add payload_unit_start_indicator to pktInfo
+
+  BUG: a bug is identified when a picture is dropped due to parse error
+    In a case, a reference picture is dropped due to expected picture coding
+    extension not found.  However, anchor unit size ignored any pictures
+    being dropped, causing the picture pointer to pass beyond the queue head,
+    which caused a trop.
+

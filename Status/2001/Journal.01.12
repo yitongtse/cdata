@@ -1,0 +1,101 @@
+12/5/01
+  Cleaned up the alarm task data structure.
+
+
+12/6/01
+  Rate control upgrade done.  However, the code seems to cause mux to fail
+  mysteriously.
+
+
+12/7/01
+  The build problem seems to be related to the execution of
+  the script ppc/utils/flashbld
+
+
+-------------------------------------------------------------------------------
+
+12/10/01
+  2.4.9DP6 built.
+  However, some problems have already been found during the weekend test:
+    - Mux continuously complaining about Missing Pids, caused by tracking.
+    - PPC continuously requesting for PTS offset
+
+
+12/11/01
+  Studied Visual World's document
+  Things to do to support:
+    - need (higher speed) pass thru mode operation (no requant) through demux.
+    - need to support multiple video streams per program
+    - clean cut may be an issue (not necessary if input is already clean cut)
+    - PMT to reflect worst case content
+
+  It seems to me that if STB can handle time base change at splice point
+  seamlessly, then we don't even need to restamp.  We can simply pass the
+  whole SPTS thru demux with only send time adjustment.  Risk is high though.
+  May need significant mux change, since the switch over point from normal
+  operation to pass thru may not be aligned with scheduler.  Also mux must
+  be able to handle DTS jump.
+
+  Spot On seems to refer to TP level splicing!
+
+
+12/12/01
+  DPI conference:
+    Spent most time on the discussion of ATSC DCC and its implication to
+    DPI, and amount of involvement DPI group needs to be in it.
+
+  Studied how memByteCopy() works.  It can handle the generic cases where
+  the buffer start points may not be word aligned!
+  Seems we can simplify it a great deal, if we assume all buffers start
+  at word boundaries.
+  Should try the assembly version memByteCpy() in kernal to see if it works!
+
+  Also noticed that separateTp() may not work the way it should be.
+  When it separates the TP, it move the PES header to the earlier TP,
+  not the later.  This does not agree with MPEG spec!
+
+
+12/13/01
+  See whether the separateTp issue has anything to do with Digitran splice
+  artifact, and the beating problem with DCT1000.
+
+  Turn off audio PID, and use EOS for Digitran.
+
+  Strange bug in upgrading RC:
+    Found out that it is because in sending the NEW_STATQUE message to mux,
+    the output task uses the sizeof(PicStat) for the message size.
+    Since size of PicStat is very close to overflowing this field, increasing
+    it will corrupt the message header.
+    Solution is to use MSGSZ_PICSTAT_COMMON instead.
+
+  Mux changes since DP3:
+    11/01	CSCdv76717	Elementary buffer incompliance
+    11/09	CSCdv83703	Improve max bit rate
+    11/12	CSCdt85667	PCR jitter
+    11/12	CSCdv86147	Digitran dropout
+
+
+-------------------------------------------------------------------------------
+
+12/17/01
+  Weekend test:
+    No reset.  Only 6 forced switch due to empty forground.
+
+
+12/18/01
+  RC study:
+    Noticed that I picture target miss has high correlation with window size,
+    which is 1/128 of the picture size in bits.
+
+    Try using a larger, fixed window size of 50000 bits:
+      Seems for some scene blocking is gone, but in some scene blocking
+      is still seen.
+
+    Try suppressing QS code diff of +/- 1.  Result is worse.  Blurry picture,
+      with bad blocks around edges sometimes.
+    First result seems to have the mistake!
+
+  Other idea for improving RC:
+    - separate treatment of intra/inter macroblocks
+    - skip MQUANT when MQUANT is reasonably high, and difference is small
+    - different mapping from target ratio to new quant

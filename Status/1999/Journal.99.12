@@ -1,0 +1,121 @@
+12/1/99
+  Demo2_1: Progress refresh simulation died after statmux received
+  frame 14495 (about 8 mins).  Input file location 522409512.
+
+  Demo2_2: Messy splice successfully finished.
+
+  Demo3_1: Rerun progressive refresh simulation with file offset of 514057424.
+
+
+12/2/99
+  Trying to fix the Dev/Hw source directory.
+  Added endPicStat in chanInfo to point to the last picture before turning off
+  a channel.  This simplifies the Output Task.
+
+  Progressive refresh simulation die again, at roughly the same age.
+  Output file size: 260571136 or 290267136
+  Output frames: 14644 or 16299
+  Guess: output file size is roughly 2^32/2/8.  Seems like a Int32 bit counter
+         may have wrap around!
+  Notice that there is no such problem if progress refresh flag is turned off!
+
+
+  Testing reliability of dpi123.fls
+    - Audio careless bug fixed.
+    - Harmonic Lightway RC bug fixed.
+
+
+  - New spPicStat, sentPicStat, endPicStat and muxPicStat convention
+    spPicStat is initially set to NULL at start up.
+    When a new picture is passed to switcher, spPicStat will be updated
+    to point to this picture.
+    spPicStat will remain non NULL until the channel is closed down.
+
+    muxPicStat is initially set to NULL at start up.
+    When a new picture is passed to switcher, muxPicStat will be set
+    to this picture if muxPicStat is NULL.
+    After the last picture in Switcher has been passed or dropped
+    (muxPicStat==spPicStat), muxPicStat is set to NULL.
+
+    When a channel is to be turned off, endPicStat will be set to point to
+    the last picture before turned off.
+
+    outPicStat is updated by the outputTask and points to the last picture
+    sent out by output task.
+
+
+12/3/99
+  Overnight result of dpi123.fls:
+    Stopped switching after force switch, which happens in about 30 minutes.
+
+  A bug found in procSwitchTimeout().  Need to set endPicStat.
+  Or in case output Task has already sent out the last picture,
+  signal the spliceControl Task directly. 
+  Bug fixed by adding outPicStat in ChanInfo.
+
+  Noticed that whenever there are skip pictures, the free TP level drops.
+  Also pidChansHandle's pidQue counter gets negative!
+  Bug fixed in rateConvPic() in rateconv.c.
+
+  Study of progressive refresh simulation results show that the segmantation
+  problem may be due to the outage of free PidBuf.  The free PidBuf level
+  graduately drops.  May have pidBuf leak when inserting I picture!
+
+  A temporary solution is to increase the PidBuf count by roughly 5 times so
+  hopefully the simulation can be done before the buffers run out.
+
+  With the new picStat convention, we may not need the FINISHING chan mode!
+
+
+-------------------------------------------------------------------------------
+
+12/6/99
+  Progressive refresh simulation completed successfully.
+
+  Remove DPI_API compilation flags for Demux.
+  Update top of tree for mux: _DELAY_CHANGES_ changes and DPI_API removal.
+
+
+12/7/99
+  Forced switch seems work pretty well now.
+
+  Integrate new clean cut module which supports seq end code detection.
+    Replaced three files: cleanCut.h cleanCut.c tpTools.c
+
+
+12/8/99
+  dpi127.fls pass overnight test: 2 HITS channel switching without RC.
+
+
+12/9/99
+  Latest code (dpi129.fls, statmux105.fls) pass overnight test.
+
+  To do:
+    better load measure
+    use same kernal as ratemux
+    improve splice request task to support bypass channel
+
+  BitBuf respin:
+    New files: util2.h, bitbuf.h, reader.h, writer.h, vld.h, vld.c,
+               vlc.h, vlc.c, gethdr.h, puthdr.h, info.h
+    Replaced files: gethdr.c, puthdr.c
+
+
+-------------------------------------------------------------------------------
+
+BACK FROM WESTERN CABLE SHOW AND CHRISTMAS
+
+
+12/28/99
+  Work on P1 directory.
+  - added mpeg2.c to demux
+
+12/29/99
+  Testing the P1 directory.
+  Without RC, bypassing and splicing works.
+  Video breakup with RC!
+
+  The problem seems to be in the change of frstSlcPos to frstSlcPtr in PicStat.
+  It now points to the next byte after the first slice start code, instead of
+  the first byte of the first slice start code.  As a result, we need to modify
+  videoes.c to supress the generation of the first slice start code!

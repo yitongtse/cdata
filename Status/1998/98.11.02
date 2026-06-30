@@ -1,0 +1,8 @@
+Status report of Yi Tong Tse on 11/2/98
+
+Added rate conversion capability to the DPI simulation.
+
+Simplify the bit handling routines.
+
+Fixed some more bugs.
+

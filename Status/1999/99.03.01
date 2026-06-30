@@ -1,0 +1,13 @@
+Status report of Yi Tong Tse on 3/1/99
+
+Last week I mainly work on the following items:
+
+  - gone through some simplification of the splicer state diagram
+  - start integrating with the clean cut and ratemux modules
+
+At this point, I can successfully compile and link the three modules
+together, but not all parts of the code are activated yet.  There seems
+to have some interface problem of the splicer and the clean cut module
+that I will need to address.
+
+

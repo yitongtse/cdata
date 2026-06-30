@@ -1,0 +1,423 @@
+3/1/01
+  Noticed that Emma's station has forced switch every time on the ABC channel
+  after running for a long time.
+  Those forced switches are caused by dropping ad.
+  The ABC channel has black pictures.
+
+  Try to remove those forced switches by including EOS as a condition for
+  exit candidate in picture based splice mode.  This was previously added
+  just under the NCUBE flag.  The NCUBE flag has now been removed.
+
+  The real reason for this continuous forced switch is that:
+    After forced switch back to network, the network channel has 0 tsDelay.
+    Lower delay means network channel will become ready later.
+    The SeaChange Ad starts about 0.16 sec before the request splice time.
+    Since MAX_TS_DELAY is 0.25 sec, this means any adjustment of splice time
+    by more than 0.25 - 0.16 = 0.09 sec will cause dropping of ad frames!
+
+    In normal case, the positive tsDelay in network channel is helping the
+    channel to be ready earlier, 
+
+
+3/2/01
+  Overnight test result:
+    Tong: 1181
+      No reset.
+      1 forced switch, due to server termination
+      Measured min Free PidBuf level:  8109 (with splicing)
+
+    Emma 61: pre DP4
+      No reset over 1000 min.
+      1 forced switch, possibly due to server termination
+
+    Jinbo: pre DP4
+      2 demux resets: at 896 min and 902 min (quite close).
+      first due to poll fail, second due to PPC splice indication timeout.
+
+      Noticed that BG channel is -1!
+
+(5370478) - Dsp s3m0 - Pic 2-0: SEQ accquired^M
+(5370478) - Dsp s3m0 - Ch 2: PicNo base 2^M
+(5370479) - Dsp s3m0 - Last Pic found^M
+(5370483) - Dsp s3m0 - Chan 1: stop 901cf7a4, fill 901cf7a4 => Chan 2: start 901
+cf7a4, tsDelay 000012eb^M
+
+(5370660) - Dsp s3m0 - << DPI IND 02f302f4: 1->2, status 3, rcv 90176587, req 00
+00012c, act 901cf7a4, totTime 0006df8a, totPic 299^M
+(5370664) - Dsp s3m0 - >> DEL: chan 1, result 0^M
+(5370667) - Dsp s3m0 - ^M
+(5370667) - Dsp s3m0 - >> PIC DPI REQ 02f40000 at 901df448: 2->0 at 900, tmout 0
+0015f90, tomode 1^M
+(5370709) - Dsp s3m0 - Pic 0-8: SEQ accquired^M
+(5370709) - Dsp s3m0 - Ch 0: PicNo base 347^M
+(5370743) - Dsp s3m0 - ^M
+(5370743) - Dsp s3m0 - >> SET: AD chan 1, PCR chan 1, PID 80, SPID 812->267^M
+(5370744) - Dsp s3m0 - >> DPI CANCEL: 2->0^M
+(5370744) - Dsp s3m0 - Cancel switch^M
+(5370750) - Dsp s3m0 - << DPI IND 02f40000: 2->0, status 5, rcv 901df448, req 00
+000384, act 4df0a171, totTime e33b9ee2, totPic 576201215^M
+(5370753) - Dsp s3m0 - ^M
+(5370753) - Dsp s3m0 - >> PIC DPI REQ 02f402f5 at 901e8bc2: 2->1 at 900, tmout 0
+0015f90, tomode 1^M
+
+(5371792) - Dsp s3m0 - Time 895:30, Load 49, Clk 9025ac34, Halt 0, Ovrn 0, Ver 1
+182^M
+(5371792) - Dsp s3m0 -  TP: in 236731201, out 134783584, flush 0, free 8666, cc
+2, leak 15^M
+(5371792) - Dsp s3m0 -  Pic: in 1662013, pass 1563617, drop 98939, out 1563571,
+err 500^M
+(5371792) - Dsp s3m0 -  Rc: rcv 1563572, noRc 964104, rc 599468, skip 0^M
+(5371792) - Dsp s3m0 -  Spc: req 1509, OK 879, cancel 629, tmout 0, forced 0, re
+j 0, gap 0^M
+(5371792) - Dsp s3m0 -  Ch 0: PID 80, mode 01, pic 0(1,0,0,0,0), TP 0, D 0, 0->0
+ Mbps^M
+(5371792) - Dsp s3m0 -  Ch 1: PID 80, mode 21, pic 0(0,0,0,0,0), TP 0, D 0, 1->1
+ Mbps^M
+(5371793) - Dsp s3m0 -  Ch 2: PID 80, mode 11, pic 47(1,0,45,1,0), TP 5250, D 10
+7, 4->3 Mbps^M
+(5371793) - Dsp s3m0 -  PIC-DPI 02f402f5 at 901e8bc2: 2->-1, pic 900, expire 902
+7
+
+  Bug: BG channel becomes -1 as shown from monitor task output!
+  Reason: In spCtrl, setting peerChanId to -1 is done AFTER splice indication
+          is sent.  If another splice request is received, the peerChanId
+          will be set, which will later be set to -1 in spCtrl.
+  Solution: move peerChanId setting to before sending of splice indication.
+            => dpi1183.fls from ytse-rel2_3dp, not checked in.
+
+
+
+------------------------------------------------------------------------------
+
+3/5/01
+  Weekend test results:
+  Tong: Perfect
+    No reset over 3850 min. (64 hrs).
+    No forced switch.
+
+  Emma 61:
+    19 demux resets, 11 mux resets
+
+  Jinbo:
+    PPC not responding to connect program.
+    25 demux resets, 5 mux resets
+
+    Seems like PPC now resets at FIRST poll fail!
+    demux poll fail after splice timeout
+
+  JINBO made a mistake in this build.  Not from throttle branch!!
+  Weekend test result useless!
+
+
+  Issue: How much delay we need to avoid dropping ad frames according to DVS380?
+    Ad stream:
+      Assume request splice time at 0
+      ad stream started at -600ms
+      I frame vbv_delay is 0ms (worst), 240ms (typical, enforced in SMPTE 312M)
+      I frame PTS-DTS = 33ms
+      => -600 + 0 + 33 = -567 ms (worst)
+      => -600 + 240 + 33 = -327 ms (typical)
+
+    Anchor unit display duration:
+      Assume M = 3
+      30 frm/sec, 2 repeated fields
+      duration = 1000 * 8/60 = 133ms
+
+    Field parity conflict resolution:
+      Adding another 50 ms.
+
+    Required delay: 567 + 133 + 50 = 750 ms (worst)
+                    327 + 133 + 50 = 510 ms (typical)
+    Therefore, we need 1/2 sec for typical, or 3/4 sec for worst case
+
+    # pidbufs = 14000 TPs => 21 Mbits
+
+    There should be two tsDelay thresholds:
+      actual channel delay: with conflict resolution picture
+      delay allowed by splicer: not considering conflict resolution
+
+
+3/6/01
+  Overnight test result:
+    Emma 61: no reset over 1192 minutes.
+             3 forced switch on one channel, possibly due to ad server problem
+             97 timeout on another.
+
+    Emma 65: substaining lip sync problem (video underflow) in one of the
+             channel!
+
+    Emma 61 later get reset due to statmux dead.  Seems to be due to a period
+            of bad signal.  Lots of AF size problems.
+
+    Emma 65 did not die, but 
+    Emma found a new problem that video stopped and lots of frame stuck
+    in Splicer task.
+
+    Outstanding issues:
+      - lots of timeout!
+      - video buffer underflow
+      - pictures stuck at splicer task for bad data
+
+    Pending checkin for dpi_integ branch:
+      - min free buffer tracking
+      - monitor short ad
+      - check ad arrival time
+
+
+3/7/01
+  Plan:
+    - Check in all debugging tools in main branch
+    - Add code (in ytse-dpi4) to handle anchor unit logic under error conditions
+    - Use error simulation to simulate picture errors
+    
+  The use of spPicStat:
+    - initialized to NULL at channel setup
+    - points to the latest picture that bufferer task sent to splicer task
+    - in splicer task, spPicStat always point to the latest picture from
+      bufferer task
+    - NOTE: should only be set by bufferer task, not in splicer!
+
+  - NOTE: need to check all usage of spPicStat and nextPicStat!
+
+  getNextPicStat(pPicStat) will get the next pPicStat's next PicStat in the
+      channel, and in case pPicStat is already the last pic passed to splicer,
+      returns NULL!!
+
+  Added code to drop picture when picture type is wrong.  But code has bad
+  pidBuf problem and reset.
+
+  Found that the problem is due to the fact that the dropped picture may not
+  be the next picture to be sent to mux.  For example, PBB, may be only the
+  middle B picture is to be drop, not the P.
+  Need to enhance dropPic() to handle picture not being nextPicStat.
+
+  New dropPic() seems to work pretty well. => dpi1186.fls
+
+
+3/8/01
+  When did I changed anchorUnitComplete() to reture 1 instead 2 at certain
+  case?
+  - Changed in splicer.c@@/main/dpi_integ/99.
+    Has some restructuring of anchor unit logic.
+
+  To Do: anchor passing does not work if we drop picture, because anchorSz
+     computed as difference between inPicCnt does not represent correct
+     #pics.  Instead, we should check inPicCnt.
+  Done.  Still need to check.
+
+  Check 030601-60-2.log
+    Note that logs of debug messages about flushing video, but those messages
+    should only be printed using tgtPrintf().  Maybe there is a stack overflow
+    problem in the bufferer task when we need to do lots of TP flusing!
+
+    There are also some mysterous demux resets due to no obvious reason.
+    Need to recheck stack usage!
+
+  To do:
+    Add error recovery to detect substaining buffer used up condition.
+
+  Use a new way to calculate anchor unit size:
+    Always treat nextPicStat (next picture to be sent to statmux) to be
+    beginning of an anchor unit.
+    Whenever a picutre is passed to anchorUnitComplete(), always increment
+    nextPicStat's anchorUnitSz by 1.
+
+  dpi1188.fls: stack monitor, poll reset check
+
+  dpi1189.fls: latest dpi_integ TOT
+
+
+3/9/01
+  latest dpi_integ build: dpi1190.fls
+
+  BUG: in new poll reset mechanism, pollCnt will only be increment when life
+       is set.  As a result, without using the LIFE keyword, pollCnt will never
+       get increment and reset mechanism will not work.
+
+
+3/10/01
+  New FG ready que overflow checking:
+    Instead of using a fixed max que size, we can use the distance between
+    top of queue DTS and current time.  In order to avoid statmux's scheduler
+    running empty, we only need to gaurantee to send a frame no later than
+    DTS-0.25 sec.
+    For robustness, we still need to use a MAX_FG_QUEUE_SZ but set it to a
+    very high number, like 20.  This can avoid problem if we have a bad DTS
+    on top of queue.
+
+
+
+--------------------------------------------------------------------------------
+
+3/12/01
+  Checked in the last two bug fixes in rel2_3dp_throttle and dpi_integ.
+
+  rel2_3dp_throttle: dpi1192.fls
+  dpi_integ: dpi1193.fls
+
+  BUG: HP analyzer complains about discontinuity indicator changed without PCR
+       when switching into the ad.
+
+  BUG: Edward found the bug in anchorUnitComplete().
+       Checked in dpi_integ.
+       Put in rel2_3dp_throttle.  Check in pending.  dpi1192.fls
+
+  Added verifyPtsDts() to actually compare PTS/DTS in PicStat and in bitstream.
+    in ytse-dpi view: dpi1194.fls
+
+
+3/13/01
+  Overnight test:
+    no buffer problem in a 30 sec bitstream.
+    rate reduction, 3 athena feed, 1 Harmonic, two of them splicable.
+
+  To do:
+    - Double check packet.c new change in copyPesEsHdr() to handle EOS, PCR
+      packets.
+
+  Checked in anchor unit logic bug fix in throttle.
+  Make changes in ytse-rel2_3dp for the discontinuity_indicator flag reset.
+  Not checked in yet.  => dpi1192.fls patch.
+
+
+3/14/01
+  Edward worked on combining dpi and statmux dbgPrintf().
+
+
+3/15/01
+  BUG: splice point problem with glue picture. 
+       Glue picture does not start with random access point and PCR.
+  FIX:
+    - Need random access point (RA flag set, PCR inserted) right before
+      1st glue picture.
+    - Need EOS insertion when glue frames (black or field flip) have been
+      inserted.
+
+
+3/16/01
+  First insert glue picture:
+    if (EOS flag set) {    // old channel ends with EOS
+        insert RAP with PCR
+        reset EOS flag
+    }
+    insert glue picture
+
+  Entry picture:
+    if (EOS flag not set)
+        insert EOS
+
+    insert RAP with PCR
+
+
+==============================================================================
+
+3/20-23
+  Attend TI C6x class.
+
+
+==============================================================================
+
+3/26/01
+  dpi1197 - no RAP in first glue picture.
+
+  Preparation for new API branch:
+    Double commit all throttle checkins to dpi_integ:
+
+      CSCdt24184  Audio drops out after a few hours of operation (with HBO)
+		  Done in CSCdt62435.
+
+      CSCdt34256  Watch-dog timer expires while writing to FLASH in new boards
+		  Need porting!
+                  Ask Jinbo to do this!
+
+      CSCdt58443  DPI: Occasional Mux Reset when Queue is restarted
+		  Done in CSCdt62435.
+
+      CSCdt58842  DPI: Occasional demux reset
+                  Done.
+
+      CSCdt59719  DPI: Forced switch caused by dropping of ad frames
+                  Done.
+
+      CSCdt61097  DPI: reset due to racing between splice task and
+                       splice control task
+                  Done.
+
+      CSCdt65516  DPI: Channel remains dead without reset
+                  Done.
+
+      CSCdt65540  DPI: reset caused by corrupted Athena feed
+                  Done.
+
+      CSCdt67571  DPI: Excessive splice timeouts
+                  Done.
+
+      CSCdt67927  DPI: Bad pointer caused by I picture without
+                       preceeding B pictures
+                  Done.
+
+      CSCdt69627  DPI: HP analyzer shows discontinuity_indicator problems
+                  Done.
+
+  Jinbo mentioned that he will not check in the watch-dog expire change
+  to the main branch BEFORE the pulling of integration branch for new API.
+
+
+3/27/01
+  Labelled top of dpi_integ branch: DPI01_03_27
+  Pulled new integration branch: dpi_newapi_integ
+  Started the sync with main branch
+
+
+3/28/01
+  In ytse-dpi4, modify the data structure of PicStat so that it is the same
+  as the one after the latest main sync.  Then recompiled both demux and mux
+  with build no 1200.  When this works, replace demux with build from
+  ytse-dpi_integ.sync (9999) and retest.
+
+  Put Matt's mux fix to support SAFE tool.
+
+
+3/29/01
+  Emma has a log file in /ventura/shared/eraguine/captures/dpi/0327_60_1
+  which has a DSP stop processing a channel and cannot get reset:
+
+(70589412) - Dsp s1m2 - Time 125:00, Load 100, Clk 65e6780c, Halt 0, Ovrn 0, Ver 249
+(70589412) - Dsp s1m2 -  TP: in 17857076, out 11240081, flush 0, free 2364, cc 11, leak 390
+(70589412) - Dsp s1m2 -  Pic: in 446783, pass 446769, drop 13, out 446387, err 5
+(70589412) - Dsp s1m2 -  Rc: rcv 446769, noRc 73171, rc 355074, skip 18143
+(70589412) - Dsp s1m2 -  Spc: req 0, OK 0, cancel 0, tmout 0, forced 0, rej 0, gap 0
+(70589412) - Dsp s1m2 -  Ch 0: PID 192, mode 10, pic 193(0,1,0,192,0), TP 9168, D 0, 0->0 Mbps
+(70589412) - Dsp s1m2 -  Ch 1: PID 576, mode 10, pic 191(1,0,0,190,0), TP 2078, D 0, 0->0 Mbps
+(70589413) - Dsp s1m2 - ## Chan 0, PID 192: input video stopped
+(70589413) - Dsp s1m2 - ## Chan 1, PID 576: input video stopped
+
+(85128892) - Dsp s1m2 - Time 2549:00, Load 100, Clk 6bfd780f, Halt 0, Ovrn 0, Ver 249
+(85128892) - Dsp s1m2 -  TP: in 17857076, out 11240081, flush 0, free 2364, cc 11, leak 390
+(85128892) - Dsp s1m2 -  Pic: in 446783, pass 446769, drop 13, out 446387, err 5
+(85128892) - Dsp s1m2 -  Rc: rcv 446769, noRc 73171, rc 355074, skip 18143
+(85128892) - Dsp s1m2 -  Spc: req 0, OK 0, cancel 0, tmout 0, forced 0, rej 0, gap 0
+(85128892) - Dsp s1m2 -  Ch 0: PID 192, mode 10, pic 193(0,1,0,192,0), TP 9168, D 0, 0->0 Mbps
+(85128893) - Dsp s1m2 -  Ch 1: PID 576, mode 10, pic 191(1,0,0,190,0), TP 2078, D 0, 0->0 Mbps
+(85128893) - Dsp s1m2 - ## Chan 0, PID 192: input video stopped
+(85128893) - Dsp s1m2 - ## Chan 1, PID 576: input video stopped
+
+  The problem is Load stayed to 100% all the time!  
+
+
+3/30/01
+  Remaining sv2 bugs:
+    CSCdt31824	DPI: Lost network connection to PPC
+    CSCdt82660	DPI: PPC locks up cant connect into browser
+
+  Merge issue:
+    Verify reducing picCnt to 16 bits
+    Verified fields in PidBuf
+    Set defaulted value of dtsPcrAllow
+    Support idleTime
+
+  Support of idleTime:
+    In Splice Control Task, recompute CPU loading every 20*50ms = 1 sec.
+    Idle % = (change in idle_cnt) / (interval * maxCPUload) * 100%
+    interval = change in ticks * 10 msec = chagne in ticks / 100 (sec)
+

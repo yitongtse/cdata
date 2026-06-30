@@ -1,0 +1,15 @@
+Status report of Yi Tong Tse on 8/17/98
+
+Modified the inter-picture rate control used in statistical multiplexing.
+The new rate control seems to work significantly better than the original
+TM5-based rate control in terms of achieving the bit reduction target.
+
+Studied Ji's patent application on splicing.  Start working on the set of
+claims for the anchor frame replacement solution based on the state diagram
+in my DPI document.
+
+Studied Ji's patent application on autonomous frame and logo insertion
+and provided him with my feedback.
+
+Working on video decoder for the DPI project.
+

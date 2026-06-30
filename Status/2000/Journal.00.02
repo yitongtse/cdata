@@ -1,0 +1,331 @@
+Wish list:
+  - when we drop an entry candidate picture due to some reason
+    (TS delay too big, field conflict, etc), we should also drop the following
+    non-entry pictures AS SOON AS POSSIBLE to reduce buffer fullness.
+  - in the splice request, we should add a parameter to indicate whether we
+    should pick an entry candidate to maximize or minimize the tsDelay of the
+    new channel.  Maximize means to avoid picture dropping (AD), minimize
+    means to minimize buffer level.
+
+
+
+2/1/00
+
+  Outstanding DPI issues:
+    - BUG: rate conversion does not work for Philip source
+      Reason: mis-association of PES header to picture
+              (same reason as for the Harmonic Lightway DTS jump problem)
+      Status: fixed.
+
+    - BUG: HITS splicing always timeout after PES header association fix.
+      The other channel's DTS can not be found!
+      Fixed by moving the code with fix B-picture DTS problem ahead of
+      the DTS check.
+      Status: fixed.
+
+    - PCR drift warning from Mux at splice point.
+      Decided not to do anything to handle the PCR discontinuity.
+      Status: dropped.
+
+    - BUG: Ad insertion with SeaChange accumulate channels at FORCED SWITCH.
+      Reason: Timeout signal is sent too early (at splicer instead of at
+              output task after sending the last picture).  As a result, the
+              delete channel PPC message was ignored because channel is
+              not OFF yet.
+      Solution: Delay the sending of Splice Indication message to the Output
+              task if the last picture sent to mux has not yet been output.
+              Otherwise send the indication from the Splicer.  That means,
+              for successful splice and late forced splice, splice indication
+              will be sent from the Output Task.  For timeout-stay case and
+              early forced splice, splice indication will be sent in the
+              Splice Task.
+              One problem in the forced splice case is to determine whether
+              the last picture sent to mux has been output by the output task.
+              To do this, we add a new variable lastPicStat in ChanInfo to
+              point to the last PicStat sent to mux.  It is initialized to
+              NULL at channel start up.  If this picture is sent out by the
+              Output Task, lastPicStat will be set to NULL.  This way, we
+              can tell whether the last picture sent to mux has been output
+              by comparing lastPicStat to NULL.
+
+    - BUG: entry field modification is wrong for closed GOP
+
+    - ENHANCEMENT: alignment with mux by stealing B pictures
+
+    - ISSUE: found out from Brian that when playing back to back ads, there is
+      a small (about 100 ms) gap between the ads!  Currently our splicer
+      is not able to handle that.
+
+
+2/2/00
+    - ENAHNCEMENT: currently the first entry candidate is kept in the BG queue
+        until queue overflow, in which case the next candidate will be
+        searched.  This however gives large tsDelay in general.  A better
+        algo will be to look for latest entry candidate, and drop all the
+        preceeding pictures in the queue.
+      Note that this change may not work for channel or Ad with confined
+      time span!
+
+
+2/3/00
+  - Wayne fixed the problem of stop splicing when multiple audio is used.
+
+  - Added feature of printing the address at trap.
+    Move routines in gethdr.c out to external memory.
+
+  - Debugging back-to-back ad problems:
+    1. Do we dropped any picture at the beginning of an AD?
+       Seems like we don't lose any data at the beginning of an AD!
+    Seems like the real problem is because we failed to detect sequence end
+    code at the end of the ad.
+    Also there seems to be FPGA problem of dropping packets.  Lots of CC
+    problem.
+
+    2. Why sequence end code signal cannot passed from tpTools.c to bufferer.c?
+
+    3. CC problem: only in input #3?
+
+
+2/4/00
+    Seems the FPGA code has problem (dropping or repeating TPs) when the signal
+    goes up and down, like the SeaChange feed.
+
+    The old FPGA has similar problem, but only at around end of sequence and
+    the problem occurs much less frequent.
+
+    Switched back to use old FPGA code and clean cut module.
+
+    BUG: After false switch from AD1 to AD2, it switches back to Live very
+         quickly.
+    Reason: at false switch, refPicNo is not set.
+
+    BUG: forced switch from AD1 to AD2
+    Reason: AD2 1st picture PTS is larger than AD1 last picture PET!
+    Seems we need to further delay the requested splice time of the first AD.
+    More critical problem: the SeaChange API assumes we do splicing BEFORE
+    the requested time!
+
+
+------------------------------------------------------------------------------
+
+2/7/00
+    BUG: After forced switch from AD1 to AD2, the refPicNo is not correctly
+         set, which causes AD2 to switch back to live very soon.  Setting of
+         refPicNo to the picNo of the first picture in the queue failed,
+         possibily such a picture is missing.
+    Fix: temporarily set it to inPicCnt.  As a long term solution, we should
+         have kept track of refTime and refPicNo in the BG processing.
+
+    BUG: Forced switch from AD1 to AD2
+    Fix: Temoprarily delay the request splice time by 0.5 sec.
+
+    Successful to have some back-to-back done without forced switch.
+    The delay added to requested splice time is 30000 (or 2/3 sec).
+
+
+2/8/00
+    Delay the request splice time by 1 sec, and try to adjust parameters
+    to avoid Ad picture dropping.
+
+    BUG: when long delay is added to the request splice time, the leading
+         B pictures get dropped.
+    Reason: pCh->closedGop get replaced by the next GOP in the Ad, which
+         turns out to be an open GOP!
+    Solution: move closedGop flag from ChanInfo to PicStat.  In doSplice(),
+         closedGopFlag of the entry picture (I picture) is used to set
+         the startingFlag.
+
+
+2/9/00
+  JC found out that the new FPGA start code search functionality cannot work
+  with old DVB IO board (v2).  We need new DVB IO board (v4) to run the new
+  FPGA code and use the FPGA start code search functionality.
+  JC also found that we need to use the latest mux (ver 108) to have DPI
+  to work.  Old mux code (ver 106) will fail.
+
+  ** We later found out that we need to set a environment variable hidden in
+  the DVBIO board to turn on loading FPGA from PPC.  After this is done,
+  both old and new board work fine!
+
+  Forced switch after about an hour (15 breaks).  Forced switch due to TP
+  dropping at the input.  Problem: too many pictures waiting on the buffer.
+  Need to reduce max queue size.
+
+  BUG: In JC's test, we will have problem of bad pidbuf pointer inside
+       extractTpPayload().  Since we are outputing at 27MHz it seems to have
+       some problem with statmux rate allocation.  This happens in about 10 min.
+
+  Status: I have able to splice 2 back-to-back ads into Harmonic source.
+          Both inputs are at 8 Mbps and output is set to 6 Mbps.
+
+
+2/10/00
+  Overnight run died with bad PidBuf pointer in extractTpPayload()
+  in about 30 minutes!   The bad pointer points inside pidChansHandle.
+  It seems like this always happen on picture with SEQ END code.
+
+  BUG: seems like when we insert a sequence end code at the beginning of
+       the new channel, we forget to update the firstTp pointer of the
+       entry picture.
+
+  After the if condition for sequence end code insertion is removed, the
+  code runs much longer.  Without rate conversion, its runs for about 1.5 hr
+  before having CC problem.  Then it has about 18 CCs in 10 minutes.  Finally
+  the PPC died.  No false switch so far.
+
+  However, with rate conversion on, extractTpPayload() bad pointer shows up
+  again, in about a few minutes.
+
+
+2/11/00
+  BUG: A bug was found in extractTpPayload() which has been causing these bad
+       PidBuf pointer problems.  We should not look for the next TP in case we
+       have reach the last TP in picture.  Otherwise, if the current turns out
+       to be the last picture in the queue, then the next TP pointer will not
+       pass checkPidBufLink().
+  SOLUTION: Use in extractTpPayload() a version of getPidBuf() and pidBufFree()
+       which do not check PidBuf link.  This will create a security hole but
+       should fix the above bug.
+
+
+------------------------------------------------------------------------------
+
+2/14/00
+  Enhance monitor output.
+
+  Two problems found:
+    - Channel accumulating in DPI
+      In some case, the PPC just sets up channel 1 without sending splice
+      request.  After a while it sets up another channel 2.
+    - Seems PPC die after channel reach certain limit.
+      Probably due to PPC's inability to receive certain error message.
+
+2/18/00
+  Started auto splicing between two Harmonic channels with rate converstion.
+
+------------------------------------------------------------------------------
+
+
+2/22/00
+  The run started before the long weekend died after 80 hours.
+  Reason: mux message: Pid 400 Inactive fieldCnter = 8.
+
+  Drafting the Performance Review
+
+  Wayne working on multiple audio problem: switching between channels with
+    differernt number of audio channels.
+
+
+2/23/00
+  Xiao Xiao looking at the loopback video breakup problem: output of Ratemux 1
+  fed into input of Ratemux 2.  Output Ratemux 2 has continuous video breakup.
+
+  Jinbo upgraded PPC for to support the new SeaChange API.
+  The new code has lots of problems.
+
+  BUG: often forced switch from AD1->AD2.
+  Reason: Seen dropping of beginning pictures from AD2.  Unknown reason.
+
+  BUG: after forced switch AD1->AD2, AD2 jumps almost immediately back to live.
+  Reason: wrong setting of picture number.
+
+
+2/24/00
+  Picture counting:
+    In PicStat:
+      picCnt: count output pictures, continuous across splice point 
+      inPicCnt: count input pictures of a channel, maybe reset at chan init
+      picNo: display picture number??
+      refPicNo: picNo of latest referernce picture
+
+    In ChanInfo:
+      inPicCnt: input picture counter
+      outPicCnt: output picture counter
+      picNoBase: picNo of 1st displayed picture in channel
+      gopPicNoBase: picNo of 1st displayed picture in current GOP
+      prevRefPicNo: picNo of last anchor frame
+
+    There are two ways to counter pictures:
+      - in coding order (inPicCnt, outPicCnt)
+      - in display order (picNo)
+
+    Coding order is used for labeling.
+    For picture based splicing, it is the display order that we use to
+    determine splice point.
+ 
+  ** New way of implementing background channel processing in forced switch:
+    Search for the first picture with sequence start code
+    whose PTS >= current time + 0x6000
+    (default init value between PCR and DTS used by statmux).
+    Drop all pictures before this picture.
+    If such a picture is not found in the queue, then re-init the channel.
+
+  ** Added a new mode of splicing: EOS_BASED.  Will switch when EOS header is
+     found in the old channel.
+    Use spliceTime in FG channel to track the PET of the latest anchor picture.
+
+
+2/25/00
+    isLeadingBPic() fixed the bug.
+    - New API effort:
+        new chan's tsDelay: easy
+        new chan's first output TP arrival time: may not be the real signal
+            arrival time if we drop picture at start.
+        old chan's last output TP arrival time: to handle forced switch also,
+            we copy arrival time of the TP with EOS.
+        gap in splice point: new EOS splice mode allow old chan PET to be
+            different than new chan PTS.  In this case, splice time is
+            defined to be the old chan PET.
+
+      Note: need to verify with Wayne whether new TPs generated by cleanCut
+            have correct TS info.
+
+    EOS based splicing:
+      When FG EOS detected, one of the following cases is true:
+        1. BG channel has not even started (no TP received yet)
+        2. BG channel has started, but SEQ HDR not found yet
+        3. BG SEQ HDR found, but PTS > PET (dead time exists)
+        4. BG SEQ HDR found, and PTS <= PET (no dead time)
+
+      If splice indication is to be sent after the last picture of the FG
+      channel is sent, then deadTime can only be determined in 3 and 4.
+
+------------------------------------------------------------------------------
+
+
+2/28/00
+  Debug EOS mode
+  - The EOS mode seems pretty reliable!  Although it has visual breakup
+    at splice, its looks much better than forced switch.
+    (Note that EOS mode IS a variation of forced switch!)
+
+  Why do we need to want for both channel to be ready before we do the switch?
+  Should we just do the switch as soon as the old channel is ready?
+
+  - New channel may have problem.  The alternative method will always do the
+    switch (like TIMEOUT_FORCE_SWITCH).
+  - There may be gap between exit point and entry point.
+    For live new channel, we can assume that we always buffer up enough
+    pictures so that as soon as the old channel is ready, a entry candidate
+    with no dead time can always be found.
+    For signal with time boundary, there will be a gap anyway IF WE CANNOT
+    postpone the switch.  (We can choose a later exit candidate though).
+  - Field parity conflict: will need picture info from new channel to determine.
+
+  To do:
+    - integrate with new audio (Wayne)
+    - support new API
+
+
+2/29/00
+  Overnight test: new EOS mode.  Die in 4 hours.
+    Seems EOS in AD1 is missing, and AD1 signal is terminated, which causes
+    a timeout -> forced switch.  And AD2 has no signal.  Eventually caused
+    video stopped trap.
+
+  Fix minor bug in counting switches, and measuring input/output bitrate in
+  monitor task.
+
+  Added a pointer in SwitchReq to point to the corresponding response message.
+  Generate the response message as soon as response message is processed
+  by splicer.

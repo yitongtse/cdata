@@ -1,0 +1,339 @@
+6/2/00
+  Black sequence insertion routine finally done!
+
+  dpi1010.fls is intended to be DPI_REL1.0 for internal testing.
+
+  Found that TRAP flag is turned off in the Makefile.  This may explain why
+  there is no trap message after DSP dies in rate converting HL bitstream!
+
+  Improved trapping mechanism.  Need to test on system.
+
+  Create another view ytse-sp for the new splicing algorithm development.
+
+  Variables needed for new splice algorithm:
+    spliceReady
+    spliceTime
+
+  To simplify thing, we assume that we don't need to modify exit anchor field
+  structure.  We can add that later if necessary.
+
+---------------------------------------------------------------------------
+
+6/5/00
+  Implemented new trapping mechanism:
+        TRAP off: dump buffer but continues
+        TRAP on: dump buffer and hang
+
+  Implemented new way to differentiate LIVE form AD channels in
+  self-switch mode: use the splicable flag.  ON means AD channel.
+
+  Verified that the splicable flag is read correctly.
+
+  Moved "END OF TRACE BUFFER" in dumpTraceBuf().
+
+  Should not called dbgPrintf() before SetDemuxPar message from PPC is received.
+  Instead, use tgtPrintf().  Then when SetDemuxPar is received, do a sendDebug()
+  from beginning of buffer to current print pointer.
+
+  Make TRAP a configuation, instead of compilation flag.
+
+  Found a very weird bug, maybe in the compiler that in config.c, if I use
+  more than 3 strcmp() in the routine, then the code doesn't work.
+
+
+6/6/00
+  Overnight test result: Divicom at 6Mbps, ad at 8Mbps, single ad.
+  Run time: 1140 min.  Result: successful.
+  Comment: ad schedule stop at midnight.
+  Logfile: 0605-2.log
+
+  JinChern found a bug in the PCR field removal which cause the problem
+  of picture breakup in HITS bitstream.
+
+  BUG: Found a very nasty problem: when we do rate conversion for Harmonic
+  source, then the DSP dies very soon (a few second).  Most of the time we
+  cannot even go in with the emulator.  However, I was lucky to be able to
+  bring up the emulator once, and noticed that the Endian bit (bit #8) in
+  the CSR indicates that it is in big Endian.  Also a memory dump verified
+  that there is an Endian problem!
+
+  BUG?: In Harmonic, we sometimes see "PES hdr missing".
+
+  BUG: Noticed that when multiple channel HITS are running with rate
+  conversion, then one of the DSPs suddenly die without any trap or trace dump.
+
+  Turned on PCR_PID flag.  Seems to work well with DiviCom, Harmonic and HITS.
+  The only thing we can test is the Harmonic source with PCR PID set to one of
+  the audio PID.  With SeaChange slicing, it worked the first time, but got
+  timeout in the subsequent splice request.
+
+  BUG: seems once the MUX dies, it will keep on dying in the future Apply.
+  We have to do a reset to fix the problem. 
+
+  BUG: Found another bug in splicer.c for JinChurn.
+
+  Created view ytse-pcr for PCR's work.
+
+
+6/7/00
+  Is it possible for two different PCR PIDs to have the same SPID?
+  I assume that this is impossible, or would like the PPC to ensure that
+  this is not possible.
+  
+  PCR bug:
+    We should make sure the PCR TP actually contains a PCR before setting
+    seekFlag to FALSE.
+
+  We will turn off all Pid Channels when the video PID is scrambled.
+  Idealy, we should let audio to continue.  But currently audio cannot
+  be running independent of video!
+
+  Finished integrating PCR_PID code.  PCR_PID flag is removed.
+    => dpi1012.fls
+  Seems to work with DiviCom (PCR in video) and Harmonic (PCR in audio).
+  But splicing did not work (timeout).
+
+
+6/8/00
+  Created DPI1_0 release.
+
+  Checked in common PCR code after DPI1_0.
+
+  Misc test idea:
+    Pull cable: almost impossible to break it.
+
+
+6/9/00
+  Sync dpi_integ with main branch.  Work still going on.
+
+  PidChansHandle reorganization.
+
+
+------------------------------------------------------------------------------
+
+6/12/00
+  Wayne found the bug which causes Harmonic source to die in rate conversion.
+  It is in copyPesEsHdr().  In the test of whether the current TP contains
+  the fist slice start code, I compute the first slice start code offset
+  based on the PES payload start location, instead of from the TP header!
+
+  MUX not responding problem: after MUX dies once, there is no way to restart
+  the box without hardware reset.  Always get MUX not responding message
+  from the browser.
+
+
+6/13/00
+  Another bug contributing to the Harmonic source rate conversion problem is
+  in the conflict in the definitions of getOffset() and getPesPyldLoc().
+  The former is measure from tpPayload, which the latter from tpHdr!
+  A difference of 4 bytes needs to be conpensated.
+
+  Continue the work of reorganizing the data structure.
+  Code is compilable now.
+
+
+6/14/00
+  JC reports that the MUX responding problem only happens when DPI mode is
+  set to 2!
+
+  Plan for new time stamp mapping:
+    There are four time bases:
+      - local time
+      - input time
+      - output time
+      - NTP time
+    DVS 253 uses the input time.  Splicer needs to convert it to NTP time
+    for the API message.
+
+    The DSP has info for input to local time offset (tbOffset)
+    The PPC should have the local time to NTP offset.
+    We need to add PPC-DSP message for PPC to request tbOffset from DSP.
+
+    To allow output time base mapping (i.e., each channel will be output
+    at its own timebase, not according to local timebase), a new field,
+    outTbOffset should be added in the ChanInfo structure.  This is the
+    offset between the local time and the output time.
+
+    So, we have:
+        for each PCR channel, tbOffset = local time - input time
+        for each channel, outTbOffset = local time - output time
+
+    At channel setup,
+        outTbOffset is initialized according to the first channel
+
+    At splice point, 
+        outTbOffset(new) = outTbOffset(old)
+
+    Notice: DVS 353 splice_info_section() has a field pts_adjustment, which
+    can be used for this purpose!!!
+
+
+6/15/00
+    Extended the use of trap() to stop poll responding so PPC can reset DSP.
+
+    Need to ask PPC to send resetCnt in SetDemuxParam message.
+
+    Fix a bug which cause the picture right before the file wrap around to
+    have a PCR > PTS.  This also fixed the forced switch problem that JC
+    reported, that there are a lot of forced switch with wrap around source.
+
+
+6/16/00
+    Overnight test: 9 channel grooming, 30->27 Mbps
+    One dsp stop functioning.  Possibly video stopped due to input halt.
+    Mux jamed the log file.
+
+    Need to fix input halt problem.
+
+
+
+------------------------------------------------------------------------------
+
+6/19/00
+  Continue to debug resturctured code.
+  Use two maps for inSpid and pcrSpid.
+  Overnight test: Single Divicom channel splicing with no RC
+
+
+6/20/00
+  Overnight test passed.
+  Has lots of input halts right at the beginning when more than 1 channel is
+  selected.
+
+  BUG: Bad PidBuf link 800072a8 (pidQue) trapped at 000018d4 (sendVideo)
+
+  Overnight test: Divicom (4 Mbps) splicing with SeaChange (8Mbps),
+                  output at 7 Mbps.
+
+
+6/21/00
+  Overnight test is perfect.  No timeout or false switch, although ad server
+  stopped at midnight.
+
+  The code died when I try on back to back ad!
+  Problem is forget to clean new channel in cancelled or timeout switch.  Fixed.
+
+
+6/22/00
+  Jinbo has a log file which shows very long timeout problem: Timeout after
+  2 min!?
+  Problem seems to be due to the timeout check in splice control task applies
+  only on channel with FG_SPLICE mode.  When the channel became FG_FINISHING
+  mode, splice control will not timeout!  As a result, if the video is done,
+  but audio or data never done, then we still cannot timeout!
+
+  Modify the timeoutFlag to include checking in FINISHING mode.  However,
+  I am not sure whether this will cause any other problem!!  Need to do
+  extensive test here!
+
+  After careful studying of the log, the above is NOT the reason.
+
+  Added a set of counters in SwitchReq structure to count problems encounter
+  during the switch.
+
+  Also noticed in the log file that there is no field parity conflict
+  or big tsDelay issues.  The only remaining issue I can think of is
+  queue overflow!  But still, why didn't it timeout?
+
+  Seems like TR adjustment does not work for closed GOP in frame based switch.
+  Problem fixed.
+
+  Stop responding to PPC polling when input or RC halted more than 500 ms.
+
+
+------------------------------------------------------------------------------
+
+6/26/00
+  Turn sequence end code insertion code back on.
+
+  Work towards having same statmux binaries:
+    - Reduce active threshold back to 20 (valued in main branch)
+    - Support tracking in DPI
+    - Handle flush picture request (tgtSz = -2) (treated as skipped picture)
+    - Removed DPI compilation flag in statmux directory
+
+
+6/27/00
+  Rate control tunning:
+    Modified overshoot parameter
+      1024 (100%): 1015a - can see beat, occasion skip pictures
+      0: 1015b - more blocking, less obvious beat, worse than a.
+      512 (50%): beat not observable.  Almost no blocking seen!  No skip pic!
+
+  New splice algorithm:
+    To simply things, we no long support pending PTS picture.
+    A picture whose PTS cannot be determined will be estimated using
+    the no repeated frame/field assumption.
+
+  To do:
+    PTS estimation and checking
+
+
+6/28/00
+  Try to implement the following new changes in dpi task branch:
+    - move isLeadingB() to procInPicInfo().
+    - no long support pending PTS picture.  Instead estimate its PTS
+      based on no repeated frame/field assumption.
+    - use readyCntdwn field in spliceReq to replace videoDone and audioDone
+      fields in ChanInfo.
+
+  Try to clean up and clearify ChanInfo fields usage:
+    spPicStat: latest PicStat pass to splicer, used by bufferer to determine
+               whether channel has started.
+    muxPicStat: used to determine the next PicStat to be sent to mux
+    sentPicStat:
+    endPicStat:
+
+  Audio code failed in handling multiple audio channel splice.
+
+
+6/29/00
+  Audio problem fixed.
+
+  On two occasions (one with reorg code, one with dpi main branch code),
+  the HL channel (2 audio) died in splicing back to back ad.
+  Symptom: forced switch from Ad 1 to Ad 2, no response from MUX (on dummy
+  PicStats).  No data from Ad2 either.
+
+  The code seems to be much stable if I put only single ad in HL and multiple
+  ad to Divicom (single audio).  But need more test to confirm this.
+  
+
+6/30/00
+  Overnight test shows Bad chan problem.  FOr some reason a switch never happens
+  and it never timeout!  Same old problem.  Still need to find out why.
+
+  Removed PID remapping from DSP code.
+  Reorganized ChanInfo.
+
+  Worked out a new channel event model with JinChurn:
+    ChanInfo will have two fields: winStart and winStop to indicate the
+    beginning and end of current output window.
+    When these fields are modified by splicer, updateWin(chanId) will be called.
+    When winStart is freezed, freezeWinStart(chanId) will be called.
+    When winStop is freezed, freezeWinStop(chanId) will be called.
+    When exit time is fixed, but channel is still not turned off, then
+    checkWin(chanId) will be called every time splice control task is evoked.
+   
+    Problem: will need to adjust winStart occasionally when the window size
+    is larger than half of max range.
+
+  Long weekend test:  Rel 206 (should have been 208), with DPI 1.1 overlay,
+    with statmux1010.fls overlay (to solve unstable statmux problem which
+    causes lots of input halts).
+  Still have sticky switch problem.  Second channel stop to switch all of
+  a sudden, possibly due to an old switch which nevers timeout!
+
+  Move all audio code around dropPic into dropPic():
+    At setPidGrp, startTime = stopTime = 0.
+    dropPic() calls updateStartTime only when:
+      - chan mode is either CHAN_FG or CHAN_BG
+      - seekPcr is FALSE
+      - seekDts is FALSE
+      - (how about seekSeqHdr?)
+
+  NOTE: in original dpi code, if a channel is in ON state, even if it is
+        still seeking DTS, we let it pass.  We may not want to do this
+        since we always need to do timebase mapping!
+  
+

@@ -1,0 +1,78 @@
+8/1/01
+  - New anchor unit logic works well.
+
+
+------------------------------------------------------------------------------
+
+8/9/01
+  Noticed that when SeaChange server is set up with hugh trigger delay, AD1
+  and AD2 will be mapped to the same channel.  After the switch, AD2 appears
+  in a different channel.  This phenomen does not happen with old FPGA code.
+
+  After talking to Vincent, he mentioned that he might forget to turn on
+  PID filtering in his new FPGA code, so all PID pass through!
+
+
+------------------------------------------------------------------------------
+
+8/13/01
+  After talking to Wayne, figured out the way to fix audPidInfoPostProc()
+  in forced switch case.
+
+
+8/14/01
+  Edward mentioned that audio tbOffset should be the same as video tsDelay
+  in forced switch, without the adjustment in audPidInfoPostProc().
+  This may explain why we experience longer FS delay with yesterday's fix.
+
+  Get rid of EXTRAM section and claim additional 64K memory.
+  
+  Bug: False alarm of channel empty when audio is turned off
+
+
+8/17/01
+  Talked with Wayne on the phone about getting an SA encoder to our lab.
+  We are considering trading it with a RateMux.
+  To see whether we can upgrade the SA encoder we have in our lab for DVS253,
+  we need to find out whether ours is an originator encoder (with a TV and
+  push button in the front panel), or just a regular encoder.
+  SA will contact us for the trade.
+  Wayne will be on vacation next week.
+
+  According to Mike Sin, our encoder has been shipped to Cisco Europe.
+
+
+------------------------------------------------------------------------------
+
+8/23/01
+  BUG: Noticed that when audio PIDs are turned off, FS will cause DPI to reset!
+
+  BUG: with BLACK keyword, the code often trapped!
+
+
+------------------------------------------------------------------------------
+
+8/27/01
+  Weekend test result:
+    non-seamless timeout => trapped
+
+
+8/28/01
+  Try to avoid using dbgPrintf() between intDisable() and intEnable().
+  Only violation is in the function of turnAudChanOn() and turnAudChanOff().
+
+
+8/29/01
+  With TB=2, lots of forced switch will also cause Mux to have underflow
+  problem!
+
+
+8/31/01
+  Tested Anton's new FPGA code, it does not work for 204 format.  He later
+  figured out that there is some timing problem.
+
+  JinChurn has a log file which has its all PidBuf used up but can't get reset!
+
+  Long weekend test:
+    2.3.8DP4 with 1261 dpi patch (new memory allocation)
+

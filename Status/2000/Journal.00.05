@@ -1,0 +1,200 @@
+To do:
+  - use new reader/writer modules from MPEG simulation
+  - investigate rate control measurement for status message
+  - tune delay parameters
+
+
+5/1/00
+  Got a version of statmux from Matt (statmux1001.fls) which will not move
+  PCR back, but instead flush pictures.
+
+
+5/2/00
+  Trying to solve the hanging when DPI detect video stopped:
+    Once RC is halted, output task will not be able to send out further
+    TPs.  Hence we need to use a higher input halt threshold than
+    rc halt threshold.
+
+    Noticed that even input and rc are halted, free PidBuf still decrease
+    to 0 because PidBufs are used to store RATECONVERT messages from
+    statmux.
+
+    We must make sure that RC of a frame can continue.  Otherwise there
+    will be no way to release any TPs.  This means that INPUT_HALT_THRES
+    must be significantly larger than RC_HALT_THRES, so that the gap is
+    big enough to hold the biggest output picture.
+     
+  Try stealing pictures:
+    Seems to be not causing any accumulation problem. 
+    Seems to be quite effective in avoid input/RC halt.
+    Problem: need to set an on and off threshold to avoid bouncing.
+
+
+5/3/00
+  The problem with picture stealing is that during the stealing period,
+  the effective input rate to statmux is reduced.  As a result, statmux
+  is not aware of this fact and schedule the output at a lower channel rate.
+  After stealing period is over, the input rate is back high up and in
+  a short period of time the statmux stacks up the pictures and force
+  DPI to go into another stealing period.  
+
+
+5/4/00
+  Looked at GI's DCT1000 setop box problem.  SeaChange reported that the
+  top part of the video frame is distorted with the GI setop box decoder.
+  We noticed that this is probably due to a problem in the setop box which
+  cannot handle clean cut source.  We can reproduce the problem with the
+  DiviCom source (clean cut), with either dpi, bitshaper or simply Jinbo's
+  bypass diagnostic codes.
+
+  One way to verify the above observation, and solve the problem at the same
+  time is to destroy the cleanCut property in the output process:
+    - In Splicer, increment no. of TP for each picture by 1 to account for
+      additional TP.
+    - At Output, chop off portion of the last TP of a picture, and mix it with
+      the next picture's PES. 
+  Created a separete task, ytse-gi_setop for this test.
+
+  Topics for discussion:
+      SeaChange reported occasional frame reversal problem after the switch.
+      (We suspect SeaChange uses the SA decoder.)
+      (Possibly due to missing of seq end code in the net->ad switch!)
+
+      Gap issue: Whether SeaChange is going to do something about it, or
+      we need to handle it anyway.
+      (Filling gap with black frames may be a reasonable alternative.)
+
+5/6/00
+  Fixed bug in intelligent sequence end code insertion.
+
+
+------------------------------------------------------------------------------
+
+5/8/00
+  - Fixed bugs in picture backlog measure
+  - supported new PPC DSP_DEBUG_PARAM messgae
+  - There is nothing for dpi to support the channel splicable info.
+    Only need to adjust delay in statmux.
+
+
+5/9/00
+  - The bug for sequence end code insertion is because we forgot to clear
+    the internal writer buffer.  This has been fixed.
+
+  - Trying to use the reader/writer modules from MPEG simulation.
+
+  Fang Wu:
+    - need to improve error handling capability of DPI
+    - need to support black frame generation
+
+
+5/10/00
+  Created the following new views:
+    err - for error handling
+    sim - for SUN simulation
+    sun - (To be deleted)
+    bitbuf - (To be deleted)
+
+
+5/11/00
+  Update videoes.c with the version from Bitshaper.
+  Improve debugPrintf().
+
+
+------------------------------------------------------------------------------
+
+5/15/00
+  Attended the SCTE API group conference meeting:
+    - 6201 port will be used for all API exchange
+    - added informative statement that the splicer is expected to be able
+      to support connections no less than 3 times the number of channels.
+    - found out that the time() specified in SpliceRequest message is meant
+      to be the actual splice time.  The ad server will derive this from the
+      cue message.  The 300 - 600 msec requirement is for the data delivery,
+      not the display time.
+    - requested to change "video must start 300 - 600 msec ..." to
+      "ad stream must start ..."
+    - we can assume that the ad server should be reasonable in the data
+      delivery timing.  In the back-to-back ad case, we should not allow
+      too much overlap.  When there is a gap, we can insert black frames.
+
+
+5/18/00
+  Finally found the bug which cause all the picture break problem.  Its in
+  editBits().  When bitPos=0, we should not do clrU and update current word!
+
+  After the bug is fixed, the new BitBuf module are checked in into ClearCase.
+
+  However, the code will not compile if PCR_PID or VBI flags are turn on.
+  Need to come back and fix this issue in the next commit.
+
+  PCR_PID and VBI modes supported now.
+
+
+5/19/00
+  Work at home.
+
+  - Deleted all views on honeycomb.  Recreate ytse-dpi view on wireless-view1.
+  - Written routines for configure string parsing.
+
+
+-------------------------------------------------------------------------------
+
+To do:
+  - support of GI DCT 1000.
+  - routine for black picture insertion.
+  - time remapping issue
+
+
+5/22/00
+  Attempt to solve GI DCT 1000 problem by modifying the first TP of each
+  output pictures to avoid PES header followed by ES header:
+  - For each picture, in Splicer, add 1 to the actual TP count
+    if it has PES header.
+  - In Output, fill PES header to end of TP.
+    Added another TP for ES header.  Use AF filling.
+
+  Support the new PPC change which use different SPID for synchronized (ACKs)
+  and asynchronized messages (SPLICE_INDICATION, DEBUG_PRINT, MUX_RATE).
+  Need to change both dpi and statmux codes.
+
+
+5/23/00
+  Debugging support of new PPC features.
+
+
+5/24/00
+  To do:
+    Endian conversion for configuration parameter
+    Debug GIDEC mode
+    Improve mpeg2dec by more system print modes:
+      - only print TP with specific PID
+      - dump payload bytes, etc.
+
+
+5/25/00
+  Problems in Endian conversion for dbgPrintf.
+
+
+5/26/00
+  Temporarily stop working on unified endianConv().
+
+  Wayne noticed that when PCR_PID is on, HITS bitstream has breakup.
+  Added config.c for configuration setup.
+
+
+----------------------------------------------------------------------------
+
+5/30/00
+
+5/31/00
+  Need to support skipping of P or even I picture!
+
+  Combinbed SUN and C6x makefiles into Makefile.
+
+  Try to use the PCR_PID value in SetPidGrp message.
+  Note that we also need PCR_SPID to completely specify the PCR stream.
+  Currently it is messing in the API.  We assume temporarily that
+  PCR_SPID is the same as input SPID.
+
+

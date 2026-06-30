@@ -1,0 +1,21 @@
+9/4/01
+  PPC reset DPI dsp about every 1590 minutes - request by application.
+  This is due to a variable being wrap around (45KHz).
+  Jinbo will fix the problem.
+
+  New memory allocation OK well.  No new bugs.
+
+  Created dpi_cueforward_integ for cue tone forwarding integration.
+
+  Compiled dpi1262.fls to generate FPGA debug message for Anton.
+
+
+
+------------------------------------------------------------------------------
+
+9/22/01
+  To do:
+    Clean up debug print
+    Make sure safe version of queGet and quePut are used
+
+

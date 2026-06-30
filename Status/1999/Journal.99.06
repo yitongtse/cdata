@@ -1,0 +1,127 @@
+5/27/99
+  Study of external program memory usage:
+    V3.0 compiler support mixed far/near declaration of a function.
+    (V2.1 does not, probably due to a bug).
+    However, within a file, a function can only be far or near.
+    If mixed declarations are found, the function is always called as far.
+
+    Convention:
+      Separate internal and external functions in different files.
+      Always declare an external function as far.  For internal function,
+      use FAR, which is defined as far for external functions, and nothing
+      for internal functions.
+
+  Idea: Check TP adaptation field to check for time base discontinuity.
+        Edit the video file first TP's discontinuity flag to indicate
+        wrap around.
+
+------------------------------------------------------------------------------
+
+6/1/99
+  Set up two video servers in Lab Area 11.
+
+  Reorganize bufferer.c:
+    - support new cleanCut interface
+    - move PCR processing to after cleanCut
+
+
+6/2/99
+    Code with new bufferer ran overnight!
+    To do:
+      - investigate external program memory problem
+      - see whether interrupt protection is needed in chanType switch
+        in bufferer.c
+      - test clean cut with clean sources
+      - test clean cut with HL bitstreams
+
+    External program memory investigation:
+      - move 3 routines (restampPic, adjustTr, lookupPid) to external memory:
+        works for a few seconds.
+      - add tgtPrintf() in one external routine: works for a few seconds.
+      - move changePid to external memory: works for a few seconds.
+      - move releasePic to external memory (contains que operations,
+        sema and interrupt): works for a few seconds.
+
+    Modify linker command file so that trace buffer is not erased.
+
+Note: need to make sure knl is also compiled with external flags.
+
+
+6/3/99
+  - integration with PPC
+  - overnight run: clean cut off, bufferer's int disable switch off.
+    Result: trapped in output picture not top on queue after about 3 hrs!
+
+
+6/4/99
+  - Stopped using a separate channel for out channel, but instead
+    just use the input channel, with a new field outVidPid added to demuxCtrl.
+  - Decided to delete the bypass channels.  All channel are either CHAN_SPLICE
+    or CHAN_OFF.  This will make the system much stable.
+    Original difference the two types:
+         For splice channel, need to do PID remapping
+                             DTS/PTS restamping
+                             TR adjustment
+                             vidPid and picCnt adjusting for PicStat
+
+
+------------------------------------------------------------------------------
+
+6/7/99
+   Severe picture breakup problem even when running single channel!
+   - It turns out that the picture breakup is due to audio being turned on
+     at the decoder!
+
+
+6/8/99
+   - Increase task stack size (and heap size) to avoid DSP reset due
+     to task stack overflow
+
+
+6/9/99
+   - Demo version DPI code runs overnight!
+   - First working version with new PPC interface
+
+------------------------------------------------------------------------------
+
+6/14-15
+   - NCTA Trade Show in Chicago
+     DPI runs smoothly without breakup.
+   - Action items:
+       - Integrate DPI with RateMux
+       - Support DPI on HITS
+
+
+6/16
+  Wayne reported two bugs for HITS in:
+    - rewindEsBytes()
+    - adjustTr(): real problem is trAdj being negative somehow.
+
+  To do:
+    - move all global variables into channel data structures
+    - add compliation flag to turn off codes which does splicing
+    - rate conversion integration
+  
+  Move all global variables into channel data structures:
+    spliceState
+
+------------------------------------------------------------------------------
+
+Plan:
+     - finish debugging the newest switching algorithm
+     - finish sequence end code insertion
+     - cancelled sequence/GOP header extractio and insertion:
+       entry point must be an I picture with a sequence header!
+     - closed GOP consideration
+     - clean cut integration
+     - audio integration
+     - PPC integration for new messages
+     - new user interface
+
+To do:
+     - check whether (Int32) cast is used in all time code comparisons.
+     - need to recover PTS/DTS even when not in DPI_SPLICE mode?
+
+
+Question: Due to field adjustment, tsDelay may be negative.
+          Will it accumulate across successive switches?

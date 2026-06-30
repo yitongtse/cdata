@@ -1,0 +1,11 @@
+Status report of Yi Tong Tse on 2/22/99
+
+Last week I mainly work on the following items:
+
+  - sequence end code insertion at splice point
+  - sequence header capture and insertion at splice point
+  - debugging and testing of the overall code
+
+Will start integrating with Wayne's clean cut module once the code
+becomes more stable.
+

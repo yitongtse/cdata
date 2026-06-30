@@ -1,0 +1,17 @@
+Status report of Yi Tong Tse on 10/19/98
+----------------------------------------
+
+Finished writing the first version of the splicer code.  This version can
+correctly merge two bitstreams together, re-generating the anchor frames and
+B-frames if necessary.  The resulting bitstream can be decoded with mpeg2play
+as well as our own decoder.
+
+There are still quite some bugs to fix and items to add or improve, including:
+  - temporal reference adjustment
+  - bit rate conversion
+  - better recode mode decision (currently we use intra MB whenever the
+    original macroblock type cannot be reused.)
+  - more efficient bit buffer handling
+  - more efficient variable length decoding
+  - overall re-structuring to handle generic splicing cases
+

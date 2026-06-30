@@ -1,0 +1,222 @@
+Priorities:
+  1. Recode
+  2. Near frame-accurate splice
+  3. Progressive refresh
+
+
+To do:
+  - Requant module
+  - Recode module
+
+
+1/3/00
+  Recompiled version dpi130.fls for testing (J.C.)
+  Created P3 for the recode project.  It is based on the P2 directory.
+
+
+1/4/00
+  Created the new source tree for DPI in /export/sw/dpi.
+  Updated the check out shell script in /export/bin/vbits/setdpi.
+
+
+1/5/00
+  P1 directory bug fixed.  Forgot to copy f_codes value.
+
+  P1 seems to work with Divicom source.  But has bad pidbuf problem
+  in copyEsPesHdr() for both Harmonic and HITS sources.
+
+  Check in changes and backup P1 before removing BITBUF flag.
+
+  Seems like there is a bug in the skip picture case.
+
+
+1/6/00
+  Found a bug in the PCR detection:
+    Clean cut uses detection of first slice start code to detect beginning
+    of a picture.  If this takes more than 1 TP, then the PCR detected at the
+    first TP will be counted for the previous picture, which is wrong.
+    This problem only appears with the new clean cut module which detect
+    both picture start and sequence end code.
+
+  Solution: (Version dpi132.fls) 
+    Move PCR detection code from bufferer to switcher
+    No longer need the pcrFlag field in PicStat.
+    No longer need to have the tbOffset field in PicStat.  The tbOffset in
+    ChanInfo will be used.
+
+
+1/7/00
+  Found a bug in picture based splicing:
+    If we start to search for exit picture when the designated number of frames
+    have been seen in the foreground channel, we may have missed the last frame
+    in the channel.  Instead we should be using the temporal reference to detect
+    the last picture.  If the incoming picture's TR - reference picture's TR
+    >= the designated number of frames, then we should start looking for
+    exit frame.
+
+
+1/8/00
+  A very tough problem is found that sometimes the video signal stopped
+  with certain combination of DPI and FPGA versions.
+  For some reason, the inTpCnt stops increasing between two monitor
+  visits.
+  TRAP C found in clnCutUtil.c!
+
+
+------------------------------------------------------------------------------
+
+1/10/00
+  Used casting to fix the wrap around problem in CPU load measurement.
+  Approach is similiar to PTS/PCR comparision.
+
+  Wayne found the bug which costs video to stop (1/8/00).
+  It is in tpTools.c. 
+
+
+1/11/00
+  Wayne fixed some bug related to sequence end code detection in
+  cleanCut.c and clnCutUtil.c.
+
+
+1/12/00
+  Potential problem:
+  - gopPicNoBase: should be initialized as 0 if no GOP header found, instead
+                  of the TR of the first picture.
+
+  Full Ad insertion succeed!
+      dpi version 137
+      Backup: dpi.000112
+      common SCCS version 5, demux SCCS version 15
+
+
+1/13/00
+  Found a potential problem in output Task:  channel turnned off at last
+  video frame without checking whether audio is ready.
+  Solution: two flags, videoDone and audioDone are added to ChanInfo.
+  Both video and audio will check whether both flags are set, and if so,
+  call signalSpliceIndication() to turn off channel and send splice indication
+  message.  For video case, the output task will do this after output the
+  last video frame.  For audio, the audio switcher will do this after
+  moving the last audio TP away from pidChansHandle. 
+
+  BUG: forgot to send indication in some FORCE SWITCH cases.
+
+  BUG: in FORCE SWITCH case, the indication is sent too early.  Should postpone
+       until all video/audio is sent.
+
+
+1/14/00
+  Working in P3 directory.
+    Found problem in rate conversion.
+
+
+------------------------------------------------------------------------------
+
+1/17/00
+  Recode idea:
+    After an I picture (or simply a GOP header), the drift needs to be reset
+    to 0.  It will remain zero till the first recoded frame.  From that point
+    on, we need to update the drift even if there is no recode.
+
+    A flag driftFlag is added to ChanInfo for this purpose.
+
+
+1/18/00
+  Integration with J.C.'s code to support hardware start code search using FPGA.
+
+  Moved entire splicer (splicer.c and splicer_ext.c) code into external memory.
+  First version to support FPGA start code search: dpi140.fls
+  Works well in channel bypass with rate reduction!
+
+
+1/19/00
+  Verified that the new FPGA integrated code works for splicing with
+  and without rate conversion.
+
+
+------------------------------------------------------------------------------
+
+1/24/00
+  Try to make sure the DPI code can function as ratemux:
+    - Mux (ver 107): turn off DPI flag, turn on drift correction,
+           enable "No data warning message".
+    - Demux (ver 142): turn off DPI flag.
+
+  Problem: Lots of drift warning message.
+    The drift is due to the fact that some picture may not come with a PCR.
+    As a result, the old value in PicStat is used to calculate drift, which
+    is wrong.  This problem happens on Harmonic Lightway but not DiviCom.
+  Solution: use previous picture PCR and local TS if no PCR is sent
+    for current picture
+
+  Noticed a significant increase in free PidBuf when Mux delay is reduced
+    from 3/4 sec to 1/2 sec.
+
+
+1/25/00
+  Noticed that the mux BL seems to be propotional to the channel bitrate!
+  The reason is that the mux try to send to the decoder as much pictures
+  as possible (max decoder buffer fullness).  In lower bandwidth channel,
+  more pictures can be sent.  Therefore the lower bandwidth channel has
+  less picture waiting in the demux buffer.
+  Notice also that the scheduler runs in quarter second interval.  If the
+  channel miss a chance, it needs to wait 1/4 sec, which means about 7 frames
+  will be added to its queue.
+  One ultimate way to solve this is to realign the channel delay by dropping
+  pictures once the channel starts in the mux.  May cause initial interruption
+  but maximize throughput.
+
+  Trying to harmonize rc.h and rc5.h so I can switch rate control algorithm
+  by just selecting a number for RATECNTL in the Makefile.
+
+
+1/26/00
+  Try to temporarily stop the bufferer task from draining the PidBuf
+  when the free pidbuf level is too low.  This way other task can still
+  allocate message buffer.  Otherwise other task will be halt.
+  At 30 Mbps, about 20,000 packets arrive per second.
+
+  This trick increases the max bypass input rate from 20 to about 30 Mbps.
+
+
+1/27/00
+  Bug: DTS jumping problem when we do splicing.  Sometime a picture several
+  frame after the splicing point has a bad DTS value.
+  Bug: in one case, the exit picture and the entry picture have the same DTS.
+
+
+1/28/00
+  Redo time stamps mapping and recovery
+  Found that the Harmonic Lightway source sometime has bad DTS problem.
+  Put in code to check for bad DTS.
+
+  BUG: when we have field parity conflict in a switch and the new channel
+       is to be modified, it is the first "displayed" picture that we should
+       modify.  For open GOP case, this is always the entry anchor.
+       However, for closed GOP, this can be the first displayed B picture
+       (or first picture after the entry anchor).  The current code always
+       modify the entry anchor!
+
+  ISSUES: how should we supply zeroPackets and quant for mux?
+
+  MEMO: brief operation of splicer on input picture
+	- count TPs
+	- drop pictures for OFF channel
+	- parse PES and ES headers
+	- check for first sequence header if it has not been read
+	- scan PCR and set tbOffset
+	- drop picture if either first sequence header or PCR is missing
+	- check DTS if first DTS has not been read
+	- time stamps mapping/recovery
+	- relevant processing based on channel mode
+
+
+------------------------------------------------------------------------------
+
+1/31/00
+  - Found out that the DTS jump problem is due to the mis-assocaition of
+    PES header with picture.  The current clean cut associate PES header
+    with the picture whose first slice start code follows.  This is to support
+    the stupid HITS source.  This however, is not standard compliance.
+    The fix now implements the standard PES association with picture.
+

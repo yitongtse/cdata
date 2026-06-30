@@ -1,0 +1,29 @@
+Status report of Yi Tong Tse on 4/17/00
+
+
+NAB Update
+
+I have not heard from SeaChange or Phillips directly regarding how the demo
+went, but I have talked to several of our people who went to the show.
+According to them, everything seemed fine.
+
+
+ClearCase migration
+
+I finally completed the merged of the dpi and ratemux source trees.  Now all
+TI DSP source codes reside in the same parent directory, with the common
+files together in one common subdirectory.  We gave this version to IT
+and they are helping us to set it up for ClearCase.  We had some discussion
+of whether we should put different modules (statmux, demux, kernel) in
+different VOBs but after we clarified some misunderstanding we dicided to
+put everying of the ratemux project, including the PPC code, into a common
+VOB.
+
+
+DPI Issues
+
+Continue to work on the reliability issues.  Talked with Matt and identified
+some long-term issues that DPI has when working together with statmux.
+But progress is slow since the lab has not been fully set up. 
+
+

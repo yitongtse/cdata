@@ -1,0 +1,11 @@
+Status report of Yi Tong Tse on 4/19/99
+
+  Ported the DPI code to hardware.  Currently it works with clean sources
+  (sources with picture boundary aligned with PES headers).
+
+  Used Divicom encoder output for the live feed, and set up Hydrogen
+  video server to provide the ad feed.
+
+  Currently only the DPI code runs on Demux DSP and Jinbo's code runs on
+  Mux DSP.  The ratemux and clean cut modules have not been integrated yet.
+

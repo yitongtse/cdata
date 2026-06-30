@@ -1,0 +1,240 @@
+2/1/99
+    Make the parse routines Endian independent.
+    Improve parse routines.
+
+
+2/2/99
+    Fixed a few bugs in parse routines.
+    Can lock time base.
+
+    Memo: To move an element from a queue to another (or pool):
+          use queGet to remove element from old queue.
+          use quePut to add element to new queue.
+
+    DPI_PREROLL working!
+    DPI_SPLICE working!
+
+    Seems there are too many pictures in both the on/off channel queue.
+    Need to make sure the master queue is empty!
+
+    Restructure the switcher state machine code.
+
+
+2/3/99
+    doSplice() routine.
+
+    Successfully created the first spliced bitstream.
+    This version does not consider open/closed GOP.
+
+    To do:
+        input parameter file (Done)
+        splice command acknowledge (Done)
+        in and out operation (Done)
+
+    Need to coordinate between switcherTask and buffererTask so that
+    there should be no remaining picture for the previous on channel
+    hanging there in the bufferer.
+    The above is NOT necessary if we drop picture in the switcher
+    instead of the bufferer task.
+
+    Successfully created the first spliced bitstream with exit and
+    entry points.
+
+    To do:
+        count pictures in each channel
+        Missing PTS handling
+    
+
+2/4/99
+    To support PTS/DTS recovery: (all done)
+        - Add the PTS/DTS recovery module.
+        - Have switcherTask filter any on/off channel pictures with pending
+          PTS/DTS without delivering it to the state machine.
+        - Modify the state machine so that it will loop on master channel
+          also. 
+
+
+2/5/99
+    Fixed the hanging bug: in the SPLICE mode, after entry point in the off
+    stream is found, the exit point in the on stream needs to be found.
+    In this case, we should release the DTS lock.  Otherwise we may not be
+    able to find the exit point.
+    
+    Need to debug the time stamp recovery module. (on going)
+
+    Need to improve acquisition time by allowing parallel detection of
+      PCR/DTS and sequence header.
+   
+    Bug: for PTS update, cannot simply update the first picture in queue,
+         since there may be some pending B picture in the front due to
+         DTS locking! 
+    Solution: change pendingPts flag to a pointer to the picture with
+              pending PTS.  Pointer will be 0 if there is no such picture.
+
+    Time stamp recovery seems to be working now.  Switch in an out works when:
+        All PTS/DTS of anchor pictures (both channel) are removed, and
+        all PTS of B pictures (both channel) are removed.
+    Need to check more closely though.
+
+
+------------------------------------------------------------------------------
+
+2/8/99
+
+    To do:
+        - Calculate # of null pictures to insert (done)
+        - Frame re-alignment
+        - Encoding routines design
+        - TP operation design
+        - Null P picture generation
+        - Sequence header capture
+        - Qmat capture
+        - Sequence end code insertion
+        - Sequence header insertion
+        - GOP header generation and insertion
+
+    Bug: exit time is later than splice time!
+
+    Successfully dropped leading B picture after entry point by adding
+    a DPI_CLEANUP state in the switcher state machine.
+
+
+2/9/98
+    Improved and debugged the parser routines.
+    The bit reading routines still need to be debugged.
+
+
+2/10/98
+    Written new reader routines.
+    Testing basically done except for skipBits();
+    Written new writer routines.
+
+
+2/11/98
+    SkipBits() also tested.
+    Tested writer routines.
+    Written putNullP().
+
+
+2/12/98
+    Need to check padEs() to see whether it moves to the next TP before return!
+
+------------------------------------------------------------------------------
+
+2/16/99
+    Fixed bugs in null P picture.
+    Sequence end code insertion done (but temporarily turned off)
+    Defined TpInfo and BufHandle structures.  Restructure reader.c and writer.c.
+    Working on editor.c
+
+
+2/17/99
+    editor.c debugged.
+    Use 33 bits time stamps.
+    Time stamp (PTS/DTS) correction done.
+
+
+2/18/99
+    Added two fields in PidBuf: payloadSz, esOffset.
+    Simplified the code with simple utilities for PidBuf and BufHandle.
+    Unified the use of BufHandle elements in reader.c and writer.c
+    Written rewindEsBytes()
+
+
+2/19/99
+    Major change in reader.c and writer.c
+
+
+2/20-21/99
+
+    Detail test of reader and writer routines:
+      Routines tested: getByte(), getBits(), skipBytes(), skipBits()
+                       putByte(), putBits(), flushOutTp(), stuffEs()
+                       editByte(), skipEditBytes(), editBits(), skipEditBits(
+
+      putTpAf() debugged.
+      stuffTpAf() debugged.
+
+------------------------------------------------------------------------------
+
+2/22/99
+    Debugged restampPic().
+    Need to detail check PTS/DTS accross sequence boundary
+
+    Simplify doSplice(), send off channel anchor picture to Demux
+    by reusing processOnChanReady() and processOnChanCleanup().
+
+    Removing CLEANUP state.  Do TR adjustment always for on Channel
+    (in READY, PREROLL and SPLICE modes).
+    This is because the bitstream may not have GOP header!
+
+    TR adjustment seems to work!
+
+    Almost finish simplifying routines in switcher.c
+       except for doSplice().
+
+
+2/23/99
+
+    Before, in SPLICE mode, we process the off (master) picture on at a time.
+    With missing PTS, we now use a loop to exhause all appropriate master
+    channel pictures.  As a result, it seems that we no longer need to
+    clean off off channel picture before switching to SPLICE state!
+    (Delete second while loop in processOnChanPreroll().
+
+    Why do I need onChanReady and offChanReady,
+        for preroll mode?
+        for splice mode?
+
+    In PREROLL state, onChanReady indicates whether onChanPts/Dts are valid.
+    They are necessary since off channel processing is locked with on channel
+    DTS.  However, I don't think offChanReady is necessary in PREROLL state.
+
+    DECIDED TO REMOVE DTS LOCKING.
+    Rewrote switcher.c state machine.
+
+    The current way of determining exit time is not reliable since
+    prevFrmDI may not associate with the exit picture.
+    A better way is to use next picture in on channle, and in case it is
+    not available, exit doSplice and wait for the next call of doSplice.
+    The only drawback of this new approach is that if there is no more
+    picture from the on channel after the exit picture.
+    (exit picture is the first coded picture to drop in on channel)
+
+    A even better way is to keep track of the last P frame which is
+    before the splice point.  Should use this method later.
+
+
+2/24/99
+    Fixed bug in putNullP().
+
+    START INTEGRATION WITH CLEAN CUT MODULE.
+      Install makefile for cleanCut directory.
+      Install source tree for cleanCut.
+
+    To do:
+      harmonize data structure and variable definitions: (done)
+          PicStat vs StatElem
+          changes in PidBuf
+          changes in PidChan
+
+      harmonize global variable names
+          picStatPool => statFreeQueHandle
+
+      pcrRead and TBC state transition issue
+
+      PET = PTS + DI issue
+
+
+2/25/99
+    Sort out seek PCR and seek DTS issues.
+    General improvement to the code.
+    Compute exit time based on PET instead of PTS.
+    Move some global variable into statQue.
+
+    Modify pidbuf.h in RMX to use new definition in DPI
+
+
+2/26/99
+    Check in source tree.
+

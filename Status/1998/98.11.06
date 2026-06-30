@@ -1,0 +1,10 @@
+Status report of Yi Tong Tse on 11/6/98
+
+Gone through a major restructuring of the DPI code to reduce the code size
+and make it more flexible.  The new code has a single decoder routine to be
+shared by both the live and the ad streams.  It can also handle the general
+case of splicing from one channel to another.
+
+Improved output bit handling and added a packetizer to the DPI code to
+allow transport stream output.
+

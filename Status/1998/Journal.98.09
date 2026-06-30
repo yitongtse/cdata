@@ -1,0 +1,131 @@
+9/1/98
+  Discuss Autonomous frame pattern with group.
+  I picture decoding is basically working.  Picture looks OK.
+  Still some unconfirmed pixel mismatchs!
+
+9/2/98
+  Attended with Ji SCTE's DPI Ad Hoc Group meeting.
+
+9/3/98
+  Fixed several bugs from my decoder.
+
+9/4/98
+  Fixed more bugs from my decoder.
+  Got segmentation error at B-picture 10 for the echo3 sequence.
+  Have no idea why I got this bug!  Switched to use echo2 sequence instead
+  to continue debugging.
+
+-------------------------------------------------------------------------------
+
+9/8/98
+  Attended 401k meeting.
+  Review seamless splicing patent draft from Greg.
+  Spent half of the day to debug the segmentation error.  Found a way to
+  hide the bug.  Couldn't find the cause yet!
+
+9/9/98
+  Finish debugging MPEG2 decoder.  The segmentation error seems to disappear
+  after I remove the debugging codes.
+  Start working on MPEG2 encoder.
+
+9/10/98
+  Finally the benefit enrollment form was faxed to TriNet.  Reception confirmed.
+
+  Modify usage of dc_dct_pred and intra block reconstruction so that they
+  are as described in the spec.  The result is still 100% matching with
+  mpeg2decode result for about 60 frames being tested.
+
+  My encoder can now generate I-picture only bitstream with perfect
+  reconstruction matching with my decoder.
+
+9/11/98
+  Working primarily on the motion estimation package.
+
+-------------------------------------------------------------------------------
+
+9/14/98
+  Response to patent attroney on his questions on the 6 splicing scenarios.
+  Written a small email to break down the complexity of the anchor frame
+  generation problem.
+
+  Start debugging the encoder for P-picture.
+  Fixed mb_type debugging:  P_INTRA done.
+
+9/15/98
+  Continue working on P-picture encoding.
+  Tough bug: after calling swapBuffer() function in the main program,
+             it hangs at frm 1, MB 102 on athens!  It funs fine in Lakers.
+  Fixed mb_type: P_DPCM done.
+
+9/16/98
+  Explained cross picture-type re-encoding disadvantage and
+  clarified B-picture reference dependency to Ji and Greg in a email.
+
+  Debugged motion search module.
+  Put in P-picture mode decision.
+  Still need to fix motion vector prediction.
+
+9/17/98
+  Can now generate decodeable P-picture bitstream.  Still has mismatch
+  between encoder and decoder.
+  Video quality is very bad.  May have problem in mode decision.
+
+9/18/98
+  P-picture bitstreams now have perfect match between encoder, decoder, and
+  MSSG decoder on a 30 picture test.  Pictures have no severe coding artifacts.
+
+-------------------------------------------------------------------------------
+
+To do:
+  Need to prepare slides for Wen.
+
+9/21/98
+  Finish simplifying the source code.  The final code has perfect match.
+  Finish the code of encoding B picture. 
+
+9/22/98
+  PTO
+
+9/23/98
+  Review patent draft received.  Discussed with Ji.  I need to provide
+  description on time stamp correction.
+
+  B picture encode starts to work now.  Perfect match for 1 sec test.
+  Speed test:  mpeg2dec: 36 sec.  mssg dec: 31 sec.
+  Extended mpeg2dec to support transport stream input also.  Seems working!
+
+9/24/98
+  Added display option to mpeg2dec.
+
+  Written up a more detailed description for the time stamp correction section
+  in the patent.
+  Response to the patent draft.
+
+9/25/98
+  DPI discussion with Fang, Ji, Wayne and Francesco to figure the event
+  from PPC to DSP.
+
+  Written and tested a program which can extract from a transport stream
+  a PID stream, a PES stream or an elementary stream.
+
+  Fixed several bugs of mpeg2dec based on the HITS bitstream.
+  Now the decoder should be able to decode both EchoStar and HITS bitstreams.
+
+-------------------------------------------------------------------------------
+
+9/28/98
+  Found out that my decoder did not decode Wayne's bitstream because it does
+  not currently support field pictures.
+
+  Start working on the splicer program.
+  The first mode will be simply cut and paste, with no re-encoding.
+
+9/29/98
+  Added buffer option for OutPort.
+
+9/30/98
+  Created 4 viewgraphs for Wen's presentation.
+
+  Finished TR adjustment.
+  Exit point (with B pictures) works.
+

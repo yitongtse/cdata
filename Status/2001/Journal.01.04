@@ -1,0 +1,194 @@
+4/2/01
+  Finish with the sync with main branch at rel 2.3.6a
+  - the merge is only for dpi and statmux.  Bitshaper may be OK.  PPC not done!
+  - need to edit the change marks (<<<<<<<, =======, >>>>>>>) by deleting one
+    character to avoid the tool complaining.
+
+
+4/3/01
+  Debug splice point problem:
+    - recompile from top of throttle branch => build 1208.
+    - set up Divicom, HL
+    - set up ad server for stable ads at different resolution
+
+  Even without RC, same resolution, I can see quite severe blocking artifacts
+  at splice point, from ad to net.  Seems it has something to do with inserted
+  black pictures.
+
+  Noticed that the inter quant matrix is different between ad and black
+  pictures.
+
+  Change: insert EOS and RAP between the ad and the first black picture,
+          if any.  => build 1209
+
+
+4/4/01
+  Captured a clip badsw1.tsp.  It has severe blocking at capture time using
+  DigiTran.  When playing back with HP analyzer, no blocking is seen!
+
+  Do autoSwitch between two HL channels, see some problems with Digitran
+  (ripple, white dots and lines, jumps, etc.)!
+
+  Suspect that it may be due to local clock inaccuracy.  Trying using
+  input time base mode.
+
+  For TB=1, still sees it, but the frequence is much reduced.
+
+  Adding black pictures does not seem to worsen the situation.  Same result.
+
+  With resolution change, black pictures actually help to give a better
+  transition.
+
+  Without black picture, with TB=1, switch are good, except for a very short
+  transient state where pictures seems to be in half resolution.
+  With TB=2, the bad symptom reappears.
+
+
+4/5/01
+  Noticed that in SeaChange's ad, the random_access_indicator is on for about
+  once or twice a second, possible in the I pictures.  This causes HP analyzer
+  to complain since we remove PCR at these RA points.  Add code in bufferer
+  to also remove the random_access_indicator and discontinuity_indicator
+  in AF.
+
+  Noticed that the data_alignment_indicator in PES header may be on, which
+  can cause the HP analyzer to think this should start a sequence header,
+  since the PMT is not changed for the AD!  Need to clear this flag!
+
+  Turning off EOS won't help Digitran.
+
+  Artifact still seen after clearing data_alignment flag.  HP analyzer still
+  complains.
+
+  Change to same rates seems to reduce the problem a little bit, but it still
+  exists.
+
+  The HP analyzer compliants are also there when we are bypassing net or ad!
+
+  Turning off audio still does not help Digitran.
+
+  The HP analyzer is complaining about the same thing even for the Divicom
+  source!
+
+
+---------------------------------------------------------------------------------
+
+4/9/01
+  Latest build for splice point problem test: 1213
+
+  Captured two bitstreams which shows Digitran artifact even when replayed with
+  HP analyzer: badsw6.ts and badsw8.ts
+
+  badsw6.ts has syntax error, possible due to the capturing process.
+
+  Use badsw8.ts to study splice point problem.
+
+  Noticed that the delta DTS across splice point is 1503!
+
+
+4/10/01
+  Views cleanup:
+    ytse-qnd-dpi: removed
+    ytse-qnd-mux: removed
+    ytse-dp6: removed
+    ytse-rc2: removed
+    ytse-main_work: removed
+
+    ytse-rc: cleaned
+    ytse-sp: cleaned
+    ytse-dpi3: cleaned
+    ytse-ts: work to increase PTS/DTS precision!
+    ytse-dpi2: increased DI precision!
+
+  Noticed that in throttle branch and TOT, we use the increased DI precision
+    definition (8 x 90kHz), but the code still assume the old definition!
+    (90 kHz).
+
+  Tried to debug the problem by adding two more variable in PicStat for DPI.
+  Code then died due to mux dead!  Can't figure out what's wrong.
+  Move to use dpi_integ TOT from view ytse-dpi7.
+
+
+4/11/01
+  Simulated timestamp jitter insertion.  After a while, the display is somewhat
+  similar to the splice point.
+
+  Tried fooling mux of the ad's priority.  It does not help!
+
+
+4/12/01
+  Need to check in needed changes to dpi_integ using ytse-sp:
+    - CSCdt65516 DPI: Channel remains dead without reset
+    - always put EOS and RAP before the first inserted glue picture.
+    - turned off RAP and TBD bit in AF options.
+    - set pPicStat->pcr correctly for the timebase mode used for statmux.
+
+  Ways to solve the splice point mist:
+    - use 90 kHz PTS/DTS precision
+    - check PCR accuracy
+    - check with NCube server
+  
+  Conditions for splice point problem to show up:
+    - Divicom live to ad transition: closed GOP.  Insert EOS and RAP.
+    - No transition frames.
+    - May have rate reduction.
+
+
+4/13/01
+  To do:
+    - Check in changes in ytse-sp for CSCdt65516 to dpi_integ: done
+    - Check in the above 3 more changes also.
+    - Find out why excessive PCR jitter when input time base is used.
+    - Check the drift value of the source (especially ad)
+    - Inverstigate handling of mux missing pictures
+
+  External memory project:
+    - External data should not be declared with EXTERN keyword,
+      but extern far instead.
+    - Data address range is smaller than branch.  Cannot use the same method.
+    - Changes checked in to dpi_integ.
+
+  Create integration branch dpi_work_integ for future work.
+  This branch should be sync with the dpi_integ regularly.  Also other
+  minor checkins should be done here.
+
+
+
+----------------------------------------------------------------------------------
+
+4/16/01
+
+  Start syncing with main branch at 2.3.8.
+
+  Splice point problem:
+    The problem seems to go away with two changes: (1221)
+      - no EOS and RAP insertion
+      - use same net/ad priority: no effect
+
+  - Seems now that EOS is the source for the Digitran problem!
+
+
+4/20/01
+  To do:
+    - Respond to Wayne (SA)'s email
+    - Finish sync with main 2.3.8
+    - Made dpi patch for weekend test
+    - Update DVS380 feature list
+
+
+
+----------------------------------------------------------------------------------
+
+4/23/01
+  - Finish syncing with main branch at Rel 2.3.8
+
+
+4/24/01
+  - Figured out that the new DVB input FPGA code causes excessive error between
+    mapped and predicted DTS/PTS.
+
+
+4/25/01
+  To do:
+    - put in NOEOS keyword: Done
+    - work on precise timestamp mode: Done, but need further study

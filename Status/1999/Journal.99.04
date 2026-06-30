@@ -1,0 +1,137 @@
+4/5/99
+
+Plans:
+  - move all active code in internal program memory
+    to see whether there is any problem caused by program in external space.
+  - set up hardware for debugging
+
+4/9/99
+  - TP level bypass working!
+  - On channel picture level bypass working!
+
+-------------------------------------------------------------------------------
+
+4/12/99
+  - Off channel picture level dropping working!
+
+4/13/99
+  - DPI works for the first time at 3:45pm!
+
+4/15/99
+  - Added trap for empty pidFreeBufHandle
+  - Added trap for empty statFreeQueHandle
+  - Added trap for pidBuf leak
+  - Added trap for picStat leak
+
+4/16/99
+  - recalculate TB offset on every PCR
+      - to avoid drift
+      - to handle wrap around problem in video server feed
+
+  - splice between Divicom and video server works!
+    Problem: after a while (variable time) the splicer will never come
+             out from SPLICE state!
+
+  - start splice request task only if more than two avGrp messages are
+    received from PPC.
+    This will make Wayne's job much easier.
+
+  - start investigating the new switcher technique
+
+
+-------------------------------------------------------------------------------
+
+4/19/99
+  - Added spliceControlTask() to implement splice time out.
+  - Add timeout count to diag info
+  - Switching OK.  Doing reliability test...
+  - CC no problem for more than 20 minutes
+    Switching still going on.
+    300 switches, 4 timeouts.
+  - Added max queue size tracking.
+  - Tried to use sequence with different resolutions (D1 and half D1).
+    Sequence end code is inserted.  Problems seen at switch points!
+  - Note: For Divicom bitstream, sequence header is NOT necessarily sent
+          before each I picture!
+
+
+4/20/99
+  - Splicer (ver 041999) works overnight!  (more than 20 hours)
+  - Clean up: remove EVM code
+              remove delayBuffer code
+  - Try to make SUN version compile and run.
+
+  - new Switcher task works!
+  - No picture hickup seen in output video!
+  - Swapping cable sometimes works.  But will fail in same cases.
+
+
+4/21/99
+  - sw_new version runs overnight!
+  - written a simplified field parity check routine.
+    Including this routine cause some video breakup!
+  - clean up diagnostic info
+
+
+4/22/99
+  - Faster off channel clean up.
+  - clean up seems to work.
+  - cable swapping is working, although hickup can be seen sometimes.
+  - reduced max picStat queue size to try to reduce hickup.
+  - Pic TP count problem still happens, possibly illegal ES data.
+
+
+4/23/99
+  - reliability problem:
+      bad picture status or TP queue.
+      infinite loop in changePid() or countPicTps().
+      seems like we need another mutual exclusive sema for buffererTask.
+
+-------------------------------------------------------------------------------
+
+4/26/99
+  - Version 1.3 (4/19/99) code runs over weekend!
+  - PidBuf used up problem!
+  - new bufferer version: use bufferer to do channel cleanup!
+
+-------------------------------------------------------------------------------
+
+4/27/99
+  - Code still cannot run overnight!  Bad ES data problem (can't read
+    picture header).
+  - DPI with bypass channel (1 Hits program) works!
+  - Increase channel number from 4 to 8.
+
+  - Debugging strategy:
+      turn off channel cleanup to see whether it can substain first!
+      After turning off cleanup, the code is much more reliable!
+
+  START RATEMUX INTEGRATION:
+  - change TP level bypass to picture level bypass: Done
+  - modify controlTask to handle all other message types: Done
+  - add rateconv task and its associated functions
+  - modify output task to behave like the sndStatElemVideoPkt task
+
+
+4/30/99
+  - DPI code has been running for 2 days.
+  - Created statmux directory.  Will clean up include files.
+    - use single vbitsdef.h in knl directory: Done
+    - move statQue info into dmCtrl
+    - remove PicInfo and move all its field to PicStat: Done
+    - combine dpi.h and dpi_global.h: Done
+    - struct reorg questions:
+        where should we put chanType and picStatCnt?
+        in pidChan, or in DemuxCtrl?
+-------------------------------------------------------------------------------
+
+To do:
+  - need to study timeout-cleanup problem!
+  - one way to avoid conflict btw bufferer and splice control is to
+    do channel clean up in bufferer only!
+  - check to see if writer add TP, do we need to increment counter also.
+
+Done:
+  - check if outChan PCR is restamped (Supposed to be done by statMux).
+  - PidBuf and PicStat leak checks work.
+  - use IntAdd for counters, and other shared variables.

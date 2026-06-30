@@ -1,0 +1,420 @@
+1/2/01
+  Status:
+    view ytse-dpi2:
+    view ytse-dpi3:  use to debug new trap/halt problem when using black picture
+
+  BUG (CSCdt08480): DPI: splice timeout in never-timeout mode
+      In spctrl.c, timeout!=DPI_TIMEOUT_NEVER is used, instead of timeoutMode!
+
+  BUG: with black pictures, the code sometime will trapped!
+    The reason seems to be that in process entry point, after inserting
+    a glue picture to resolve field parity conflict, the BG becomes
+    seek, ie, not ready!!!
+  Fix: moved adjustFgSpliceTime() from insertGluePic() to its callers.
+
+  There are two more bugs that have not been check in:
+  - field parity conflict resolution cause BG to become not ready again
+      -> reuse CSCdt06540: DPI: problem in field parity conflict
+                                across splice point
+  - forget to set top field first field in inserted glue pictures 
+      -> should use new DDTS
+  Both bug fixes should also be checked into the throttle branch.
+
+  Overnight test: dpi1131: with fix of first bug, but not the second.
+
+
+1/3/01
+  Reuse CSCdt06540: DPI: Problem in field parity conflict across splice point
+  for the bug fix of field parity conflict resolution causing BG to become
+  not ready.
+  Checked into both the dpi_integ and the throttle branch.
+
+  CSCdt09610: DPI: problems in inserted black pictures
+  BUG: top_field_first field not set in glue pictures.  
+  Checked into both the dpi_integ and throttle branches.
+
+  BUG: seems fillChan does not in procMaintainReq() because of different
+       time bases are used!
+
+
+1/4/01
+  BUG: logical error found in procMaintainReq().  For large requested black 
+       time, procMaintainReq() will always insert 15 pictures!
+       Should only enough number of pictures to statmux!
+
+  New procMaintainReq() algo:
+      if (BG ready && request black completed)
+          procEntryPoint()
+      else {
+          newFillTime = curTime + 0x6000;
+          endBlackTime = channel stop time + reqBlackTime;
+          if (request black not completed && endBlackTime<newFillTime)
+              newFillTime = endBlackTime;
+          fillChan(newFillTime);
+      }
+
+  It turns out that the new procMaintainReq() cause more severe audio lip sync
+  problem.  The old one has about 50% chance of lip sync problem.  The new
+  one almost always has it.
+
+  Wayne mentioned that the audio code may fail if the gap is longer than 1 sec.
+  Need new design to solve the problem.
+
+  Jinbo wants DPI to return correct statistics to PPC.
+
+  Potential problem:  FG start time may be incorrectly set!
+
+
+1/5/01
+  Checked in changes made in sendDebug() to move message buffer out from stack.
+
+  Sangeeta mentioned that there is a severe bug fix in statmux that needs to
+  be check in to the throttle branch.  This bug will cause long term buffer
+  underflow.  Check details with Xiaomei.
+
+  Tried to load TOT code but system failed to start!
+
+------------------------------------------------------------------------------
+
+1/8/01
+  Reload system with 2.2.4DP release.
+  Have Mike reworked my and Wayne's PPC card to enable watchdog timer.
+  Wayne' machine has been testing DP6 release.
+
+  Views status:
+    ytse-dpi: clean
+    ytse-dpi2: fix start time in procEntryPoint().
+    ytse-dpi3: trying to fix picture jump at splice point.  Also fixing
+               splice return values.
+
+  CSCdt12950: DPI: DSP returns wrong information in splice indication message
+
+
+1/9/01
+  Noted that occasionally we have the error message saying the regenerated DTS
+  and mapped DTS are off by 1 field time!  This may be the reason for the jump.
+
+  Turns out that this may not be any problem.
+
+  Top of Tree evaluation (before rewriting procMaintainReq()):
+    - seamless: picture pretty good.  Some audio breakup.
+    - 1/3 sec gap: occasion picture jump, audio OK
+    - 1 sec gap: severe audio break up with lip sync problem that
+                 does not recover
+    - 3 sec gap: horrible.  Mux error messages too!
+
+  With attempt to fix gap:
+    - seems does not improve at all!
+
+  Further problem noticed:
+    Adjustment of tsDelay: how does it affect the event model
+
+
+1/10/01
+  Jinbo built 2.2.4DP1 release (label INT2_2_4DP1, build no 238)
+  Updated system for new release
+
+  Testing of 2.2.4DP1:
+
+---------------
+(59236) - Dsp s3m2 - >> TIME DPI REQ 0000006b at 019de9a2: 1->0 at 019e996a, expire 019ef14e, tomode 0
+(59251) - Dsp s3m2 - Pic 0-0: SEQ accquired
+(59315) - Dsp s3m2 - Parity conflict
+(59315) - Dsp s3m2 - PassPic: next Pic 1-174, argu 1-183
+(59316) - Dsp s3m2 - Black: req ffffffff, act 000008cc, fill 000008cc
+(59316) - Dsp s3m2 - ## Pic 1-183: closing B missed
+(59316) - Dsp s3m2 - ## DTS: Pic 1-183, map 019ef225, regen 019ec339, diff 12012
+(59316) - Dsp s3m2 - ## PTS: Pic 1-183, map 019f03be, regen 019efaf1, diff 2253
+(59316) - Dsp s3m2 - FINISHING: Pic 1-183 ignored
+(59341) - Dsp s3m2 - ^^^ ... (0, 0) 401, next dts 0x019e9fe4
+(59443) - Dsp s3m2 - Dropped 57 TP before Pic 0-15
+(59446) - Dsp s3m2 - << DPI IND 0000006b: 1->0, status 3, rcv 019de9a2, req 019e996a, act 019ec339, totTime 0003c1e1, totPic 164
+
+---------------
+(92946) - Dsp s3m2 - >> TIME DPI REQ 000000ad at 028569a2: 1->0 at 0286196a, expire 0286714e, tomode 0
+(92961) - Dsp s3m2 - Pic 0-2: SEQ accquired
+(92964) - Dsp s3m2 - ## DTS: Pic 0-3, map 0285b43c, regen 0285b14c, diff 752
+(93030) - Dsp s3m2 - Parity conflict
+(93031) - Dsp s3m2 - PassPic: next Pic 1-173, argu 1-177
+(93031) - Dsp s3m2 - Black: req ffffffff, act 000008cc, fill 000008cc
+(93032) - Dsp s3m2 - ## DTS: Pic 1-177, map 02865e84, regen 02864ceb, diff 4505
+(93032) - Dsp s3m2 - FINISHING: Pic 1-177 ignored
+(93058) - Dsp s3m2 - ^^^ ... (0, 0) 401, next dts 0x02862a07
+(93166) - Dsp s3m2 - Dropped 44 TP before Pic 0-17
+(93171) - Dsp s3m2 - << DPI IND 000000ad: 1->0, status 3, rcv 028569a2, req 0286196a, act 02864fda, totTime 0003c1e1, totPic 164
+(93455) - Dsp s3m2 - 
+
+---------------
+(154121) - Dsp s3m2 - >> TIME DPI REQ 00000124 at 0429877d: 0->1 at 042a3745, expire 042a8f29, tomode 0
+(154170) - Dsp s3m2 - Pic 1-12: SEQ accquired
+(154175) - Dsp s3m2 - ## DTS: Pic 0-132, map 042a41f0, regen 042a3923, diff 2253
+(154175) - Dsp s3m2 - FINISHING: Pic 0-132 ignored
+(154196) - Dsp s3m2 - ^^^ ... (1, 0) 32, next dts 0x042a166d
+(154331) - Dsp s3m2 - Dropped 68 TP before Pic 1-12
+(154333) - Dsp s3m2 - << DPI IND 00000124: 0->1, status 3, rcv 0429877d, req 042a3745, act 042a3c12, totTime 00037e74, totPic 122
+(154633) - Dsp s3m2 -
+
+---------------
+(175143) - Dsp s3m2 - >> TIME DPI REQ 0000014d at 04b9e4ef: 1->0 at 04ba94b7, expire 04baec9b, tomode 0
+(175213) - Dsp s3m2 - Pic 0-14: SEQ accquired
+(175219) - Dsp s3m2 - Parity conflict
+(175220) - Dsp s3m2 - PassPic: next Pic 1-178, argu 1-180
+(175220) - Dsp s3m2 - Black: req ffffffff, act 000008cc, fill 000008cc
+(175220) - Dsp s3m2 - ## DTS: Pic 1-180, map 04baaa45, regen 04baa467, diff 1502
+(175221) - Dsp s3m2 - ## PTS: Pic 1-180, map 04baaa45, regen 04bab022, diff -3003
+(175221) - Dsp s3m2 - FINISHING: Pic 1-180 ignored
+(175242) - Dsp s3m2 - ^^^ ... (0, 0) 401, next dts 0x04ba97e4
+(175349) - Dsp s3m2 - Dropped 219 TP before Pic 0-14
+(175353) - Dsp s3m2 - << DPI IND 0000014d: 1->0, status 3, rcv 04b9e4ef, req 04ba94b7, act 04baa756, totTime 00039eb0, totPic 173
+(175654) - Dsp s3m2 -
+
+    dpi1135.fls: with audio debug turn on.
+    dpi1136.fls: 
+
+    After using the new audio files from Wayne, and modifing two threshold
+    numbers (one for timeout period, one for max silence audio length),
+    the audio performance is much improved!
+
+    BUG: picNo of glue picture is not set.
+
+    BUG: cannot update BG start time in insertGluePic().
+         Otherwise, insert of field parity conflict resolution frame will
+         change BG start time, and hence BG's tsDelay calculation will be wrong!
+    Bug fixed after removing the code which changes BG's start time
+    in insertGluePic().
+    However, we may need to change start time in some other places.
+
+
+1/11/01
+  BUG: find a problem that audio is using the spliceTime instead of the
+       startTime to determine the starting point of audio.  Fixed.
+
+  Seen the unclean splice problem that Emma reported in her captured
+  bitstreams.  Mild freeze frame and blockiness was seen. Does not seem
+  to be a splice point error for me.  More like a buffer overflow/underflow.
+  Since the audio of the network and the ad are in different format.
+  Suggest Emma to try muting the audio to see whether it is audio related.
+  Also we can try to use same audio format and bitrates.
+
+
+1/12/01
+  According to Emma, muting the audio still have the same unclean splice
+  problem.
+
+  Meeting with Guenter:
+    According to Guenter, there are three remaining severe problems:
+      - unclean splice
+      - unmatched audio channel number
+      - statmux reset issue
+
+    Schedule:
+    - EFT is about 2/12/01
+    - FCS should be 8 week from EFT
+
+    Documentation needed:
+    - PPC software unit spec
+    - software system function spec
+
+  Lay a label of DPI01_01_12 to capture the latest TOT snapshot.
+
+  Revert audio file:
+    audio.h version 10
+    audSwitch.c version 18
+
+  The previous audio problem goes away with the two audio files reverted!
+  Using the new threshold, and with the spliceTime fixed, the code now
+  performs pretty in audio even with a 1 sec gap.
+  However, picture sometimes still jumps.
+
+  Reduced DTS/PTS error threshold to compile dpi1137.fls
+  Noticed some err=2 messages.  This may be the cause of the picture jump.
+  Need to see whether it is aligned with the splice point.
+
+
+-----------------------------------------------------------------------------
+
+1/15/01
+  Matt fixed some old code in statmux.  Also removed his last changes of
+  pointer.  The resulting code runs fine without reset.  Asked him to 
+  check in his changes.
+
+  Overnight test result:
+    My box ran fine without problem.  (with 0.3 sec black time)
+
+    Wayne's box die due to a hanging timeout.  Seems like a splice is done,
+    but spctrl still detect timeout afterward.  New problem.  Need more study.
+
+  Testing get "## AF size 229" error
+
+  BUG: while the monitor is in checkSpCtrl(), processing the splice request
+       queue, the splice control task frees up the request that monitor
+       task is on.  As a result, monitor task is now processing the free
+       queue, which cause the reset.
+  FIX: use interrupt protection for the entire checkSpCtrl().
+
+  Kernel issues:
+    According to Fang, the msgSend() function may cause task switch because
+    the second dmaWordCopy() may be blocked and caused a task switch to
+    even a lower priority task.  Since dmaWordCopy() is intelligent to
+    actually use DMA if the DMA size is > 32 words, this will not always
+    happen.  However, when DMA is used, we cannot disable interrupt, because
+    otherwise the interrupt of DMA completion will not be received, causing
+    a deadlock.
+
+    Therefore, in general, do not call dbgPrint() when interrupt is disabled.
+
+  Seems like the frequent reset problem has something to do with the input
+  video stopped detection mechanism, especially when SeaChange Ad Server
+  is used.
+
+  Created new ytse-ts to study the time stamp accuracy issue.
+  Two approaches: 
+    - if mapped TS and regenerated TS are different by a small amount (<5),
+      then use the regenerated value adjusted by 1 instead.
+    - use a variable in chanInfo to track the remaining DI when inserting
+      glue picture.
+
+  According MPEG-2 frame rate table, the highest precision up to a field time
+  is 1/8 of a 90 kHz clock!  This becomes 1/16 for 45 kHz clock.
+
+
+1/16/01
+  To do:
+    - test new idea of higher DI resolution for glue pictures.
+    - capture a video clip from HL encoder, use HP analyzer to analyse it
+      and see whether we can get similar error message.
+      Can do the same thing for Divicom encoder.
+    - Find out why my box died overnight.
+
+  Bug: My box died twice due to the same problem of interference between
+       Monitor task and Splice control task.
+  New fix: instead of protecting the entire routine to scan the splice request
+       queue, we now use peerChanId == -1 to indicate a splice request has
+       been freed.  The splice request task will set peerChanId to -1 and
+       free the request as an atomic operation.  The monitor task will
+       check whether it is -1, and follow the link if not, as an atomic
+       operation.
+  Build: dpi1141.fls
+
+  Wayne's box run overnight fine.  No reset.  However, there were some ## OUT
+  message, with bad DTS diff of 2.  Should have been adjusted!?
+  Noticed that the frame numbers are all small.  Maybe adjustment is not
+  done for some reason right after the splice point.
+
+  Emma's box was reset once, due to exactly the same problem as in my box.
+  Emma's log file dp1_1_6 also has some "closing B missed" messages, need
+    further study.  May contribute to splice point problem!
+
+  The higher DI resolution for glue picture works very well!
+
+  Jinbo showed me a log file where a forced switch is hanging there, waiting
+  for audio (I think) to finish switching. (01153.log)
+
+  Final version which combines all changes: 1142
+
+
+1/17/01
+  View summary:
+    dpi - Debugging Jinbo and Emma's bugs.
+    dpi2 - drift study
+    dpi4 - configuration setting
+
+
+1/19/01
+  QUESTION: Is the rate cap function included in the DPI tree?
+            Should we update dpi test plan for that?
+
+  BUG: Discussion with Jinbo find a bug!
+       When FS is from a bad channel to a bad channel, then FS will not work!
+       Because lastPic will never be sent by output task!
+
+       - Do we set expire time in this case?
+       - how can we count down the pid if there is not lastPic?
+
+  BUG: PPC for some reason forget to reset a DSP whose splice completion
+       times out!
+
+
+
+------------------------------------------------------------------------------
+
+1/22/01
+  Two things to debug:
+    - why dpi1145.fls dies every few minutes on Emma's station, while it ran
+      over weekend without reset on my box and Wayne's box?
+    - new forced switch problem
+
+  View dpi was used to add dbgPrint message for Emma and Jinbo.
+  Wayne's audio fix for forced switch is also added here.
+
+  Need to combine the changes in views dpi and dpi4 before check in.
+
+  Checked in all needed changes in views dpi and dpi4.
+  Last build on TOT: 1147
+
+
+1/23/01
+  Added DI to PicStat.
+  Improved output watch dog checking
+
+  The FS bug that Jinbo found is solved.  Problem is due to audio not
+  switching in null to null case.
+
+
+1/24/01
+  Fix time stamp problem which cause jumping picture around splice point!
+  Open GOP case is solved!
+
+  Problem found:
+    Need two separate adjustments for:
+      - When channel starts up, we assume the first anchor picture has
+        decode time of 2 fields, this may be wrong.  In this case,
+        we adjust tsDelay and anchor's PTS, instead of the decode time.
+      - If the entry anchor's decode time (assume 2 fields) does not match
+        with the exit anchor's play time, then we simply adjust entry anchor's
+        DTS.
+   
+  After making the checkin, Emma found that the code is worse at the splice
+  point!
+
+  Latest founding with DigiTran:
+  - With DiviCom as network and 2 b2b ads, 2.2.4DP1 code has blocks at
+    b2b transition.  But latest patch has not!
+    Both has glitch when going into the ad.
+  - With Harmonic as network and sigle ad, both 2.2.4DP1 and latest patch
+    have glitch when going into the ad.  Besides the glitch, we also saw
+    white dots and black comb bars at the beginning of ad and the second
+    after returning to network.
+  - When removing the smart EOS insertion, the glitch is gone!
+    But other artifact remains.
+
+
+
+-------------------------------------------------------------------------------
+
+1/29/00
+  2.2.4DP2: high reduction may cause reset!!
+
+  Matt checkin ad channel priority that may solve the problem! 
+    => statmux1151.fls
+
+  Add PCR insertion at splice point =>  ytse-dpi, dpi1152.fls
+
+
+1/31/00
+  New 2.2.4DP2 problems found:
+    Statmux rate conversion failed causing reset
+      - Matt forgot to remove the reset code in main branch
+
+    Matt forgot to put in the ad channel priority support code in dpi
+
+    Force switch problem with rate reduction.
+
+    In Emma's system, constant force switch from middle of ad back to network!
+    Under mild rate reduction only.
+    DP6 dpi has the same problem too.
+    DP4 dpi has the same problem too!
+    With DP4 statmux the problem persists!
+    Even turnoff rate conversion the problem is still there!
+
+    Maybe it is a SeaChange Server problem.

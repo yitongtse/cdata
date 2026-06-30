@@ -1,0 +1,142 @@
+10/2/01
+  Stability problem:
+    - Mux detect picCnt jump in PicStat and data packets
+    - DPI hangs without known reason
+
+  Summary of recent code changes:
+    - DP3 (OK)
+
+    - DP4
+
+      - use new DVB IO FPGA
+      - merge cue tone forwarding code
+      - merge audio mapping code
+    - DP5 (testing)
+
+      - merge new audio code
+    - DP6 (not built)
+
+      - sync with main 2.4.9
+    - 2.4.9DP (picCnt jump)
+
+
+10/4/01
+  Noticed that nCube ad stream has the following problem:
+    the first frame of any ad other than the first one does not have
+    the closed_gop flag set!
+
+
+10/5/01
+  New setupChanInfo() does not work.  Need to make sure no chanInfo setting
+  is done before this function is called.
+
+  Idea to reduce buffer usage:
+    Use larger maxDelay on ad channels only, but keep the network channel
+    maxDelay low.
+
+
+10/6/01
+  ytse-cleanup view works after repositioning setupChanInfo() calls.
+
+  To do:
+    - Investigate using a smaller MIN_LEAD_TIME to see whether it will cause
+      underflow at black insertion.  (1/10 sec seems to have no mux complaints).
+      Should try 0 to see whether mux will ever complain.
+
+    - Using a high bitrate channel as an ad, see whether using a larger
+      adMaxDelay will cause any buffer issue.
+
+    - See whether reducing netMaxDelay will help relieve buffer problem.
+
+  - There is a case where buffer overrun is detected, but no halting?!!
+    The code is later reset.
+  
+
+------------------------------------------------------------------------------
+
+10/8/01
+  - Need to discuss new delay setting with Jin Churn
+  - Need to discuss new bufferer task changes with Edward, as it seems to
+    produce traps.
+
+  New delay scheme seems to work.
+
+
+10/9/01
+  Overnight test: NETDELAY=200, ADDELAY=800 => works fine.
+    No Digitran drop out.
+
+  Add code to print SMPTE to study cue tone forward accuracy problem.
+
+  PPC noticed that some time PTS offset return offset2 of 0.
+  It is because at that time the network channel has just been initialized
+  due to the return switch request.  Should not reset time base offsets
+  to handle this case.
+
+
+10/12/01
+  Video glitch with 2.3aDP:
+    2.3aDP was built from the rel2_3dp_throttle.
+    Does not seem to have any fix for forced switch in input time base!
+    Fixes were only applied to dpi_newapi_integ, which was later merged back
+      to dpi_integ.
+    Related DDTS:
+      CSCdu53459  DPI: Video jumps (flash) once in a while (3 checkins)
+        - Modify input time base mode to support file wrap-around
+        - Fixed forced switch bug in TB=1 mode.
+        - Changed default time base mode to 1.
+    Need to manually port these 3 fixes back to 2.3aDP.
+    Code is already in ytse-fcs (spyderman).
+    Build no 1307.
+
+
+10/18/01
+  2.4.9DP2 audio has lip sync problem.  Also sometimes audio is loss for
+  a few second when it switches from network to ad.
+
+  Need to revert the audio fix of no data to see whether the problems goes away.
+
+  Files replaced:
+    audSwitch.c/30
+    audTools.c/21
+    audio.h/18
+    splicer.c/149
+
+  Need to manually pull the changes of splicer.c/150 back.
+
+
+10/23/01
+  Noticed that progSeq is not set for insert black picture!
+
+
+------------------------------------------------------------------------------
+
+10/29/01
+  Outstanding issues:
+    - lip sync problem
+
+    - Digitran dropout
+      Happens when a channel is reset while it is empty, then dropout happens
+      when the channel restarts.
+
+    - PCR jitter issue
+      Noticed that with TB=1, at the splice point, the PCR interval is reduced,
+      and the PCR jitter is out of bound.  With TB=2, there is no PCR jitter
+      problem at splice point.
+
+      Average drift measurement show that my clock is biased by about +8.
+
+      Removing PCR insertion in splice point does not solve the jitter problem
+        => not because of PCR.
+
+    - STB behaviour at splice point
+      Seems like Digitran artifact is also gone when we remove the PCR,
+      but keep EOS.
+
+
+10/30/01
+  - The PCR jitter seems to be due to the fact that the PicStats are sent
+    as a big bunch at the splice point.  This cause the accu drift variable
+    in statmux to be modified by a large amount in short time.
+
+

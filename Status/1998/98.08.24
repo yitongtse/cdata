@@ -1,0 +1,11 @@
+Status report of Yi Tong Tse on 8/24/98
+
+Developed a generalized, frame-accurate splicing algorithm which can handle
+switching from one channel to another.  This general algorithm can handle,
+with reduced complexity, the special case of ad insertion where the ad
+is a pre-coded bitstream with pre-conditioned entry and exit points.
+Converted the algorithms into a set of claims which have been added to
+the seamless splicing patent description.
+
+Finished a set of routines to read and write MPEG-2 video bitstreams.
+

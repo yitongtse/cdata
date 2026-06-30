@@ -1,0 +1,38 @@
+Status report of Yi Tong Tse on 3/20/99
+
+
+DPI development
+  Continue to work on the DPI code for the upcoming NAB show.
+
+  There are a couple of fixes that I need on the statmux in order to have
+  a smooth and reliable DPI demonstration.  The first problem is that DPI
+  requires a longer delay in the statmux in order to absorb the picture
+  arrival jitter due to channel alignment at splice point.  The statmux
+  fails when the delay is larger than 32 pictures.  Matt has helped me
+  to fix this problem.
+
+  The other problem that statmux has is that it will stop processing pictures
+  at some unknown case, which in turn cause the DPI code to die.  I have been
+  working with Sangeeta and Matt to have this problem solved.
+
+  On the demux size, I have fixed a problem which caused the code to die when
+  the ad server died in the middle of an ad.  Now the code will return to
+  the network feed once it notices that the ad has stopped.
+
+  I also found that SeaChange's Ads have bad DTS at the last anchor picture.
+  This is probably due to problem of the encoder that SeaChange used to
+  generate its ads.  This may cause picture jumps at the splice point.
+  The latest DPI code fixes bad DTS.
+
+  I integrated Wayne's new audio package into the DPI code.
+
+
+
+Helped Xiaoxiao to use the DPI code to debug the new FPGA code.
+Several of us have noticed that the new FPGA code has the problem of
+dropping packets.  The DPI code can detect this by monitoring the
+continuity counter of each PID streams at the demux DSP input.
+I have been told that the bug has been fixed, but have no time to
+test it yet.
+
+

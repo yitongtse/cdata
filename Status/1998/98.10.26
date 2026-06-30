@@ -1,0 +1,9 @@
+Status report of Yi Tong Tse on 10/26/98
+----------------------------------------
+
+Fixed the DPI program to generate the correct temporal reference.
+
+Generated a couple of ad insertion demos using the HITS bitstream.
+
+Found a potential bug of my code when the buffer wrap around.  Working to
+fix it.

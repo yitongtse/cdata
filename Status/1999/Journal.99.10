@@ -1,0 +1,217 @@
+10/1/99
+  - NDS bitstream parameters
+      lakers:/cdrom/cdrom1/nds.m2t
+      Video PID: 513, 514, 515
+      Input rate: 15 Mbps
+
+  - Tandberg bitstream parameters
+      /b2/bits/tandberg.m2t
+      Video PID: 160
+      Input rate: 38.01 Mbps
+
+  - Create Proj/NEW directory to consolidate all MPEG-2 related code.
+
+
+10/5/99
+  Status:
+    - Single channel (Divicom, Hits), no RC: OK
+    - Single divicom channel with RC: OK, lie after 10 hrs due to PidBuf leak.
+    - 2 HITS channels with RC: garbage picture
+
+10/6/99
+  Status:
+    - 2 Divicom channel with splicing, no RC: OK.
+    - 2 Divicom channels with splicing and RC: OK.
+
+  Find a bug in setting edHdl for TR adjustment.  Added a element in PicStat
+  to point to the TP containing first byte of TR to fix the bug.
+
+
+10/7/99
+  - 2 HITS channel switching with RC die in about 1 hr.
+    Problem: needs to call cleanCutInit() every time a channel is turn ON
+             or BG_SPLICE.
+    Fix: call cleanCutInit() in procSetPidGrp(), procStartPidGrp() and
+         procSwitchPidGrpReq().
+
+  - Potential bug found: when changing channel status, make sure mode is
+    changed at appropriate time.  E.g. when turning on from off, change
+    mode AFTER all initialization is done.
+
+  - Bug fix: forgot to set bndryPicFnd flag to FALSE for BG channel
+    in procSwitchPidGrpReq().
+
+  - Noticed that mpeg2dec will fail if a start code (16 0's) is found when
+    decoding a coefficient!  Need to change VLD table to handle this case.
+    Fix: added "0000 0000 0000" to make the code tree complete.
+
+  - VLD investigation: old VLD has two flavors: single pass and multiple pass.
+    Single pass reads table once, but need hugh table.
+    Multiple pass reads table several times, can use small table.
+
+  - See garbage picture on single HITS bitstream also.  Seems the problem is
+    for HITS bitstream, not for multiple HITS.
+
+-------------------------------------------------------------------------------
+
+10/11/99
+  - Also seen multiple DSP problem on another DPS card. 
+
+  - Sun simulation show that the rate converted output bitstream has problem
+    for single HITS and echoStar bitstreams.
+
+  - HITS bug fixed.  Wrong setup of reg3 in value of r_sizes in initRcRegs().
+    a & b - c : b-c will be computed first, then the & operation!
+
+  - Clear trace buffer when loading code.
+
+  - Cleaned up Release directory.  Base version starts with ver. 100.
+
+  - Prevent trace buffer from being overwritten by stopping the monitor
+    task when video is stopped.
+
+  - More elegant splice request command which support M:N splicing.
+
+
+10/12/99
+  - Multiple splice channel per DSP successful!
+    Can perform 3 set of splices with about 50% CPU load!
+    But die in about 20 min.
+
+  - Multiple DSP problem
+    Seems like mudule 1 is bad.
+    Problem is probably not in PPC, but in FPGA!
+
+
+10/13/99
+  - Fix bug for SUN simulation
+  - Improved trace messages.
+  - Complete pidFreeBuf checking
+  - Verified that the multiple DSP problem is due to hardware bug.
+    The multiple DSP test passed with a good DSP card!
+  - Found out how to read local clock.  Problem: the msb of the 45 kHz
+    clock is still missing from DEMUX.
+
+  - Made tsfilter work
+
+
+10/14/99
+  - 2 HITS splicing without RC test: die after 11 hrs.
+    Problem is due to stack overflow of the output Task.
+
+    Stack usage for each task:
+
+          Task		    Left over space (hex)
+    ---------------------------------------------
+	Bufferer		overflow
+	Switcher		f0
+	Output			overflow
+	RateConv		178
+	Control			128
+	Splice Control		1d8
+	Splice Request		1f8
+	Monitor			12c
+    
+  - Doubled the stack size of Bufferer, Switcher and Output tasks to
+    avoid stack overflow problem.
+
+  - Single Divicom channel with RC: 4->3 Mbps works for almost 4 hrs.
+    Test terminated. 
+
+  - Audio integrateion: compilation OK.  Linking OK.
+
+
+10/15/99
+  - Splicing with Divicom and HITS with RC pass over night test!
+    Run more than 20 hours.
+
+  - Rate conversion input/output buffers should be allocated in CRAM
+    instead of DRAM.  This will significantly improve the performance!
+
+
+---------------------------------------------------------------------------
+
+10/19/99
+  Harmonic Lightway bitstream test:
+    - Rate conversion does not work
+    - Splicing: video OK, audio glitches
+
+  Bypass test:
+    Divicom without RC: OK
+    Divicom with RC:    OK
+    HL without RC:      video OK, audio clicks
+    HL with RC:         video stall and blackout occasionally
+    HITS without RC:    (HITS' AC3 audio not decodable by Tandberg)
+    HITS with RC:       (HITS' AC3 audio not decodable by Tandberg)
+
+  - getLocalTime() usage:
+    This function is used mainly in printf and in splice request task.
+    The only important usage is in switcher_ext.c, where it is called
+    in both the procSwitchCancelReq() and procSwitchTimeout() to fill
+    out the actSpliceTime field.  If we redefine the meaning of this
+    field then there should be no problem about the missing MSB in the
+    33-bit 90 kHz clock.
+
+
+10/20/99
+  - Found that the problem with HITS is due to the use of wrong mux.
+
+  - Relocate rate conversion input/output buffer from DRAM to CRAM.
+    Reduction in CPU load can be observed (10-20%).
+
+
+10/22/99
+  - Noticed a big problem in peek():  Data may not be word aligned.
+    Therefore peek() may need to access more than two words to gather
+    32 bits!
+
+  - Another serious bug in reader: assumes getBits() needs to access only
+    2 words at most.  Some TP can actually contains 1 byte of payload!
+
+  - One pathological case for reader to fail is to have some TPs containing
+    less than one word of payload.  To handle this case without making
+    reader too complication, we can have a compromised approach:
+    Assume functions like getBits() or peek() will always be fulfilled with
+    at most one buffer refill.  In case a TP containning less than one
+    word of payload is encountered, we modify the refill function so that
+    more than sufficients TPs will be read to accumulate at least one word
+    of data.  The accumulated data will be put at the front of the TP buffer
+    containing the last TP being examined.
+
+  - noticed that we actually don't need prefetchFlag in Reader, since
+    refill will change curPtr and endPtr also.  This means we will not
+    issue a refill call.
+    Actually we still need it, and in nextWord we need to check this flag.
+
+
+---------------------------------------------------------------------------
+
+10/25/99
+  - Finally managed to make mpeg2dec work!
+
+
+10/27/99
+  Bypass test:
+    Divicom without RC: OK
+    Divicom with RC:    OK
+    HL without RC:      video OK, audio clicks
+    HL with RC:         video stall and blackout occasionally
+    HITS without RC:    (HITS' AC3 audio not decodable by Tandberg)
+    HITS with RC:       (HITS' AC3 audio not decodable by Tandberg)
+
+Problem 1: HL with RC, video break up.  Audio OK.
+
+
+10/29/99
+  Finish rebuilding the MPEG2 tools.
+
+
+---------------------------------------------------------------------------
+
+Remaining Issues:
+  Drift problem
+  Rate control improvement
+  Reliability issue
+  Audio integration
+  PPC integration
+  

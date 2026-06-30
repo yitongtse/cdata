@@ -1,0 +1,424 @@
+7/1/00
+  Problem found with DPI1.1 + statmux1010.fls:
+    - one channel stopped to switch very soon (< 1 hr)
+    - the other channel died after several hours
+    - no able to detect problem and reset
+    - rate monitor shows wrong output rate when a channel is dead
+
+  Restart at 7/1/00 10:30am for rate conversion test.
+    - two channels, 9.7 => 8 Mbps
+
+  - even PPC died afterward!
+
+  Critical items:
+    - freeze current development on dpi, and reorg1 task branches
+    - check in sp task branch
+    - debug the following bugs:
+        - stick switch
+        - channel died after long time
+        - PPC die
+    - retest
+    - work on reset conditions
+
+------------------------------------------------------------------------------
+
+7/5/00
+  Recompile from ytse-sp view:
+    dpi1021.fls, statmux1011.fls
+
+  BUG: PPC has problem resetting the DSPs!
+  BUG: DSP hang after force switch!
+
+  Checked in latest changes for channel event model
+
+  Got new PPC code mainSeach1.fls from Jinbo which supports RESET.
+
+  Modified splice control task for timeout detection.  After that, the code
+  seems to be much stable.  Runs at least for 112 min.
+  However, we noticed that there are picture flickering, possibly due to
+  buffer underflow.  Tandberg shows that VPTS use to be very low (<10%)
+  when flickering occurs.  Then it usually returns to about 30% level.
+  Will try to use a higher delay parameter for statmux.
+  Changed ACTIVE_THRESHOLD from 20 to 24.
+  => statmux1012.fls
+  Seems the video flickering is less observable.  The Tandberg also shows
+  a higher VPTS use number (>60).  We need to do some more test to verify
+  this though.
+
+  Added checking for splice control task in monitor task.  After that the code
+  has allocation problem in CRAM.  Moved the .const section into SDRAM for
+  testing.
+
+  Seems the code works well with the .const section moved into SDRAM.
+  Verified that the .const section contains only printf constants.
+  With this modification, you can print whatever you want.
+  Checked in changes.
+
+  Make SEAC an configuration keyword.  Checked in changes.
+
+  BUG: from ad back to network, the transit is not clean.  See pictures with
+       blocks.  Pattern changes!  Log files say there is no gap in the switch!
+  Turning off audio did not help.
+
+  Try increasing ACTIVE_THRES in mux from 28 back to 32 to see whether
+  it helps.
+  => statmux1013.fls
+  Problem still exists.
+
+  What if I turn off sequence end code insertion?
+
+
+7/6/00
+  The sticky switch problem is still there.  It seems like somehow the spliceTime
+  and expireTime are modified to a much later time, soon after the request is
+  received.
+
+  BUG: The code traps and fails if timeout is detected right after the splice is
+       done but before the output has finished.
+
+  BUG: one channel continuously has VPTS use problem.
+       Maybe increasing INACTIVE_THRES can help!?
+
+
+7/7/00
+  Overnight test result:
+    No bad channel problem.  Could not reproduce sticky switch problem.
+    DSP is reset only once, due to MUX fail to respond to poll, after about 5 hr.
+    Soon after MUX is reset, DPI has lots of input halt problems.
+
+  The blocks from AD->LIVE switch may be due to field conflict.
+
+
+-------------------------------------------------------------------------------
+
+  Seems Drop B pictures are missing from AD->LIVE switch.
+
+
+7/10/00
+  Weekend test result:
+    System died after 12 hrs.  Trapped due to video stopped.
+    No Bad channel problem (sticky switch).
+
+    PPC message: Wrong packet ID on Poll
+                 Mux s7m3 - Poll Failed
+                 Dsp s7m3 - Resetting Output
+                 Dsp s7m3 - Reset Failed
+
+   s0m1: (single ad) Only 1 forced switch
+   s0m2: (b2b ad) 14 timeout, 84 forced switch.
+
+   Problem: EOS-DPI 1 -> -1
+   PeerChanId becomes -1 because it is reset in Forced switch processing.
+   The code only has this problem when it timeout at 1->2 switch, but
+   not in the 2->0 switch.
+
+
+ Reduce ACTIVE_THRESHOLD from 32 back to 24.
+          
+ To do: 
+   Cable pulling test
+
+ BUG: PPC print buffer
+   Pressing reset button won't clean up PPC's print buffer.
+
+
+7/11/00
+  Overnight test: died after ~3 hrs due to forced switch from AD1 -> AD2. 
+                  (Old problem)
+
+  Try to force the situation by shutting down picture passing.
+
+  ** Seems all dummy pictures are not received by Statmux for some reason.
+  Found the bug which causes the AD1->AD2 forced switch problem:
+    The dummy pictures' PicStat are mistakenly sent to PPC instead to MUX!
+
+
+7/12/00
+  Added configuration parsing to statmux
+  Added QUIET flag to turn off all dbgPrintf from DPI and statmux.
+  Added MUXLIFE to statmux
+  Fixed the bug in configuration parsing which has been causing all the problems
+    in parsing DSPCONFIG string: need storage for key, not just pointer.
+    Cleaned up previous related work-around code.
+  Fixed MUX memory allocation: use SDRAM instead of SBRAM.
+  Added PID remapping back to dpi code because we need it in DPI mode 2.
+
+  Ported latest statmux files from dpi_integ to dpi_reorg_integ.
+
+  Sync dpi_reorg_integ with dpi_integ at label INT2_0_5D:
+    - remove or check in new changes made to ytse-sp and ytse-reorg1
+      (ignore changes made in ytse-dpi)
+
+    1. new ref label: INT2_0_5D
+    2.1. - current VOB replica: sj-master
+         - master replica: sj-master
+         - BASE_LABEL and REF_LABEL of dpi_reorg_integ: DPI1_1
+         - rlogin into wireless-view1
+         - make new view (on wireless-view1) in storage /vws/ngu:
+           ytse-dpi_reorg_integ.sync
+    2.2. make new view corresponding to sync label: ytse-INT2_0_5D.ref
+    3. failed: `{ brtype(dpi_reorg_integ) }` has problem.
+    4. DDTS_STATE = NEW,BID,MER
+    5. Pre-sync label: DPI_REORG_INTEG_PRESYNC_INT2_0_5D
+    6. Merge is done in the ytse-dpi_reorg_integ.sync view.
+    7. No conflicts in common.
+       Statmux compiled.
+       Dpi compiled.
+       Additional files checked out for bug fixing:
+         in dpi/: audTools.c audTpProc1.c
+         in statmux/: c6201.lcf
+       Must use cc_sync_co to checkout.
+    8.1 old REF_LABEL: DPI1_1
+    9.2 commit successful
+    9.3 skipped
+    9.4 updated to new ref label INT2_0_5D
+    10. Post-sync label: DPI_REORG_INTEG_POSTSYNC_INT2_0_5D
+    11. Restored DDTS_STATE to be NEW,BID,MER.
+    Step 12 - 13 postponed.
+
+
+7/13/00
+  BUG: in TIMEOUT_STAY mode, suppose video splice occurs but audio cannot
+       switch, then the code will hang if timeout occurs.
+  REASON: Forgot to set dataDone to TRUE when VBI is off.  Similar problem
+       with audioDone.  Fixed.
+
+  BUG: in Pic-based splice, spliceFrmNo will get modified (possibly by
+       updated splice time).
+
+  Repointed ytse-u5 to honeycomb.
+  Moved all working views form wireless-view1 back to honeycomb.
+  But the two views created for the dpi_reorg_integ sync still remain
+  in wireless-view1.
+
+
+7/14/00
+  BUG: In statmux/input.c, forget to add break statement in the switch-case
+       after handling the DSP_CONFIG message.  Fixed.
+
+  BUG: for DPI=2 mode, should suppress the send of ACK message for the
+       switchPidGrpReq and switchCancelReq to PPC.
+
+  BUG: for DPI=2 mode, should reject setPidGrp for ad channels from PPC.
+
+  To do: Need to make sure startTime is correct when channel turns on.
+
+Wish list:
+  - modify support of LIFE to count poll message (once per second)
+
+
+------------------------------------------------------------------------------
+
+7/19/00
+  Weekend test result:
+    Mux keeps on printing warning messages.
+    No Bad channel problem seen.
+    No reset.
+
+7/20/00
+  Need to increment DTS correctly even in dummy picture!
+
+  Performed last 2 steps in syncing dpi_reorg_integ branch
+  with dpi_integ branch.
+
+  Checked in changes in views ytse-sp and ytse-reorg1.
+  Start a new view ytse-rc from dpi_integ branch for the new RC API work.
+
+  Created DPI version 1.2 on dpi_integ branch.
+
+  Syncing dpi_reorg_integ branch again with dpi_integ branch:
+
+    1. new ref label: DPI1_2
+    2.1. - current VOB replica: sj-master
+         - master replica: sj-master
+         - BASE_LABEL of dpi_reorg_integ: DPI1_1
+         - REF_LABEL of dpi_reorg_integ: INT2_0_5D
+         - rlogin into wireless-view1
+         - make new view (on wireless-view1) in storage /vws/ngu:
+           ytse-dpi_reorg_integ.sync
+    2.2. make new view corresponding to sync label: ytse-DPI1_2.ref
+    3. failed: `{ brtype(dpi_reorg_integ) }` has problem.
+    4. DDTS_STATE = NEW,BID,MER
+    5. Pre-sync label: DPI_REORG_INTEG_PRESYNC_DPI1_2
+    6. Merge is done in the ytse-dpi_reorg_integ.sync view.
+    7. No conflicts in common.
+       Statmux compiled.
+       Dpi compiled.
+    8.1 old REF_LABEL: DPI1_1
+    9.2 commit successful
+    9.3 skipped
+    9.4 updated to new ref label DPI1_2
+    10. Post-sync label: DPI_REORG_INTEG_POSTSYNC_DPI1_2
+    11. Restored DDTS_STATE to be NEW,BID,MER.
+    12. View ytse-dpi_reorg_integ.sync removed.
+    13. View ytse-DPI1_2.ref removed.
+
+  Collapse of dpi_reorg_integ branch procedure:
+    3. created view ytse-dpi_reorg_integ.commit
+    5. Label DPI_REORG_INTEG_PRESYNC_TERM created.
+    11. Eliminate the following identical files using cc_rm_identical:
+          statmux.c, defs.h, statmux.h, misc.c, c6201.lcf, statmux/,
+          output.c, msgio.h, main.c
+        cc_rm_identical does not work!
+        Solved this by manually edit the ViewAudit file.
+
+
+7/21/00
+  DPI1_2 pass the overnight test.
+    For some reason, channel 1 stop splicing, but most likely due to Ad server
+    problem.  Channel 2 (HITS) seems to have buffer underflow problem.
+
+  dpi_reorg_integ branch finally merged with dpi_integ branch!
+
+  Labelled DPI1_3 on dpi_integ right after the merge with dpi_reorg_integ.
+
+  Noted that in 2 channel configuration, when the Ad signal is interrupted,
+  statmux does not send back those Dummy pictures.  This does not happen
+  for the 1 channel test.
+
+
+-------------------------------------------------------------------------------
+
+7/24/00
+  Weekend test: system still running.  However, stop switching around Sunday
+    evening.  Possibly due to PPC NTP synchronization.
+
+  Issue: When we pull cable during AD1->AD2 switch, a forced switch is
+    generated to PPC.  However, we don't know whether AD2 is playing.
+    As a result, screen remains blank until trap is triggered.
+  Wrong analysis: After the forced switch from AD1->AD2, PPC will think
+    AD2 is playing, and issue the next switch request AD2->Live.  The splicer
+    should then immediately generate another forced switch and go back to
+    the live channel.  So this should be no problem.
+  However, I found out that Statmux for some reason, stop sending back
+    those dummy pictures back to me.  As a result, I cannot proceed and
+    send the forced switch indication to PPC.  This is the real problem!
+
+  Submit DDTS for:
+    - Statmux generates too many error/warning message which jam the log file
+      and is probably causing PPC to hang.
+    - PPC generate lots of repeated DSP debug message around reset point
+    - Statmux killed by dummy pictures
+
+  Upgrade to new RC:
+    - block.s60, block2.s60: replaced with copies from bitshaper directory
+          in the main branch.
+    - const.c: added intraCutFreqThreshold and interCutFreqThreshold arrays
+    - block.c: VideoEs_getmpg2intrablock(), VideoEs_getmpg2interblock()
+          All changes can be found by searching for "#if CUT_HIGHFREQ"
+    - rc.h:  Replaced intra/er/CutFreqDepth, intra/er/FrmLevCutDepth
+          with intra/er/CutFreqMatrix[].
+    - rc.c: same as rc.h.  Also removed used of old variable in rcPicInit().
+    - dpi.c: added rcInit() to initialize intra/er/CutFreqMatrix[] to 0.
+    Code is compilable and runnable at this point.
+
+    Changes committed.
+
+
+7/25/00
+  RC changes:
+    - rc0.h: new RC-related function prototype
+    - combined rcPicAdjust() and rcPicInit() into rcPrePic()
+    - INFO: rcMbAdjust() is called by rcGetMquant(), which is in turn called
+      by recodeOneMB(), right after reading qsCode but before reading mvs.
+    - videoes.c: change rcCalcMBSize(bitPosOutWRite) to rcPostMb(mbIndex).
+    - renamed rc.h=>rc1.h, rc.c=>rc1.c.  Created rc.h for new RC API.
+
+
+7/26/00
+  Trip to AdLink in LA
+
+
+7/27/00
+  Overnight test on 7/25 still running (>40 hrs)
+  Only reset once.
+
+  Dev Test result shows lots of DTS<PCR problem!
+  Channels have negative TP counts!
+
+
+  Merging of bitshaper and DPI:
+    - Instead of doing a full merge, we can first merge the common parts.
+      Rate control code, assemble files are good candidates for the merge.
+    - Instead of separating the common files in a new directory, we can
+      just add symbolic links to the dpi directory pointing to the bitshaper
+      directory. 
+
+    - Identify and delete all assembly files that are no longer used:
+        bufInit.s60, checkzero.s60, seekstart.s60 stuff.s60
+
+    - Remove all assembly files, and add links to
+      corresponding files the bitshaper directory:
+        bit.s60: essentially the same
+        block.s60: same
+        block2.s60: same
+        encMBData.s60: essentially the same as encodeMBData.s60 in bitshaper
+        encodeDCT.s60: same except for file header
+        flush.s60: same except for file header
+        mode.s60: same except for file header
+        mv.s60: same except for file header
+        recodeOneMB.s60: same except for file header
+      Note that these files have not been sync from the main branch yet!
+
+    - Compare all bitshaper assembly files in main branch
+      and in dpi_integ branch:
+        Only block.s60 and block2.s60 are changed.
+      So upgrade those two files to the dpi_integ branch bitshaper directory.
+      Note: from this point on, bitshaper directory will be broken until
+            the next sync to main branch is done.  But dpi will use the most
+            recent assembly files.
+
+      Changes tested and committed.
+
+    - Compare rate conversion related C files:
+        blocks.c: some changes in two branches, dpi's quite different
+        const.c: replaced freq_thrhld[] with intra/er/CutFreqThreshold[][],
+                 otherwise essentially the same
+        const1.c: essentially the same, same in two branches
+        modetab.c: all exactly the same
+        rc.c: should be totally different
+        videoes.c: major changes in all three versions
+
+    - Compare those .h files that were copied from bitshaper
+      (I expect there should be no changes between the two branches,
+       so I will only mention the changes between bitshaper and dpi versions)
+        buf.h: quite some changes
+        cfifo.h: a few changes
+        defs.h: a few changes
+        global.h: quite some changes
+        ipc.h: NOT NEEDED.  Should delete!
+        msgio.h: quite some changes
+        tp.h: quite some changes
+        utils.h: quite some changes
+        videoes.h: NOT NEEDED.  Should delete!
+
+      Should concentrate first on merging const.c, const1.c, modetab.c
+      and videoes.h.  Then latter work on blocks.c, rc.c and videoes.c.
+
+      ipc.h deleted.
+      modetab.c merged.
+
+
+7/28/00
+    videoes.h deleted.
+    cfifo.h merged.
+    cfifo.c merged.
+    const1.c merged.
+
+
+------------------------------------------------------------------------------
+
+7/31/00
+  After studying Ke's latest rate control code, I notice that he now uses 9
+  freq cut matrices, depending on the reduction factor.  However, he has to
+  copy the matrix to intra/er/FreqCutMatrix array because the assembly
+  block2.s60 assumes the matrix is stored there.  However, if instead we
+  modify the assembly so that intra/er/FreqCutMatrix is a pointer to the
+  array, then we don't need to copy the matrix.
+
+  Weekend test result:
+    System died.  Seems PPC is dead.
+    One DSP got reset in 3 min due to time base problem (# TB)
+    Second reset in 78 min.
+    Lots of TB problem in s0m1 (DiviCom)
+
