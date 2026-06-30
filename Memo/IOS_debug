@@ -1,0 +1,100 @@
+Places to find the release images:
+    /release/123/bin/...
+    /auto/cableng
+
+In the release directory, you can find the in the clearcase
+branch and label info in the README file.
+
+
+To locate code:
+    /auto/ios-snaps/bin/geo_cable
+This will run cscope on the geo_cable branch!
+
+
+To build PRE2 image for UBR10k:
+
+cd /vob/ios/sys
+make dependencies
+
+cd obj-4k-cr10k2-rp
+make -j12 -s ubr10k2-k9p6u2-mz
+
+("-s" means suppress output)
+
+
+To build a crypto image (k9), you need to be in a specific group:
+newgrp crypto51
+
+You can use "id -a" to check your current group id.
+
+
+To compile particular .c files with debugging info, remove corresponding
+.o files in the object directory, and then do:
+    make -j10 -k -s GDB_FLAG="-g" ubr10k2-k9p6u2-mz
+
+
+To find out who has changed a particular line of code in a file:
+    ct ann <file>
+This will generate <file>.ann
+
+To find out files that I checked out in the current view:
+    ct lsp -co
+
+To find out the email alias that is interested in a particular file:
+cd into the directory containing the file, then do
+   cc_interest <file> 
+
+Other email alias: software-d
+
+gdb version: /router/bin/gdb.mips64 
+Use gdb to load .sun file.
+Use rsym to examine .symbols file.
+
+
+Neil's crashinfo file analysis tool:
+ http://wwwin-eng.cisco.com/Eng/IOS/IOS_Euro/CEF/docs/crashinfo-tool.shtml
+
+Code review request website:
+http://hero.cisco.com/cgi-bin/code_review_tool/code_review.cgi
+
+--------------------------------------
+
+Dean's UBR10k setup:
+  U10K_CLC_5_DECHEN  dechen       172.22.81.63     2005  group-jimhuang
+  U10K_CLC_7_DECHEN  dechen       172.22.81.63     2007  group-jimhuang
+  U10K_CLC_8_DECHEN  dechen       172.22.81.63     2008  group-jimhuang
+  U10K_PRE_A_DECHEN  dechen       172.22.81.63     2001  group-jimhuang
+  U10K_PRE_B_DECHEN  dechen       172.22.81.63     2002  group-jimhuang
+  UBR924_CM_DECHEN_  dechen       172.22.81.63     2003  group-jimhuang
+
+
+Quick command:
+boot tftp://223.255.254.254/ytse/CSCek23725/ubr10k2-k9p6u2-mz.050323
+
+
+Static analysis:
+prep-commit -html		: email SA result to you
+prep-commit -html <bugid>	: also attach result to <bugid>
+
+Note: only files that are checked out will be analyzed.
+
+---------------------------------------
+
+Code Review Request:
+wwwin-tools.cisco.com/crrq/welcome.do
+
+---------------------------------------
+
+Branch name:
+
+12.2	floridy
+12.3	georgia
+12.4	hawaii
+
+
+---------------------------------------
+
+SYS13 is a UBR10k system that can be used.
+It has duel PRE and console to CLC.
+Make sure only one fa0/0/0 is active.
+You need this to be active to download test image.

@@ -1,0 +1,8 @@
+%C - A simple ethernet bridge filter module (for io-net).
+
+example invocation:
+  mount -T io-net -o"en0,en1" nfm-enbridge.so
+
+The above would forward all packets received on en0 out en1
+and vice versa.
+

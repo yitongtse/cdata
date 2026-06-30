@@ -1,0 +1,35 @@
+# Environment setting
+set WABWORKSPACE=/nobackup/ytse/NOVA/reorg2
+set NOVA_BRANCH=nova_young_rfgw
+set NOVA_LABEL=LATEST
+set IOS_BRANCH=flo_gsbu8_young_rfgw
+set IOS_LABEL=LATEST
+
+--------------------------------------
+# Note: the build commands should be executed in $WABWORKSPACE directory
+cd $WABWORKSPACE
+
+--------------------------------------
+# To create view
+wab init -d nova,acme,$NOVA_BRANCH,$NOVA_LABEL,binos -t -d ios,cc-tools,$IOS_BRANCH,$IOS_LABEL
+
+# Configure (new workspace only)
+mbs configure --btype=dev
+
+--------------------------------------
+# Build using MBS
+mbs bundle --specs=rfgwk10-entservices.bspec
+
+# bundled image will be placed in localrepo/bundles directory
+
+--------------------------------------
+# To skip LC image build:
+
+# First, copy the bb_app.lc to .../ds384/src/images
+setenv NO_RFGW_EMBEDDED_BUILD   1
+
+--------------------------------------
+# To remove views
+
+cd $WABWORKSPACE
+mbs clean

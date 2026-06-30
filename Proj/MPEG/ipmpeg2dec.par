@@ -1,0 +1,22 @@
+* This program decode a IP/UDP/MPEG-2 video bitstream
+* 
+* IP/UDP/MPEG bitstream filename (string) * /users/ytse/Shared/IP_capture/TomorrowNeverDies.ip
+* UDP destination port (int) * 5001
+* Video PID (int) * 484
+* System syntax verbose level (int) * 1
+* System syntax output file (string) * sys.syn
+* Video verbose level (0:OFF 1:SEQ 2:GOP 3:PIC 4:SLC 5:MB 6:ALL) (int) * 4
+* Video syntax output file (string) * vid.syn
+* First frame number (int) * 0
+* Decode bitstream? (int) * 1
+* [Decode?] Output sequence name (string) *
+* [Decode?] Show output video? (int) * 0
+* 
+* Distortion calculation:
+* [Decode?] Compute MSE? (int) * 0
+* [MSE?] Original seq name (string) @ /users/ytse/Cableguy3/Data/orig5_%03d.%c
+* 
+* Debugging parameters:
+* Frame number (int) * -1
+* Macroblock number (int) * -1
+* No. of bytes to skip (int) * 0

@@ -1,0 +1,1 @@
+awk -f t.awk /tmp/ytse/clkrec_dump.2

@@ -1,0 +1,7 @@
+To check out a particular version: get -rsid file
+To check out version before a particular time: get -cdate-time file
+          date-time: yy[mm[dd[hh[mm[ss]]]]]
+
+To remove a leaf delta:  	sccs rmdel -rsid file
+To change a delta comment:	sccs cdc -rsid -y"comment" file
+To generate script to combine SCCS deltas:	sccs comb -csid1-sid2 file

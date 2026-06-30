@@ -1,0 +1,25 @@
+Clock recovery algorithm:
+
+    tbo_in = pcr_time - arvl_time;
+
+    if (1st PCR) {
+        tbo_est = tbo_in;
+        delay = DEFAULT_DELAY;
+        pcr_out_time = arvl_time + delay;
+
+    } else {
+        // Scheduling
+        pcr_inc = pcr_time - prev_pcr_time;
+        tbo_drift = pcr_inc * freq_adj;
+        pcr_out_time_inc = pcr_inc - tbo_drift;
+        pcr_out_time += pcr_out_time_inc;
+        tp_itvl = pcr_out_time_inc / pcr_tp_idx_inc;
+
+        // PLL update
+        tbo_est += tbo_drift;
+        tbo_err = (tbo_in - tbo_est) / pcr_inc;
+        tbo_err_lpf = LPF(tbo_err);
+        freq_adj = tbo_err_lpf * loop_gain;
+    }
+
+

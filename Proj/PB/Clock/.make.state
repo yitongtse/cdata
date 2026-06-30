@@ -1,0 +1,24 @@
+.MAKE_VERSION:	VERSION-1.0
+/users/ytse/Proj/NEW/util.h:
+	sccs  get -s /users/ytse/Proj/NEW/util.h -G/users/ytse/Proj/NEW/util.h
+.BUILT_LAST_MAKE_RUN:
+timing3:	/usr/include/stdio.h /usr/include/sys/feature_tests.h /usr/include/sys/va_list.h /usr/include/stdlib.h /usr/include/math.h /usr/include/floatingpoint.h /usr/include/sys/ieeefp.h /users/ytse/Proj/NEW/util.h /users/ytse/Proj/NEW/param.h 
+	gcc -g -Wimplicit -DUNIX -I/users/ytse/Proj/NEW timing3.c /users/ytse/Proj/NEW/mpeg.a /users/ytse/Proj/NEW/util.a -o timing3 -lm
+timing2:	/usr/include/stdio.h /usr/include/sys/feature_tests.h /usr/include/sys/va_list.h /usr/include/stdlib.h /usr/include/math.h /usr/include/floatingpoint.h /usr/include/sys/ieeefp.h /users/ytse/Proj/NEW/util.h /users/ytse/Proj/NEW/param.h 
+	gcc -g -Wimplicit -DUNIX -I/users/ytse/Proj/NEW timing2.c /users/ytse/Proj/NEW/mpeg.a /users/ytse/Proj/NEW/util.a -o timing2 -lm
+timing1:	/usr/include/stdio.h /usr/include/sys/feature_tests.h /usr/include/sys/va_list.h /usr/include/stdlib.h /usr/include/math.h /usr/include/floatingpoint.h /usr/include/sys/ieeefp.h /users/ytse/Proj/NEW/util.h /users/ytse/Proj/NEW/param.h 
+	gcc -g -Wimplicit -DUNIX -I/users/ytse/Proj/NEW timing1.c /users/ytse/Proj/NEW/mpeg.a /users/ytse/Proj/NEW/util.a -o timing1 -lm
+sim2:	/usr/include/stdio.h /usr/include/sys/feature_tests.h /usr/include/sys/va_list.h /usr/include/stdlib.h /usr/include/math.h /usr/include/floatingpoint.h /usr/include/sys/ieeefp.h 
+	gcc -g -Wimplicit -DUNIX -I/users/ytse/Proj/NEW sim2.c -o sim2 -lm
+timing.c:
+	sccs  get -s timing.c -Gtiming.c
+/users/ytse/Proj/NEW/param.h:
+	sccs  get -s /users/ytse/Proj/NEW/param.h -G/users/ytse/Proj/NEW/param.h
+sim.c:
+	sccs  get -s sim.c -Gsim.c
+timing2.c:
+	sccs  get -s timing2.c -Gtiming2.c
+timing:	/usr/include/stdio.h /usr/include/sys/feature_tests.h /usr/include/sys/va_list.h /usr/include/stdlib.h /usr/include/math.h /usr/include/floatingpoint.h /usr/include/sys/ieeefp.h /users/ytse/Proj/NEW/util.h /users/ytse/Proj/NEW/param.h 
+	gcc -g -Wimplicit -DUNIX -I/users/ytse/Proj/NEW timing.c /users/ytse/Proj/NEW/mpeg.a /users/ytse/Proj/NEW/util.a -o timing -lm
+sim:	/usr/include/stdio.h /usr/include/sys/feature_tests.h /usr/include/sys/va_list.h /usr/include/stdlib.h /usr/include/math.h /usr/include/floatingpoint.h /usr/include/sys/ieeefp.h 
+	gcc -g -Wimplicit -DUNIX -I/users/ytse/Proj/NEW sim.c -o sim -lm

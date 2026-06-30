@@ -1,0 +1,39 @@
+VIDEO_SESSION
+  queue of video sources
+  queue of in sessions
+  queue of out sessions
+
+  session ID
+  input_type: unicast, ASM, SSM
+  proc_type: REMAP, PASSTHRU, DATA
+  client_mode: BLOCKING, NON_BLOCKING
+
+video source:
+  input port
+  src IP
+  dst IP
+  src UDP
+  dst UDP
+  in_prog_num (-1 for passthru, or not specified)
+  alloc_bitrate
+  jitter_buffer
+
+in session:
+  rid
+  QB
+
+out session:
+  rid
+  qam_id (can derive LC, QB, and channel from this)
+  prog num (-1 for passthru)
+  alloc_bitrate
+
+
+-------------------------------------------------------------------------
+
+Usage:
+
+Unicast session (assume no cloning):
+  - malloc a VIDEO_SESSION
+    - set all the fields
+

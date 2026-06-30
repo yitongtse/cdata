@@ -1,0 +1,44 @@
+(PEH, 12/21/93)
+The "sim" program was copied from Tom Lookabaugh's (backed-up)
+home directory.  These files were taken from
+	/data/mir1/toml_home/devel/timing
+
+
+(PEH, 12/30/93)
+The "timing" program was created separately, using Tom's code
+as a starting point.  The results of the timing program
+match well with the results predicted by Tom in CLI-92-0006.
+-	At a 10Hz timestamp rate, w/ a 16-tap FIR loop filter,
+	the settling time is about 5 seconds
+-	The steady-state error with the above conditions is on the
+	order of 3 Hz (out of 27 MHz).
+-	The steady-state error and settling time are mostly unaffected
+	by jitter in the timestamp sample times.  We vary the timestamp
+	sampling times uniformly in the range
+	(0, 2*nominal_inter_timestamp_time) with no appreciable degradation
+	in performance as compared to the situation in which all
+	inter-timestamp times are fixed at the nominal value.
+
+(PEH, 3/23/94)
+This directory now contains some Matlab *.m files useful in
+analyzing feedback PLL systems:
+-	loopdenom.m return the denominator of the PLL closed-loop
+	transfer function, given the FIR loop filter taps and loop gain
+-	loopxfer.m gives the FFT of the PLL closed-loop transfer 
+	function, given the FIR loop filter taps and loop gain.
+-	maxp.m gives the magnitude of the largest pole of the PLL
+	closed-loop transfer function, given the FIR loop filter taps and
+	the loop gain.
+-	rect.m returns the taps of a unity-gain FIR rectangular filter of
+	a given length.
+-	pllnoise.m gives the integral of the power spectral density of
+	the VCO input of a PLL system.  The square root of this value 
+	multiplied by the input noise standard deviation gives the
+	standard deviation of the steady-state PLL frequency error.
+-	pllacquire.m gives the ramp response (at VCO input) of a PLL.
+	This can be used to calculate the acquisition time of a PLL.
+
+(PEH, 3/23/94)
+The "timing" program has been modified to implement "multistep"
+timing acquisition and recovery.  See the source code or my journal
+for details.

@@ -1,0 +1,17 @@
+* Transport stream statistics filename (string) * /users/ytse/Bitstream/HBO_east2.stat
+* Number of video programs (int) * 6
+* Video PID (int) * 16
+* Video PID (int) * 80
+* Video PID (int) * 144
+* Video PID (int) * 336
+* Video PID (int) * 1040
+* Video PID (int) * 208
+* Output bitrate (bps) (int) * 10000000
+* Schedule interval (ms) (int) * 250
+* Lookahead interval (ms) (int) * 1000
+* Prefetch interval (ms) (int) * 1100
+* PCR offset (ms) (int) * 0
+* VBV guard band (bytes) (int) * 0
+* Table size (TPs) (int) * 64
+* Output statistics filename (string) * stat1
+* Output rate allocation filename (string) * rate1

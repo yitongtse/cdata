@@ -1,0 +1,355 @@
+// This program is used to study how to do coefficient requantization
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "param.h"
+
+
+// Division with truncation using shift
+int shftTrunc(int x, int s)
+{
+    if (x<0)  x += (1<<s) - 1;
+    return x >> s;
+}
+
+
+// Division with round down using shift
+// (same as rounding, except middle point are rounding toward zero)
+int shftRnd2Zero(int x, int s)
+{
+    int half = 1 << (s-1);
+    x += half;
+    if (x>0)  x--;
+    return x>>s;
+}
+
+
+// Find sign
+int sign(int x)
+{
+    return (x<0)? -1 : ((x==0)? 0 : 1);
+}
+
+
+// MPEG2 dequantization - intra
+int intraDequant(int QF, int qs, int W)
+{
+    return shftTrunc((QF<<1) * W * qs, 5);
+}
+
+
+// MPEG2 dequantization - inter
+int interDequant(int QF, int qs, int W)
+{
+    int sgn = sign(QF);
+    return shftTrunc(((QF<<1) + sgn) * W * qs, 5);
+}
+
+
+// New requant - intra
+int intraRequant(int QF1, int qs1, int qs2)
+{
+    int scale = 13;
+    int r = (qs1<<scale) / qs2;
+    int val = abs(QF1);
+
+    int QF2 = r * val;
+    QF2 = shftRnd2Zero(QF2, scale);
+
+    if (QF1<0)  QF2 = -QF2;
+    return QF2;
+}
+
+
+// New requant - inter
+int interRequant(int QF1, int qs1, int qs2)
+{
+    int scale = 13;
+    int r = (qs1<<scale) / qs2;
+    int val = abs(QF1);
+
+    int QF2 = (r * val)<<1;
+    QF2 += r - (1<<scale);
+    QF2 = shftRnd2Zero(QF2, scale+1);
+
+    if (QF1<0)  QF2 = -QF2;
+    return QF2;
+}
+
+
+// Fast rquant - intra
+//   Equivalent to New requant, but simplified
+int intraRequantFast(int QF1, int qs1, int qs2)
+{
+    int scale = 13;
+    int half = 1 << (scale-1);
+    int r = (qs1<<scale) / qs2;
+    int val = abs(QF1);
+
+    int QF2 = r * val + half;
+    if (QF2)  QF2--;		// Note: QF2 is non negative!
+    QF2 >>= scale;
+
+    if (QF1<0)  QF2 = -QF2;
+    return QF2;
+}
+
+
+// Fast requant - inter
+//   Equivalent to New requant, but simplified
+int interRequantFast(int QF1, int qs1, int qs2)
+{
+    int scale = 13;
+    int half = 1 << (scale-1);
+    int r = (qs1<<scale) / qs2;
+    int val = abs(QF1);
+
+    int QF2 = ((r * val)<<1) + r;
+    if (QF2)  QF2--;		// Note: QF2 is non negative!
+ 				// Note: this seems to have little effect!
+    QF2 >>= scale + 1;
+
+    if (QF1<0)  QF2 = -QF2;
+    return QF2;
+}
+
+
+// RateMux requant - intra
+int intraRequantRM(int QF1, int qs1, int qs2)
+{
+    int scale = 13;
+    int r = (qs1<<scale) / qs2;
+    int val = abs(QF1);
+
+    int QF2 = val * r;
+//    QF2 += (1<<11);		// new method (qtrScale)
+    QF2 += (1<<12);		// old method (halfScale): actually better!
+    QF2 >>= scale;
+
+    if (QF1<0)  QF2 = -QF2;
+    return QF2;
+}
+
+
+// RateMux requant - inter
+int interRequantRM(int QF1, int qs1, int qs2)
+{
+    int scale = 13;
+    int r = (qs1<<scale) / qs2;
+    int val = abs(QF1);
+
+    int QF2 = (val * r) << 1;
+    QF2 += r + (1<<12);
+    QF2 >>= scale;
+    if (QF2)  QF2 = (QF2-1) >> 1;
+
+    if (QF1<0)  QF2 = -QF2;
+    return QF2;
+}
+
+
+
+#if 0
+int main(int argc, char** argv)
+{
+    Param par;
+    int intraFlag;
+    int qs1, qs2, W;
+    int F1, F2, F3, QF1, QF2, QF3;
+
+    if (argc>1)  beginParam(&par, argc, argv);
+    else  readParam(&par, "requant.par");
+    getIntParam(&par, "Original qscale?", &qs1, 4);
+    getIntParam(&par, "New qscale?", &qs2, 8);
+    getIntParam(&par, "Quantizer matrix value?", &W, 16);
+    getIntParam(&par, "Intra MB?", &intraFlag, 0);
+    endParam(&par);
+
+    printf("%s, QS %d => %d, W %d\n", intraFlag?"INTRA":"INTER", qs1, qs2, W);
+
+    for (QF1=-30; QF1<=30; QF1++) {
+        if (intraFlag) {
+            QF2 = intraRequantRM(QF1, qs1, qs2);
+            QF3 = intraRequant(QF1, qs1, qs2);
+            F1 = intraDequant(QF1, qs1, W);
+            F2 = intraDequant(QF2, qs2, W);
+            F3 = intraDequant(QF3, qs2, W);
+        }
+        else {
+            QF2 = interRequantRM(QF1, qs1, qs2);
+            QF3 = interRequant(QF1, qs1, qs2);
+            F1 = interDequant(QF1, qs1, W);
+            F2 = interDequant(QF2, qs2, W);
+            F3 = interDequant(QF3, qs2, W);
+        }
+        printf("%3d => %4d  |  %3d => %4d (%3d)  |  %3d => %4d (%3d)\n",
+            QF1, F1, QF2, F2, F2-F1, QF3, F3, F3-F1);
+    }
+    printf("\n");
+}
+#endif
+
+
+#if 0
+int main ()
+{
+    int i;
+    for (i=-10; i<10; i++) {
+        printf("%d: %d\n", i, shftRnd2Zero(i, 2));
+    }
+}
+#endif
+
+
+#if 1
+// Check optimality
+int checkOptimality(int qs1, int qs2, int W, int QF1, int QF2,
+                    int* bndyFlag, int* badTieFlag, float* errFactor)
+{
+    int F1, F2, diff2, idx;
+    int QF[2], F[2], diff[2];
+    int badFlag;
+    float temp;
+
+    F1 = interDequant(QF1, qs1, W);
+    F2 = interDequant(QF2, qs2, W);
+    diff2 = abs(F2 - F1);
+
+    QF[0] = QF2 - 1;
+    QF[1] = QF2 + 1;
+    F[0] = interDequant(QF[0], qs2, W);
+    F[1] = interDequant(QF[1], qs2, W);
+    diff[0] = abs(F[0] - F1);
+    diff[1] = abs(F[1] - F1);
+
+    badFlag = *bndyFlag = *badTieFlag = 0;
+    *errFactor = 0.;
+
+    // Check for lowest requant error
+    if (diff[0]<diff2) {
+        if (!QF2)  *bndyFlag = 1;
+        else  badFlag = 1;
+        *errFactor = (float)diff2 / diff[0];
+        idx = 0;
+    }
+    if (diff[1]<diff2) {
+        if (!QF2)  *bndyFlag = 1;
+        else  badFlag = 1;
+        temp = (float)diff2 / diff[1];
+        if (temp > *errFactor) {
+            *errFactor = temp;
+            idx = 1;
+        }
+    }
+
+    // Check for bad tie case
+    if (diff[0]==diff2 && abs(QF[0])<abs(QF2)) {
+        idx = 0;
+        *badTieFlag = 1;
+    }
+    if (diff[1]==diff2 && abs(QF[1])<abs(QF2)) {
+        idx = 0;
+        *badTieFlag = 1;
+    }
+
+#if 1
+    // Further examine bad case
+    if (badFlag) {
+        if (diff2-diff[idx] > 1) {
+            printf("High error\n");
+            printf("W %2d, QS %2d => %2d: %3d -> %4d | %3d -> %4d (%2d)"\
+                " | %3d -> %4d (%2d)\n", W, qs1, qs2, QF1, F1, QF2, F2, diff2,
+                QF[idx], F[idx], diff[idx]);
+        }
+        else if (abs(F2) > abs(F[idx])) {
+            printf("Higher index\n");
+            printf("W %2d, QS %2d => %2d: %3d -> %4d | %3d -> %4d (%2d)"\
+                " | %3d -> %4d (%2d)\n", W, qs1, qs2, QF1, F1, QF2, F2, diff2,
+                QF[idx], F[idx], diff[idx]);
+        }
+    }
+#endif
+
+#if 1
+      if (*bndyFlag) {
+          int scale = 13;
+          int half = 1 << (scale-1);
+          int r = (qs1<<scale) / qs2;
+          int val = abs(QF1);
+
+          int QF3 = ((r * val)<<1) + r + (1<<scale);
+          if (QF3)  QF3--;		// Note: QF2 is non negative!
+          QF3 >>= scale + 1;
+          if (QF1<0)  QF3 = -QF3;
+
+          if (QF3 == QF2) {
+              printf("Tie case in question\n");
+              printf("W %2d, QS %2d => %2d: %3d -> %4d | %3d -> %4d (%2d)"\
+                  " | %3d -> %4d (%2d)\n", W, qs1, qs2, QF1, F1, QF2, F2, diff2,
+                  QF[idx], F[idx], diff[idx]);
+           }
+      }
+#endif
+
+#if 0
+//    if (badFlag || *bndyFlag || *badTieFlag) {
+//    if (badFlag && !(*bndyFlag)) {
+    if (*bndyFlag) {
+        printf("W %2d, QS %2d => %2d: %3d -> %4d | %3d -> %4d (%2d)"\
+            " | %3d -> %4d (%2d)", W, qs1, qs2, QF1, F1, QF2, F2, diff2,
+            QF[idx], F[idx], diff[idx]);
+        if (badFlag)  printf("    Bad value");
+        if (*badTieFlag)  printf("    Bad tie");
+        if (*bndyFlag)  printf("    Boundry");
+        printf("\n");
+    }
+#endif
+
+    return (badFlag || *bndyFlag || *badTieFlag);
+}
+
+int main()
+{
+    int W, qs1, qs2, QF1, QF2, badFlag, bndyFlag, badTieFlag;
+    int totBadCnt;
+    int totCnt = 0;
+    int badCnt = 0;
+    int bndyCnt = 0;
+    int badTieCnt = 0;
+    float err;
+    float totBndyErr = 0;
+    float totBadErr = 0;
+    
+    for (qs1=2; qs1<=62; qs1+=2)
+       for (W=8; W<=80; W++)
+           for (qs2=qs1; qs2<62; qs2+=2)
+               for (QF1=-10; QF1<=10; QF1++) {
+                   QF2 = interRequantFast(QF1, qs1, qs2);
+                   badFlag = checkOptimality(qs1, qs2, W, QF1, QF2,
+                                             &bndyFlag, &badTieFlag, &err);
+                   if (badFlag) {
+                       if (badTieFlag)  badTieCnt++;
+                       else if (bndyFlag) {
+                           bndyCnt++;
+                           totBndyErr += err;
+                       }
+                       else {
+                           badCnt++;
+                           totBadErr += err;
+                       }
+                   }
+                   totCnt++;
+               }
+    totBadCnt = badCnt + bndyCnt + badTieCnt;
+
+    printf("\n%d total cases tested.\n", totCnt);
+    printf("%d bad tie cases (%f percents).\n",
+        badTieCnt, 100.*badTieCnt/totCnt);
+    printf("%d boundary cases (%f percents).  Avg err %f\n",
+        bndyCnt, 100.*bndyCnt/totCnt, totBndyErr/bndyCnt);
+    printf("%d bad cases (%f percents).  Avg err %f\n",
+        badCnt, 100.*badCnt/totCnt, totBadErr/badCnt);
+    printf("Total %d bad cases (%f percents).  Avg err %f\n",
+        totBadCnt, 100.*totBadCnt/totCnt, (totBadErr+totBndyErr)/totBadCnt);
+}
+#endif

@@ -1,0 +1,24 @@
+Substitution rules:
+
+The suffixes must be included in the .SUFFIXES list.
+
+General format:
+
+.src.dst:
+	suffix rule
+
+
+$< refers to the source
+$@ refers to the destination
+
+$(var:op%os=np%ns)
+  replace the content of var by replacing op with np and os with ns.
+
+--------------
+
+makeimages: main makefile, how to do image packaging
+makerules: generic make rules, say to generate .o from .c
+makevar: to put additional defines there
+
+src.mk: Use ifeq($(OS), qnx) to define additional defines
+

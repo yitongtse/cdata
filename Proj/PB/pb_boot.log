@@ -1,0 +1,291 @@
+Script started on Thu 28 Oct 2004 08:03:36 PM PDT
+video-view1% myc pb
+
+******************   PB0_YTSE_________  *******************
+PB0_YTSE_________ 172.22.25.148:2013
+cmd: telnet 172.22.25.148 2013   
+Trying 172.22.25.148...
+Connected to 172.22.25.148.
+Escape character is '^]'.
+
+uMG9850>_12E_.1_209_...
+
+
+        **********************************************************
+        *                                                        *
+        *                      |          |                      *
+        *                     :|:        :|:                     *
+        *                    :|||:      :|||:                    *
+        *                 .:|||||||:..:|||||||:.                 *
+        *                 C i s c o S y s t e m s                *
+        *                                                        *
+        * Welcome to Rom Monitor for the WS-X4712-UMG9850        *
+        * Line Card.                                             *
+        * Copyright (c) 2003 by Cisco Systems, Inc.              *
+        * All rights reserved.                                   *
+        *                                                        *
+        * Version 12.1(20R)EWV build 0521                        *
+        * Field Upgradable Rom Monitor running                   *
+        **********************************************************
+
+
+
+CPLD version 5.2 Reset Reason Reg 0
+Power on reset initiated by HW
+Sailfish CC [0xa131] Rev [0x1731] 
+Blackfin CC [0xc300] Rev [0xf403] 
+
+System Bootstrap, Version 12.1[cosmos_vnbu 521]
+Copyright (c) 1994-2004 by cisco Systems, Inc.
+Compiled Wed 20-Oct-04 12:00
+Timer is enabled icache is enabled
+
+G4(7457-1,1[1197Mhz]-MV64360 Rev 3) platform with 262144 Kbytes of main memory
+
+..Booting Qnx image
+program load complete, entry point: 0x1f3478, size: 0x1e0a94
+pci_master_cfg_init():
+pci_read_config():
+	PCI Bus = 0, Reg Offset = 0x60, Device # = 0x1f
+	PCI Command = 0x80fff860
+	Read data = 0x00306807
+pci_read_config():
+	PCI Bus = 0, Reg Offset = 0x64, Device # = 0x1f
+	PCI Command = 0x80fff864
+	Read data = 0x0183fff8
+  PCI_CTRL_CMD_REG (0xC00)  = 0x000ee080
+  PCI_CTRL_MODE_REG(0xD00)  = 0x80000024
+  PCIX_CFG_CMD_REG   (0x60) = 0x00306807
+  PCIX_CFG_STATUS_REG(0x64) = 0x0183fff8
+pci_write_config():
+	PCI Bus = 0, Reg Offset = 0x64, Device # = 0x1f
+	PCI Command = 0x80fff864
+	Write data = 0x01830000
+pci_read_config():
+	PCI Bus = 0, Reg Offset = 0x4, Device # = 0x0
+	PCI Command = 0x80000004
+	Read data = 0x02b00000
+pci_write_config():
+	PCI Bus = 0, Reg Offset = 0x4, Device # = 0x0
+	PCI Command = 0x80000004
+	Write data = 0x02b00006
+pci_sailfish_cfg_init(): pci_bus= 0
+pci_read_config():
+	PCI Bus = 0, Reg Offset = 0x0, Device # = 0x0
+	PCI Command = 0x80000000
+	Read data = 0x646011ab
+pci_read_config():
+	PCI Bus = 0, Reg Offset = 0x0, Device # = 0x1
+	PCI Command = 0x80000800
+	Read data = 0x100010ee
+pci_write_config():
+	PCI Bus = 0, Reg Offset = 0x10, Device # = 0x1
+	PCI Command = 0x80000810
+	Write data = 0xf2000000
+pci_write_config():
+	PCI Bus = 0, Reg Offset = 0x14, Device # = 0x1
+	PCI Command = 0x80000814
+	Write data = 0xf2800000
+pci_read_config():
+	PCI Bus = 0, Reg Offset = 0x4, Device # = 0x1
+	PCI Command = 0x80000804
+	Read data = 0x04100000
+pci_write_config():
+	PCI Bus = 0, Reg Offset = 0x4, Device # = 0x1
+	PCI Command = 0x80000804
+	Write data = 0x04100002
+
+Process 6 (pci_cnfg) terminated SIG code=0 by process 0 value=0.
+
+Process 4102 (sh) exited status=0.
+
+Process 12294 (sh) exited status=0.
+
+Process 20486 (sh) exited status=0.
+
+written Ios_Up msg, size 6
+
+byte count 6
+
+Got msg, opcode 10
+
+byte count 24
+
+Got msg, opcode 12
+
+Mac base addr= 0:f:34:49:aa:27
+writing run_ready msg
+
+written Run_Ready msg, size 66
+EOBC Mac : 020000000300
+Video Mac: 000000000000
+Gig_2 Mac: 000f3449aa39
+
+Process 28678 (sh) exited status=0.
+
+Process 36877 (ifconfig) exited status=0.
+
+Process 36876 (sh) exited status=0.
+
+Process 49165 (arp) exited status=0.
+
+Process 49164 (sh) exited status=0.
+
+Process 61453 (arp) exited status=0.
+
+Process 61452 (sh) exited status=0.
+
+Process 73740 (sh) exited status=0.
+ Starting the image upgrade process ....
+
+Process 77836 (sh) exited status=0.
+ ILC QNX revision = 100 
+ ILC QNX release name = V02-0124 
+ ILC Rommon revision = 100 
+ ILC Rommon release name = R01-0521 
+ ILC Sailfish revision = 100 
+ ILC Sailfish release name = SF3-0003-A1311731 
+ ILC Blackfin revision = 100 
+ ILC Blackfin release name = BF1-0000-C300f403 
+ ILC Sailfish Version 0x1731, Blackfin version  = 0xf403 
+ Remaining ILC parameters are: 
+     Reset Cause Register 0x0 
+     CPLD Version         0xb0 
+     Board Type           0x3f1 
+     Marvell Version      0x3 
+     CPU Version          0x80020101 
+     CPU Speed            0x1243c8 
+     Memory Size          0x10000000 
+
+writing run_ready msg
+Waiting for image upgrade connection from Supervisor... 
+
+written Run_Ready msg, size 120
+
+byte count 5
+
+Got msg, opcode 52
+ Linecard image versions are up to date. Proceeding to run
+
+Process 90127 (slay) exited status=1.
+
+Process 81934 (image_upgrade_process) terminated SIGTERM code=0 by process 90127 value=0.
+
+Process 90124 (sh) exited status=1.
+
+written Sprom_request msg, size 4
+# 
+byte count 234
+
+Got msg, opcode 57
+
+fru_minor = 349 annex mode B
+
+Process 106510 (sh) exited status=0.
+
+Process 114702 (sh) exited status=0.
+
+Process 122894 (sh) exited status=0.
+Number of SRAM descriptor: 16216
+Shared mem addr for arvl_time_struct, 0x8010000c
+Shared mem addr for current_time_flag 0x8010001c
+
+
+Port ID: 0x3ef01
+Port ID: 0x3ef00
+Port Type: inter
+Port Type: inter
+Port socket: 1073741826
+Port socket: 1073741826
+Port state: up
+Port state: up
+Port pid: 122897
+Port pid: 114704
+Next element: no
+Next element: no
+Msgs queued: no
+Msgs queued: no
+Cumulative number of msgs enqueued: 0
+Cumulative number of msgs enqueued: 0
+Cumulative number of msgs dequeued: 0
+Cumulative number of msgs dequeued: 0
+Resides on linecard slot: 3
+Resides on linecard slot: 3
+Total number of msgs enqueued: 0
+Total number of msgs enqueued: 0
+Total number of msgs dequeued: 0
+Total number of msgs dequeued: 0
+IPC msg handler is ready
+null buffer (for even QAM) start 0x0df26000, number 12032 bytes
+null buffer (for odd  QAM) start 0x0df23000, number 12032 bytes
+dscp start (ph) 0xf0110a80, number 5832
+cmnd start (ph) 0x0defa000, number 5184
+dscp start (ph) 0xf0127700, number 5832
+cmnd start (ph) 0x0df0e400, number 5184
+
+out_group_info_array 0x488f4ba0
+	out_group_info_pool_head: 0x48074590
+	next 0x488f4ba0
+	prev 0x489499ec
+
+crsl_buf_info_array 0x488de058
+	crsl_buf_info_pool_head: 0x48074588
+	next 0x488de058
+	prev 0x488f4b28
+
+crsl_del_info_array 0x488d9554
+	crsl_del_info_pool_head: 0x48074580
+	next 0x488d9554
+	prev 0x488ddde4
+mux data/memory is configured
+
+Enable the QAM/DAC chip, please wait for ~25 sec
+Enable the MT5001 upconverterProgram PCI_0 PCI Command
+	0xc00: 0x000ee481
+Setup IDMA BAR and Size Register
+	0xa00:  0x00000e00 0x0fff0000
+	0xa08:  0xf3001e01 0x007f0000
+	0xa10:  0xfe000f01 0x01ff0000
+	0xa18:  0xf0100002 0x00030000
+	0xa20:  0xf2000903 0x007f0000
+Setup Base Address Enable
+	0xa80: 0x000000e0
+Setup Channel_0 and Channel_2 Access Protect
+	0xa78: 0x000003ff
+	0xa70: 0x000003ff
+Setup IDMA Channel Control (Low)
+	0x848: 0x20018524
+	0x840: 0x20018524
+Setup IDMA Channel Control (High)
+	0x888: 0x00000002
+	0x880: 0x00000002
+
+out_cnfg_thread_func startmpeg thread is running
+
+Allocate mem for TP buffers, 1 GbE port, total mem 61464576 byte
+IP buffer virtual address 0x49075010, physical address 0xa458010
+TP_INFO SPTS, size 47185920, start addr 0x4cb13000
+TP_INFO MPTS, size 3982848, start addr 0x4f813000
+
+PCR register = 0x0039c210
+NON-Promiscuous Mode
+MAC high 0x0  low 0x0
+FILTER unicast indx1=0, indx2=0 entry=1
+RXCDP7=0xf0100000 
+PSCR register = 0x01ea2e1f
+
+this is the mpeg_timer_isr_setup()
+Attach the ISR 0x480555c0 to QNX IRQ 0x00000052
+
+mpeg thread is into loop
+
+HW_ISR: HW fault hndlr thread running
+wait for thread termination
+
+# 
+telnet> quit
+Connection closed.
+
+******************   PB0_YTSE_________  *******************
+video-view1% ^D
+script done on Thu 28 Oct 2004 08:07:11 PM PDT

@@ -1,0 +1,60 @@
+Application: GQI, NGOD, video CLI
+- Define its own video session data structures
+- Maintain its own session database, using the DB utilities
+- Implement application logic
+
+SCM: 
+- For coordination cross video applications
+- For session info checking (to avoid collision, etc)
+- Manage
+  - Session ID usage
+  - DestIP / UDP usage
+  - QAM/prog number usage
+  - QAM bandwidth
+
+LCM:
+- For corrdination of resource sharing between DEPI and video applications
+  (e.g. QAM parameter provisioning, QAM modes setting)
+- For LC communication
+
+
+Coordination between modules:
+
+E.g. GQI VOD session setup
+- GQI allocate a data structure to store the session info
+- GQI try to register the session's Dest IP/UDP, QAM, prog number,
+  and bandwidth, etc with SCM.  In case of error, GQI will need to
+  unregister fields that have already registered.
+- GQI generate the input/output video session create messages
+  and send them to the LC using the LCM API
+- GQI stores the returned input/output session ID into its data structure,
+- GQI registers the input/output session ID with SCM.
+- GQI put the struture into its session DB with GQI session ID as a key,
+  using the DB utilities.
+
+- In case the source condition change, like input source becomes idle,
+  LCM will receive a notification from LC
+- LCM use the input session ID to query SCM for the corresponding application
+- GQI receive the notice from LCM
+- GQI uses the input session ID to retrieve the video session data structure
+  from its session data base
+- GQI check to see if additional source is available
+- GQI update SCM for the new input source (SCM will verify the input also)
+- GQI generate the input update message and send it to the LC thru the LCM
+
+
+E.g.: GQI shell session setup
+- GQI allocate group data structure for the shell create command
+- GQI register the bandwidht requirement with SCM (SCM will also do checking)
+
+===============================================================================
+
+GQI VOD:
+- Define single video session struct for VOD session,
+  including input/output and redundant source info
+
+Example: create session command
+Check:
+- uniqueness of sessionId (APP)
+- output port number/prog number (SCM)
+- output link utilization check (SCM)

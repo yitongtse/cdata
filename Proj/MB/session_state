@@ -1,0 +1,21 @@
+There are two aspects of state of a video session that is driven by traffic:
+  - traffic state: OFF, ACTIVE, IDLE
+  - psi state: UNKNOWN, GOOD, BAD
+Other states are by configuration:
+  - enabled
+
+
+- A session's traffic state will be ACTIVE as soon as a packet is received.
+
+- If no packets are received over a user-specified period of time, the session
+will be in IDLE state.
+
+- If no packets are received over an extended period of time (say 1 min),
+the session will be in OFF state.
+
+
+- A session's PSI state is UNKNOWN if no PSI has been snooped yet.
+
+- If PSI snooping is completed and is acceptable, it will be in GOOD state.
+
+- If the snooped PSI is not suitable for output, it will be in BAD state.

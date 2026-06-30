@@ -1,0 +1,59 @@
+Discovery II GE Control notes:
+
+Based on the MAC destination address (DA), a queue is determined:
+  If the DA is a unicast MAC address, and the upper 44 bits match with
+  programmed MAC address for the port (defined in
+  MAC Address Low Register MACAL, MAC Address High Register MACAH),
+  then the lower 4 bits in DA are used to look up the DA-Filter Unicast Table
+  to determine pass/drop and queue number.
+
+  If the DA is a multicast MAC address of the form 0x01-00-5E-00-00-XX,
+  then the lowest 8 bits of DA are used to look up the DA-Filter Special
+  Multicast Table (DFSMT) to determine pass/drop and queue number.
+
+  If the DA is a multicast MAC address of other form, an 8-bit CRC
+  will be computed based on the polynomial: x^8 + x^2 + x + 1,
+  and the result is used to look up the DA-Filter Other Multicast Table (DFOMT).
+
+If the frame is not dropped based on the DA parsing above,
+  If it is a TCP frame, TCP_CapEn and TCPQ bits in Port Configuration Register
+  (PxCR) is used for the pass/drop and queue number.
+
+  If it is a UDP frame, UDP_CapEn and UDPQ bits in Port Configuration Register
+  (PxCR) is used for the pass/drop and queue number.
+
+  If it is VLAN tagged, the priority field is used to look up the 
+  VLAN Priority Tag to Priority Register (VPT2P) to determine a queue number.
+
+  If it is an IPv4 frame, the DiffServ Code Point (DSCP) is used to look up
+  the DSCPx registers to determine a queue number.
+
+The final queue number will be the higest queue number from the DA-Filter
+lookup, and protocol/VLAN tag/DSCP lookup.
+
+
+Note: A MAC address is an multicast address if the least significant bit
+      of the first byte is 1.  Otherwise it is a unicast MAC address.
+
+Note: Multicast IP addresses are class D address
+      (224.0.0.0 to 239.255.255.255, or start with binary prefix 1110).
+      Their corresponding Ethernet MAC address has the prefix 01-00-5e.
+      
+Note: To map from multicast IP to multicast MAC address, copy lower 23 bits
+      of IP to lower 3 bytes in MAC.  Hence each multicast MAC address
+      is shared by 32 multicast IP addresses.
+
+Note: 802.1Q specifies a tag in Ethernet MAC frame, with 12 bit VLAN ID
+      and 3 bit priority.
+      802.1p defines the use of the priority field.
+  
+
+==========================================================================
+
+Relationship between logical and physical address for Marvell:
+
+First, use mmap_devic_memory() to map physical address into logical address.
+Then calculation the offset = physical - logical address
+
+For other physical address, the corresponding logical address is:
+  logical = physical - offset

@@ -1,0 +1,5 @@
+* Analyze Timing Record
+* Input file (string) * test.ti
+* Number of TPs to process (-1 for all) (int) * -1
+* PCR PID? (int) * 481
+* Print per-PCR info? (int) * 1

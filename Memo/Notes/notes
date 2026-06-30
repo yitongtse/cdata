@@ -1,0 +1,96 @@
+Overview:
+
+There are 4 tasks:
+
+Demux: Read incoming transport packet from CFifoIn.
+       If PID indicates this is the stream to be bit reduced, parse the payload
+           and extract the PES header, if any, and put it in the PES queue.
+           Dump the PES payload into one of the inBuf.
+       If PID indicates this is one of the selected stream not to be bit
+           reduced, then copy the entire transport packet into the
+           corresponding PID queue.
+       If PID is not selected, simply discard the packet.
+
+BitShaper: Read video elementary stream data from one of the InBuf.
+       At the bigining of a picture, attach the corresponding PES header in
+       the PES queue to the output buffer.
+       Pass all headers and extension up to and including the picture layer
+       to the output buffer.
+       Modify macroblock layer if necessary, decode and re-encode DCT data
+       and send them to the output buffer.
+
+Packetizer: Read video PES data from output buffer and hand them to mux.
+
+
+Important data structures/buffers and their content:
+
+Input CFIFO: incoming transport packets.  256 TPs
+PID queues: transport packets of selected PIDs (not to be bit reduced)
+PES queues: PES headers of PID to be bit reduced
+Input buffes (2): video elementary stream data.  4 KB each
+Output buffers: video PES data.  4 KB?
+Output CFIFO: transport packets of all selected PIDs.  256 TPs
+
+
+
+cfifo.h, cfifo.c: CFIFO
+The CFIFO size is set to 256 transport packets (for both input and output FIFO).
+Semaphores are used for CFIFO.
+
+
+pidbuf.h, pidbuf.c: PID buffer
+PID buffers are used to hold the entire transport packets of the selected PIDs.
+PID Buffers (actually it is the buffers for the transport packets):
+  PidQueHandle contains information of all PID Queues available
+  PidQue is the queue for one PID
+  PidBuf is a buffer which holds one transport packet.
+  PidFreeBufHandle is the structure of linked list for the unused PidBufs.
+
+
+pes.h, pes.c: PES Handling
+Buffers are used to hold the PES headers of the selected PID for rate reduction.
+Structures: PesQueHandle (freeQue, fullQue and freeSema)
+	    PesElem (contains PES header info: ptrs to PES header,
+                     PES header size, and picture id which owns this PES header)
+
+NOTE:
+  It seems to me that the code assumes that there is one PES header per frame.
+  There is no indication to where the PES header should be inserted, but always
+  assuming to be at the beginning of a picture.
+
+
+tp.c: transport packet operations
+findPayload()
+tpParse()
+tpAFParse(): adaptation field
+tpAFGetPCR()
+readPesHdr()
+readMorePesHdr()
+dumpPayload()
+
+demux.c: Demux task
+demux()
+
+
+buf.h, buf.c: input and output buffer operations
+Structure: InBuf (data buffer pointer, read/write pointers, sema)
+
+Output buffer are defined as distributed global variables: outBuf(Uint32*)
+  bitPosOutRead, bitPosOutWrite, outBufSemBitReduce, outBufSemMux
+
+Note:
+  - outBuf is also defined here, and is just a Uint32*
+
+
+
+videoes.c
+
+The two functions buf_inputbits() and buf_outputbits() are called to input
+and output bits.
+
+getMBs() performs all slice and macroblock level processing.
+getmpg2intrablock() and getmpg2interblock() are called to decode a DCT block.
+encodeMBData() are then called to re-encode the DCT data.
+
+_extU(), _clrU(), _setU() are C6X compiler supported macros which translate
+directly into C6X instructions.

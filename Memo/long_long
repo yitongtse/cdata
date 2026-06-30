@@ -1,0 +1,9 @@
+The long long type uses 64 bits.
+
+The following method can be used to print the upper and lower words
+of a long long variable:
+
+    long long x;
+    printf("upper word of x: %d\n", x);
+    printf("lower word of x: %d\n", (int)x);
+

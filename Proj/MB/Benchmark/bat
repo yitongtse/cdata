@@ -1,0 +1,3 @@
+# /vob/qnx/sdk/host/solaris-qnx6.2.1/sparc/usr/bin/objdump
+/vob/qnx/sdk/host/solaris-qnx6.2.1/sparc/usr/bin/objdump -d mb_bench
+# /vob/qnx/sdk/host/solaris-qnx6.2.1/sparc/usr/bin/objdump -S --source mb_bench

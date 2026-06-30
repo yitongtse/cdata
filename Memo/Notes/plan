@@ -1,0 +1,12 @@
+Step 1: Core extraction
+
+  Extract from existing code the input buffers, bit shaper task, and the
+  output buffer.
+
+  Replace the demux task by a dummy input task which read elementary
+  video stream from a file.
+
+  Replace the packetizer task by a dummy output task which write
+  output video PES stream to a file.
+
+

@@ -1,0 +1,120 @@
+VOD Session Setup
+-----------------
+
+CLI:
+  Sw# config terminal
+  Sw(config)# interface qam <slot>/<port>.<chan>
+  Sw(config-subif)# video udp <dst_udp> program <prog>
+
+
+Message:
+SUP -> LC<slot>
+  type: MSG_TYPE_VIDEO_IN_SESSION_CONFIG
+  body: (TYPE_SESSION_ALLOC, 0)
+        (TYPE_INPUT_TYPE, 4, UNICAST)
+        (TYPE_DST_UDP_PORT, 4, <dst_udp>)
+        (TYPE_STREAM_TYPE, 4, SPTS)
+        (TYPE_PID_REMAP, 4, 1)
+        (TYPE_PARSE_PSI, 4, 1)
+        (TYPE_DEJITTER, 4, 1)
+        (TYPE_SESSION_ENABLE, 4, 1)
+
+LC<slot> -> SUP
+  body: status = EOK
+        session_id = <in_sid>
+
+SUP -> LC<slot>
+  type: MSG_TYPE_VIDEO_OUT_SESSION_CONFIG
+  body: (TYPE_SESSION_ALLOC, 0)
+        (TYPE_IN_SESSION_ID, 4, <in_sid>)
+        (TYPE_QAM_ID, 4, <qam_id>)
+        (TYPE_PROGRAM_NUMBER, 4, <prog>)
+        (TYPE_SESSION_ENABLE, 4, 1)
+
+LC<slot> -> SUP
+  body: status = EOK
+        session_id = <out_sid>
+
+
+
+SDV Session Setup
+-----------------
+
+CLI:
+  Sw# config terminal
+  Sw(config)# cable video-session
+  Sw(config-video)# cable ssm <label> ip <src_ip> <dst_ip>
+  Sw(config)# interface qam <slot>/<port>.<chan>
+  Sw(config-subif)# video ssm <label> program <prog>
+
+
+Message:
+SUP -> LC<slot>
+  type: MSG_TYPE_VIDEO_IN_SESSION_CONFIG
+  body: (TYPE_SESSION_ALLOC, 0)
+        (TYPE_INPUT_TYPE, 4, MULTICAST)
+        (TYPE_SRC_IPV4_ADDR, 4, <src_ip>)
+        (TYPE_DST_IPV4_ADDR, 4, <dst_ip>)
+        (TYPE_STREAM_TYPE, 4, SPTS)
+        (TYPE_PID_REMAP, 4, 1)
+        (TYPE_PARSE_PSI, 4, 1)
+        (TYPE_DEJITTER, 4, 1)
+        (TYPE_SESSION_ENABLE, 4, 1)
+
+LC<slot> -> SUP
+  body: status = EOK
+        session_id = <in_sid>
+
+SUP -> LC<slot>
+  type: MSG_TYPE_VIDEO_OUT_SESSION_CONFIG
+  body: (TYPE_SESSION_ALLOC, 0)
+        (TYPE_IN_SESSION_ID, 4, <in_sid>)
+        (TYPE_QAM_ID, 4, <qam_id>)
+        (TYPE_PROGRAM_NUMBER, 4, <prog>)
+        (TYPE_SESSION_ENABLE, 4, 1)
+ 
+LC<slot> -> SUP
+  body: status = EOK
+        session_id = <out_sid>
+
+
+
+DB Session Setup
+----------------
+
+CLI:
+  Sw# config terminal
+  Sw(config)# cable video-session
+  Sw(config-video)# cable ssm <label> ip <src_ip> <dst_ip>
+  Sw(config)# interface qam <slot>/<port>.<chan>
+  Sw(config-subif)# video ssm <label> passthru
+
+
+Message:
+SUP -> LC<slot>
+  type: MSG_TYPE_VIDEO_IN_SESSION_CONFIG
+  body: (TYPE_SESSION_ALLOC, 0)
+        (TYPE_INPUT_TYPE, 4, MULTICAST)
+        (TYPE_SRC_IPV4_ADDR, 4, <src_ip>)
+        (TYPE_DST_IPV4_ADDR, 4, <dst_ip>)
+        (TYPE_STREAM_TYPE, 4, MPTS)
+        (TYPE_PID_REMAP, 4, 0)
+        (TYPE_PARSE_PSI, 4, 1)
+        (TYPE_DEJITTER, 4, 1)
+        (TYPE_SESSION_ENABLE, 4, 1)
+
+LC<slot> -> SUP
+  body: status = EOK
+        session_id = <in_sid>
+
+SUP -> LC<slot>
+  type: MSG_TYPE_VIDEO_OUT_SESSION_CONFIG
+  body: (TYPE_SESSION_ALLOC, 0)
+        (TYPE_IN_SESSION_ID, 4, <in_sid>)
+        (TYPE_QAM_ID, 4, <qam_id>)
+        (TYPE_SESSION_ENABLE, 4, 1)
+ 
+LC<slot> -> SUP
+  body: status = EOK
+        session_id = <out_sid>
+

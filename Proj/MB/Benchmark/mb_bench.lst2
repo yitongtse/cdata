@@ -1,0 +1,237 @@
+
+mb_bench.o:     file format elf32-powerpc
+
+Disassembly of section .text:
+
+00000000 <process_ip_pkt>:
+//   T: DEPI type, MPT (0) or PSP (1)
+//   Q: QAM bits
+//
+process_ip_pkt(uint8* buf)
+{
+   0:	94 21 ff f0 	stwu	r1,-16(r1)
+   4:	7c 08 02 a6 	mflr	r0
+   8:	90 01 00 14 	stw	r0,20(r1)
+    ip_hdr_t* ip_hdr = (ip_hdr_t*)buf;
+    udp_hdr_t* udp_hdr = (udp_hdr_t*)ip_hdr->payload;
+   c:	39 43 00 14 	addi	r10,r3,20
+    l2tp_hdr_t* l2tp_hdr = (l2tp_hdr_t*)udp_hdr->payload;
+  10:	38 63 00 1c 	addi	r3,r3,28
+
+    // Check for packet error
+
+    // Determine payload type
+    if (udp_hdr->dst_port & UDP_PORT_CISCO_BONDING_MASK) {
+  14:	a0 0a 00 02 	lhz	r0,2(r10)
+  18:	54 00 04 26 	rlwinm	r0,r0,0,16,19
+  1c:	2c 00 00 00 	cmpwi	r0,0
+  20:	41 82 00 10 	beq	30 <process_ip_pkt+0x30>
+        // Cisco bonding
+        process_cisco_bonding_payload(udp_hdr->payload);
+  24:	4c c6 31 82 	crclr	4*cr1+eq
+  28:	48 00 00 01 	bl	28 <process_ip_pkt+0x28>
+
+    } else {
+  2c:	48 00 00 5c 	b	88 <process_ip_pkt+0x88>
+        // DEPI
+        int qam_id = udp_hdr->dst_port & UDP_PORT_QAM_ID_MASK;
+  30:	a1 2a 00 02 	lhz	r9,2(r10)
+        int flow_id = qam_id * NUM_FLOW_PER_QAM + l2tp_hdr->flow_id;
+  34:	55 29 1d f8 	rlwinm	r9,r9,3,23,28
+  38:	88 03 00 08 	lbz	r0,8(r3)
+  3c:	54 00 07 7e 	clrlwi	r0,r0,29
+  40:	7d 29 02 14 	add	r9,r9,r0
+        l2tp_hdr_t* l2tp_hdr = (l2tp_hdr_t*)udp_hdr->payload;
+  44:	38 6a 00 08 	addi	r3,r10,8
+        flow_info_t* flow_info = &flow_info_array[flow_id];
+  48:	55 2b 10 3a 	rlwinm	r11,r9,2,0,29
+  4c:	7d 6b 4a 14 	add	r11,r11,r9
+  50:	55 6b 10 3a 	rlwinm	r11,r11,2,0,29
+  54:	3d 20 00 00 	lis	r9,0
+  58:	39 29 00 00 	addi	r9,r9,0
+  5c:	7d 6b 4a 14 	add	r11,r11,r9
+
+        // Check for lost packet
+        if (l2tp_hdr->seq_no != flow_info->prev_seq_no + 1) {
+  60:	a0 03 00 0a 	lhz	r0,10(r3)
+            // Sequence number error
+        }
+        flow_info->prev_seq_no = l2tp_hdr->seq_no;
+  64:	b0 0b 00 10 	sth	r0,16(r11)
+
+        if (udp_hdr->dst_port & UDP_PORT_DEPI_PSP_MASK) {
+  68:	a0 0a 00 02 	lhz	r0,2(r10)
+  6c:	70 09 00 40 	andi.	r9,r0,64
+  70:	41 82 00 10 	beq	80 <process_ip_pkt+0x80>
+            process_psp_payload(l2tp_hdr);
+  74:	4c c6 31 82 	crclr	4*cr1+eq
+  78:	48 00 00 01 	bl	78 <process_ip_pkt+0x78>
+        } else {
+  7c:	48 00 00 0c 	b	88 <process_ip_pkt+0x88>
+            process_mpt_payload(l2tp_hdr);
+  80:	4c c6 31 82 	crclr	4*cr1+eq
+  84:	48 00 00 01 	bl	84 <process_ip_pkt+0x84>
+        }
+    }
+}
+  88:	80 01 00 14 	lwz	r0,20(r1)
+  8c:	7c 08 03 a6 	mtlr	r0
+  90:	38 21 00 10 	addi	r1,r1,16
+  94:	4e 80 00 20 	blr
+
+00000098 <process_psp_payload>:
+
+
+process_psp_payload(l2tp_hdr_t* ptr, flow_info_t* flow_info)
+{
+  98:	94 21 ff f0 	stwu	r1,-16(r1)
+  9c:	93 e1 00 0c 	stw	r31,12(r1)
+    psp_out_cmd_t* out_cmd = flow_info->out_cmd_cur_ptr;
+  a0:	81 44 00 0c 	lwz	r10,12(r4)
+    uint16* seg_info = ptr->seg_table;
+  a4:	39 03 00 0c 	addi	r8,r3,12
+    uint32 buf_addr;
+    int seg_cnt = 0;
+  a8:	39 80 00 00 	li	r12,0
+    int tot_seg_len = 0;
+    int incomplete_frame;
+    int i, j;
+
+    // Scan segment table to determine number of segments and starting address
+    do {
+        seg_cnt++;
+  ac:	39 8c 00 01 	addi	r12,r12,1
+    } while ( (*seg_info++) & PSP_SEG_C_BIT );
+  b0:	a0 08 00 00 	lhz	r0,0(r8)
+  b4:	39 08 00 02 	addi	r8,r8,2
+  b8:	70 09 80 00 	andi.	r9,r0,32768
+  bc:	40 82 ff f0 	bne	ac <process_psp_payload+0x14>
+
+    buf_addr = (uint32)seg_info;
+  c0:	7d 06 43 78 	mr	r6,r8
+    incomplete_frame = !((*--seg_info) & PSP_SEG_E_BIT);    // end bit of last segment
+  c4:	a0 08 ff fe 	lhz	r0,-2(r8)
+  c8:	68 00 20 00 	xori	r0,r0,8192
+
+    if (incomplete_frame) {
+  cc:	54 1f 9f ff 	rlwinm.	r31,r0,19,31,31
+  d0:	7c 00 00 26 	mfcr	r0
+  d4:	54 00 1f fe 	rlwinm	r0,r0,3,31,31
+  d8:	7c 00 00 d0 	neg	r0,r0
+        seg_cnt--;
+  dc:	39 2c ff ff 	addi	r9,r12,-1
+  e0:	7d 8b 00 38 	and	r11,r12,r0
+  e4:	7d 20 00 78 	andc	r0,r9,r0
+  e8:	7d 6c 03 78 	or	r12,r11,r0
+    }
+
+    seg_info = ptr->seg_table;    // rewind segment table pointer
+  ec:	39 03 00 0c 	addi	r8,r3,12
+
+    // Process all the completed frames within the PSP packet
+    for (i=j=0; i<seg_cnt; i++) {
+  f0:	38 e0 00 00 	li	r7,0
+  f4:	38 a0 00 00 	li	r5,0
+  f8:	7c 05 60 00 	cmpw	r5,r12
+  fc:	40 80 00 80 	bge	17c <process_psp_payload+0xe4>
+ 100:	38 60 00 00 	li	r3,0
+        if (j == 0) {
+ 104:	2c 07 00 00 	cmpwi	r7,0
+ 108:	40 82 00 28 	bne	130 <process_psp_payload+0x98>
+            if (++out_cmd >= (psp_out_cmd_t*)flow_info->out_cmd_buf_end_addr) {
+ 10c:	39 4a 00 0c 	addi	r10,r10,12
+ 110:	80 04 00 04 	lwz	r0,4(r4)
+ 114:	7c 0a 00 40 	cmplw	r10,r0
+ 118:	41 80 00 08 	blt	120 <process_psp_payload+0x88>
+                out_cmd = (psp_out_cmd_t*)flow_info->out_cmd_buf_start_addr;
+ 11c:	81 44 00 00 	lwz	r10,0(r4)
+            }
+            out_cmd->buf_addr = buf_addr;
+ 120:	90 ca 00 00 	stw	r6,0(r10)
+            out_cmd->seg_info[1] = 0;
+ 124:	b0 6a 00 06 	sth	r3,6(r10)
+            out_cmd->seg_info[2] = 0;
+ 128:	b0 6a 00 08 	sth	r3,8(r10)
+            out_cmd->seg_info[3] = 0;
+ 12c:	b0 6a 00 0a 	sth	r3,10(r10)
+        }
+
+        out_cmd->seg_info[j] = *seg_info | PSP_SEG_C_BIT;
+ 130:	7d 67 3a 14 	add	r11,r7,r7
+ 134:	39 2a 00 04 	addi	r9,r10,4
+ 138:	a0 08 00 00 	lhz	r0,0(r8)
+ 13c:	60 00 80 00 	ori	r0,r0,32768
+ 140:	7c 09 5b 2e 	sthx	r0,r9,r11
+
+        buf_addr += *seg_info & PSP_SEG_SIZE;
+ 144:	a0 08 00 00 	lhz	r0,0(r8)
+ 148:	54 00 04 fe 	clrlwi	r0,r0,19
+ 14c:	7c c6 02 14 	add	r6,r6,r0
+        seg_info++;
+ 150:	39 08 00 02 	addi	r8,r8,2
+
+        if (++j == 4) {
+ 154:	38 e7 00 01 	addi	r7,r7,1
+ 158:	68 e0 00 04 	xori	r0,r7,4
+ 15c:	7c 09 fe 70 	srawi	r9,r0,31
+ 160:	7d 20 02 78 	xor	r0,r9,r0
+ 164:	7c 00 48 50 	subf	r0,r0,r9
+ 168:	7c 00 fe 70 	srawi	r0,r0,31
+ 16c:	7c 07 38 38 	and	r7,r0,r7
+ 170:	38 a5 00 01 	addi	r5,r5,1
+ 174:	7c 05 60 00 	cmpw	r5,r12
+ 178:	41 80 ff 8c 	blt	104 <process_psp_payload+0x6c>
+            j = 0;
+        }
+    }
+    flow_info->out_cmd_wr_ptr = out_cmd;
+ 17c:	91 44 00 08 	stw	r10,8(r4)
+
+    // Put the remaining incompleted segment, if there is any,
+    // in another out command
+    if (incomplete_frame) {
+ 180:	2c 1f 00 00 	cmpwi	r31,0
+ 184:	41 82 00 38 	beq	1bc <process_psp_payload+0x124>
+        if (++out_cmd >= (psp_out_cmd_t*)flow_info->out_cmd_buf_end_addr) {
+ 188:	39 4a 00 0c 	addi	r10,r10,12
+ 18c:	80 04 00 04 	lwz	r0,4(r4)
+ 190:	7c 0a 00 40 	cmplw	r10,r0
+ 194:	41 80 00 08 	blt	19c <process_psp_payload+0x104>
+            out_cmd = (psp_out_cmd_t*)flow_info->out_cmd_buf_start_addr;
+ 198:	81 44 00 00 	lwz	r10,0(r4)
+        }
+        out_cmd->buf_addr = buf_addr;
+ 19c:	90 ca 00 00 	stw	r6,0(r10)
+        out_cmd->seg_info[0] = *seg_info | PSP_SEG_C_BIT;
+ 1a0:	a0 08 00 00 	lhz	r0,0(r8)
+ 1a4:	60 00 80 00 	ori	r0,r0,32768
+ 1a8:	b0 0a 00 04 	sth	r0,4(r10)
+        out_cmd->seg_info[1] = 0;
+ 1ac:	38 00 00 00 	li	r0,0
+ 1b0:	b0 0a 00 06 	sth	r0,6(r10)
+        out_cmd->seg_info[2] = 0;
+ 1b4:	b0 0a 00 08 	sth	r0,8(r10)
+        out_cmd->seg_info[3] = 0;
+ 1b8:	b0 0a 00 0a 	sth	r0,10(r10)
+    }
+    flow_info->out_cmd_cur_ptr = out_cmd;
+ 1bc:	91 44 00 0c 	stw	r10,12(r4)
+}
+ 1c0:	83 e1 00 0c 	lwz	r31,12(r1)
+ 1c4:	38 21 00 10 	addi	r1,r1,16
+ 1c8:	4e 80 00 20 	blr
+
+000001cc <process_mpt_payload>:
+
+
+process_mpt_payload(uint8* buf)
+{
+}
+ 1cc:	4e 80 00 20 	blr
+
+000001d0 <process_cisco_bonding_payload>:
+
+process_cisco_bonding_payload(uint8* buf)
+{
+}
+ 1d0:	4e 80 00 20 	blr

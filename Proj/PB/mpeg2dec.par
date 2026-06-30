@@ -1,0 +1,23 @@
+* This program decode a MPEG-2 video bitstream
+* 
+* Bitstream filename (string) * /auto/cproject/shared/ytse/Bitstream/wavecom_trick.m2t
+* Transport bitstream? (int) * 1
+* [TS?] Packet size mode (1-188 2-204) (int) * 1
+* [TS?] Video PID (int) * 115
+* [TS?] System syntax verbose level (int) * 0
+* [TS?] System syntax output file (string) * syntax.sys
+* Video syntax verbose level (0:OFF 1:SEQ 2:GOP 3:PIC 4:SLC 5:MB 6:ALL) (int) * 0
+* Video syntax output file (string) * syntax.vid
+* First frame number (int) * 0
+* Decode bitstream? (int) * 1
+* [Decode?] Output sequence name (string) * 
+* [Decode?] Show output video? (int) * 1
+* 
+* Distortion calculation:
+* [Decode?] Compute MSE? (int) * 0
+* [MSE?] Original sequence name (string) @ 
+* 
+* Debugging parameters:
+* Frame number (int) * -1
+* Macroblock number (int) * -1
+* No. of bytes to skip (int) * 0

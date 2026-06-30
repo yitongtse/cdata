@@ -1,0 +1,8 @@
+Use xxgdb to debug.
+The executable must be compiled with the -g and -o0 options.
+
+To examine memory content:
+
+x/FMT ADDRESS
+
+FMT is a repeat count followed by a format letter (o, x, d, u, ...)

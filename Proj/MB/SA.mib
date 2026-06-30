@@ -1,0 +1,33 @@
+Encoding type: ITU-A, ITU-B, ITU-C
+PAT playout rate (in .1 sec)
+PMT playout rate (in .1 sec)
+Enable/disable NGOD
+QAM Frequency
+QAM Channel spacing (6, 7, or 8 MHz)
+QAM constellation (QAM-64 or QAM-256)
+QAM output level (dBmV)
+Symbol rate (Mbaud)
+Spectrum inversion (ON or OFF)
+Signal format (Normal, Mute, Carrier wave)
+Enable PRBS on stuffing packets (ON or OFF)
+Interleaving depth (i, j values combinations)
+TSID
+
+StreamMap MIB:
+  IP address
+  UDP port
+  Program number
+  Output channel number
+  Type of data (SPTS, MPTS, plant, or data)
+  Bitrate (kbps)
+  Control PIDs (??)
+
+Measurement MIB:
+  whether valid UPD MPEG packets are present on input
+  measured TX/RX bitrate
+  minimum TX/RX bitrate
+  maximum TX/RX bitrate
+  average TX/RX bitrate
+  minimum error bitrate
+  maximum error bitrate
+  average error bitrate

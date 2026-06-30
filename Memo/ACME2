@@ -1,0 +1,18 @@
+export LD_LIBRARY_PATH=/harddisk/tmp/mips/ytse:/lib64:/tmp/sw/cc/3/0/clc_docsis/mount/usr/binos/lib64:/tmp/sw/cc/3/0/clc_docsis/mount/usr/lib64
+
+# Start video server
+/harddisk/tmp/mips/video_srv /harddisk/tmp/mips/video_srv.par.ytse &
+
+# Start CLI
+/harddisk/tmp/mips/ng_cli 127.0.0.1
+
+# Config video sessions
+video add session 0 in 0 ip 1.1.1.1 udp 1-1920 bitrate 3850000 jitter 100 qam 0-191 program 1-10
+
+# Export configuration
+video export config 3 /harddisk/tmp/mips/video.cfg.ytse
+
+# Start video churner
+/harddisk/tmp/mips/video_churner /harddisk/tmp/mips/video_churner.par.ytse &
+
+

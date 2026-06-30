@@ -1,0 +1,24 @@
+main ()
+- video_ipc_init()
+- video_send_proc_up_msg(): inform root that video IPC is up
+- wait for system ready message from root
+- video_config_init(): initialize video config data structure
+- video_process_init(): spawn all video threads
+  - create input thread
+  - create output thread
+  - create monitor thread
+- video_init_platform()
+  - Set up sniff buffer
+  - open IPC port to TSEC control
+  - video_cobia_init(): Cobia initialization
+  - TSEC initialization
+- wait for lcred sema: signal by lcred_role_mole message
+- wait for pthread barrier
+
+
+video_go_hot(): triggered by mode_role message of ACTIVE, or go hot message
+- Initialize all qam
+- Initialize all in sessions
+- Initialize all out sessions
+- set video_ctx
+

@@ -1,0 +1,6 @@
+gcc: C compiler
+g++: C++ compiler
+
+Options:
+-c		compile only, do not link
+-o file		place output in file file

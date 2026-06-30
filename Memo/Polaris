@@ -1,0 +1,199 @@
+# View summary:
+ytse-ads1:
+
+---------------------------------
+# Branches
+polaris_dev
+v164_throttle
+
+---------------------------------
+# Pull view
+acme pull -sb xe -dl polaris_dev -gl
+acme pull -sb xe -dl polaris_dev%LATEST
+acme pull -sb xe -dl polaris_dev%BLD_POLARIS_DEV_LATEST_20190107_081957
+acme pull -sb xe -dl v1612_throttle%BLD_V1612_THROTTLE_LATEST_20190609_001620
+acme pull -sb xe -dl v1612_1_throttle%V1612_1_FC3
+acme pull -sb xe -dl v1612_1_cabu%LATEST
+
+acme pull -sb xe -dl v167_throttle% BLD_V167_THROTTLE_LATEST_20190501_163841
+
+acme pull -sb xe -dl polaris_dev%BLD_POLARIS_DEV_LATEST_20180724_002148
+
+# Pull view with WIT
+acme nw -sb xe -dl polaris_dev -gl -wit -dir /nobackup/ytse/pol
+acme nw -sb xe -dl v1610_1_throttle -gl -wit -dir /nobackup/ytse/v1610
+acme nw -sb xe -dl v1612_throttle -gl -wit -dir /nobackup/ytse/v1612
+acme nw -sb xe -dl v167_throttle -gl -wit -dir /nobackup/ytse/v1612
+
+# Clean up view
+find ./ -name "[blo][ib][njb]-mips[36][24]_cge7*" -exec rm -rf {} \;
+
+# Remove view
+# - Just remove the directory
+
+---------------------------------
+# Building bundled image (under ios/sys)
+
+# Both BinOS and IOS (1st time 4 hr, rebuild 1.5 hr)
+mcp_ios_precommit cbr_super_cge7 -j16
+
+# BinOS only (~15 min)
+mcp_ios_precommit -cuq cbr_super_cge7 -j16
+
+# To rebuild module (under binos) (1st cmd takes ~5min)
+gmk TARGET=mips64_cge7 cable/video/vdman/all-mips64_cge7-ubr -j16
+
+gmk TARGET=mips64_cge7 all-ubr -j16
+
+gmk TARGET=x86_64_cge7 cable/video/vcman/lib/vsess/all-x86_64_cge7-ubr -j16
+gmk TARGET=x86_64_cge7 cable/video/vcman/led/all-x86_64_cge7-ubr -j16
+
+# To build test programs (doesn't seem to work!)
+cd $BINOS_ROOT/cable/video/vdman/test
+gmk -f TARGET=mips64_cge7 Plx:=-ubr all-ubr
+
+-----------------------------------
+# Rebuild video_srv
+gmk TARGET=mips64_cge7 cable/video/vdman/server/all-mips64_cge7-ubr -j16
+scp $BINOS_ROOT/cable/video/vdman/server/bin-mips64_cge7-ubr/video_srv root@10.90.21.158:/harddisk/ytse
+
+-----------------------------------
+# To build clcvideo pkg for patching (under binos)
+rm -rf linkfarm/iso-cbr/cbrsup-clcvideo.*.pkg
+gmk TARGET=mips64_cge7 cable/video/vdman/all-mips64_cge7-ubr -j16
+./build/package/package_new.pl --stage="module" --module="clc-mips" cbr $BINOS_ROOT
+
+scp $BINOS_ROOT/linkfarm/iso-cbr/cbrsup-clcvideo.*.pkg root@10.90.21.158:/harddisk/ytse/cbrsup-clcvideo
+
+# install from SUP binos console (use correct slot number!)
+cd /tmp/sw/cc/8/0/clc_video
+rm -rf iso
+ln -s /harddisk/ytse/cbrsup-clcvideo iso
+
+---------------------------------
+# SA (under <view>/binos)
+/auto/ses/bin/static_binos -coverity 7 -force -diff_file diff.log -bugid=CSCvc37614 -m cbr_super_cge7
+
+# Latest one
+/auto/ses/bin/run_sa -bugid CSCvq68871
+
+---------------------------------
+# S2C (under <view>/binos)
+s2c submit -p polaris_dev CSCvq68871
+s2c submit -p v1612_1_throttle CSCvq68871
+
+------------------------------------------
+# PAW submit
+paw submit -bugid CSCvm78782
+
+------------------------------------------
+# Commit
+acme copyright_fix
+acme precommit
+acme commit
+
+------------------------------------------
+# Double commit using MCT
+# - run it under binos, or use --ws_root
+# - either get diff from cdets, or use --patch_files
+# - SA not working, but can do it manually
+
+mct dc --source_branch polaris_dev      \
+       --target_branch v167_throttle    \
+       --cdets CSCvk09119               \
+       --build_images cbr_super_cge7    \
+       --ws_root /nobackup/ytse/v1672   \
+       --run_sa                         \
+       --s2c
+
+# Extra arguments:
+#        --ws_root /nobackup/ytse/pol    \
+#        --patch_files binos:/users/ytse/diff.log \
+
+------------------------------------------
+# To find label corresponding to a view
+acme describe -workspace
+
+------------------------------------------
+# View update
+acme update -comp cable/video@polaris_dev/latest
+acme update -comp cable/video@v1610_1_throttle/latest
+
+# for TDL changes
+acme update -comp infra@polaris_dev/latest  
+
+------------------------------------------
+# Upload image
+scp $BINOS_ROOT/linkfarm/iso-cbr/cbrsup-universalk9.*.bin root@${IP}:/harddisk/ytse/th4.bin
+
+------------------------------------------
+# Source patches
+acme patch < ~/Backup/Polaris/diff.path_patch
+acme patch < /ws/mquek-sjc/polaris-rebuild-issue.diff
+
+# Reverse patch
+acme patch -reverse -input <diff_file>
+
+------------------------------------------
+# Decode pmanlog (both SUP and LC)
+btdecode <log.bin>
+
+# Executable patching
+scp $BINOS_ROOT/cable/video/vdman/bin-mips64_cge7-ubr/vidman root@${IP}:/harddisk/ytse/mips/vidman
+
+# Enable btrace level
+set platform software trace vidman 7/0 btrace info
+
+# Rommon variable DEBUG_CONF
+show romvar
+/bootflash/debug.conf
+
+------------------------------------------
+# GDB core
+# Ignore TRACEKEY mismatch using "-i"
+/auto/binos-tools/bin/mcp_gdb_core -r $BINOS_ROOT -p $BINOS_ROOT/linkfarm/mips64_cge7-ubr/usr/binos/bin/vidman.debug -c /nobackup/ytse/Debug/vidman.core.gz
+
+------------------------------------------
+# Decode traceback
+# Cut and paste the traceback line, excluding "Traceback=".  Hit ctrl-D to get the decode
+
+- Vdman traceback;
+/auto/binos-tools/bin/mcp_stump -p $BINOS_ROOT/linkfarm/mips64_cge7-ubr/usr/binos/bin/vidman.debug
+
+- LED traceback;
+/auto/binos-tools/bin/mcp_stump -p $BINOS_ROOT/linkfarm/x86_64_cge7-ubr/usr/binos/bin/led.debug
+
+------------------------------------------
+# Cavium SDK checked in at: cable/infra/sesum
+
+------------------------------------------
+# Suggest work cycle for Git
+
+## Update local Repo
+cd /ws/ytse-sjc/GitRepo/binos
+git pull
+
+## Copy repo over
+cd <new_view>/binos
+cp -r /ws/ytse-sjc/GitRepo/binos/.git .
+git checkout .gitignore
+
+## Add add changed files back to Repo and resync with remote
+git status
+git add ...
+git commit -m "Sync with ACME"
+git remote add origin https://YTT2@bitbucket.org/YTT2/binos.git
+git push
+
+## Create new branch for new work
+git checkout -b <brach>
+
+## ACME commit
+
+## Merge branch to master
+git checkout master
+git merge <branch>
+
+## Push work back to remote Repo
+git push
+

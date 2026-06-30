@@ -1,0 +1,7 @@
+Function calling convention:
+  r1: stack pointer
+  r3: return value
+
+Assembly:
+    li      rx,const        : load 16-bit constant to a register
+

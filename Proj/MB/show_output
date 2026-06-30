@@ -1,0 +1,22 @@
+Session    QAM     Stream     Session    UDP        Output     Actual       Session
+ID         Port    Type       Type       Port       Program    Bitrate      State 
+---------- ------- ---------- ---------- ---------- ---------- ------------ ---------------
+12766      3/1.1   Remap      UDP        49152      1          3861947      ACTIVE, NONE,                 
+12776      3/1.2   Remap      SSM        -          1          0            OFF, NONE,                    
+12777      3/1.3   Remap      ASM        -          2          0            OFF, NONE,                  
+
+
+Session  QAM      Output   Input                                   Session   Actual    Traffic  PSI    Output
+ID       Port     Program  Port                                    Type      Bitrate   State    State  State
+-------  -------  -------  --------------------------------------  --------  --------  -------  -----  -------
+12345    3/1.1    1        UDP 192.168.10.6 49152                  Remap      3861947  ACTIVE   ON     ON
+12346    3/1.2    2        SSM 192.168.100.100 -> 232.100.100.100  Remap      3861947  IDLE     ON     ON
+12347    3/1.3    3        ASM 192.168.100.200                     Remap      3861947  OFF      OFF    BLOCKED
+12348    3/1.3    -        SSM 192.168.100.100 -> 232.100.100.101  Data         38600  ACTIVE   ON     ON
+12348    3/1.4    -        SSM 192.168.100.100 -> 232.100.100.102  Passthru  50086194  ACTIVE   ON     OFF
+
+
+
+
+
+

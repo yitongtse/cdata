@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <title>Program statistics</title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  </head>
+
+  <body>
+    <h1> HACKalizer: Program Bitrates </h1>
+    <div id="chart" style="width: 900px; height: 500px;"></div>
+
+    <script type="text/javascript">
+        var prog_stat_json = '\
+{DATA}
+                    ';
+        var prog_stat = JSON.parse(prog_stat_json);
+
+        var prog_stat_chart = new Array();
+        prog_stat_chart[0] = new Array();
+        prog_stat_chart[0][0] = "Bitrate";
+        for (i = 0; i < prog_stat.length; i++) {
+            prog_stat_chart[0][i+1] = "Program " + prog_stat[i].program;
+        }
+
+        max_time_id = 60;
+        for (i = 0; i < max_time_id; i++) {
+            prog_stat_chart[i+1] = new Array();
+            prog_stat_chart[i+1][0] = "";
+            for (j = 0; j < prog_stat.length; j++) {
+                prog_stat_chart[i+1][j+1] = prog_stat[j].tp_cnt[i]
+                                            * 1504. / 1000000;
+            }
+        }
+
+        function drawChartWithData(myData) {
+            var f = function f2() {
+                var chartData = google.visualization.arrayToDataTable(myData);
+                var options = { hAxis: {title: 'Time'},
+                                vAxis: {title: 'Bitrate (Mbps)', minValue: 0}
+                               };
+                var chart = new google.visualization.AreaChart(
+                                    document.getElementById('chart'));
+                chart.draw(chartData, options);
+            }
+            return f;
+        }
+
+      var drawChart = drawChartWithData(prog_stat_chart);
+
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+
+      setTimeout(function(){ window.location.reload(1); }, 1800);
+      
+    </script>
+  </body>
+</html>

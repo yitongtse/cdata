@@ -1,0 +1,89 @@
+Common IOS commands:
+
+enable		// go from user exec mode to privileged exec mode
+reload		// reboot
+show running-config
+show start-config
+copy running-config start-config
+
+show version
+show histroy
+show users
+show clock
+show hosts
+show sessions
+
+show terminal
+terminal length 40      // set IOS page size
+terminal length 0	// no paging
+terminal width 80
+
+show interface e0
+
+banner motd #message#
+banner exec #message#
+banner login #message#
+banner incoming #message#
+
+--------------------------
+
+# To change timeout from privileged mode:
+line con 0
+exec-timeout 0 0    // never timeout 
+exec-timeout 0 1    // timeout in 1 sec
+
+
+# To enable previleged mode passowrd
+enable password <PASSWORD>
+
+
+# To set up vty for login
+line vty 0 4
+password <PASSWORD>
+login           <-- require login
+
+
+# To find out what neighbors my switch is connected to:
+  show cdp neighbors
+
+--------------------------
+
+To set up a vlan:
+
+Use "vlan database" to add to the VLAN database
+Do "no shut" on the vlan
+Assign IP address and subnet mask: ip address a.b.c.d p.q.r.s
+
+
+---------------------------
+To check multicast route:
+
+show ip mroute
+
+
+
+===========================
+
+Kernel code is in /vob/ios/sys/os
+
+COMP_INC is defined in flo_vid under /vob/cisco.comp/make-lib
+
+For example:
+    #include COMP_INC(kernel, ios_mem.h)
+resolves to: 
+    #include "/vob/cisco.comp/kernel/include/ios_mem.h"
+The corresponding file is a link to the real header file to be included.
+
+------------------------------
+
+To find out what IP packets are coming into my switch:
+show ip cache flow
+
+------------------------------
+
+Parser tree:
+  /vob/ios/sys/parser
+
+------------------------------
+
+To terminate "show tech": Ctrl 6

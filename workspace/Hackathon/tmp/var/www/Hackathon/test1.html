@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <script src="https://www.google.com/jsapi"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script>
+        google.load("visualization", "1", {packages:["corechart"]});
+    </script>
+  </head>
+
+  <body>
+    <script>
+        var chart;
+        var options;
+
+        function draw(data) {
+            chartData = google.visualization.arrayToDataTable(JSON.parse(data));
+            chart.draw(chartData, options);
+        }
+
+        function update() {
+            $.ajax({url: "chart-data.txt", success: draw});
+        }
+
+        $(document).ready(function() {
+            chart = new google.visualization.PieChart(
+                                  document.getElementById('piechart'));
+            options = {
+                title: 'My Daily Activities'
+            };
+            update();
+            //setInterval(update, 1200);
+        });
+    </script>
+
+    <h1 id="test"></h1>
+    <div id="piechart" style="width: 900px; height: 500px;"></div>
+
+  </body>
+</html>

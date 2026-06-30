@@ -1,0 +1,21 @@
+Input packets
+
+- eTSEC descriptor buffer overrun (event count)
+  (NOTE: not recoverable yet!)
+
+- Input verifier
+  - bad formated IP packet count
+    - IP version 4
+    - IP header size is 5 words
+    - IP packet length <= 1500 bytes
+    - No IP fragmentation
+    - protocol is UDP
+    - If RTP header is present, RTP header length < IP packet length
+
+- Input session lookup
+  - unreferenced IP packet count
+
+- PID lookup
+  - unreferrenced PID TP count 
+
+

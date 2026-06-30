@@ -1,0 +1,195 @@
+ipc_send_unreliable_message ()
+{
+    if (server not connected) {
+        re-connect server;
+    }
+    err = devctl(DCMD_IPC_MSG, msg_buf, &status);
+    return IPC_OK;
+}
+
+
+
+ipc_send_reliable_message ()
+{
+    if (this is next seq_num to send) {
+        if (server not connected) {
+            re-connect server;
+        }
+        err = devctl(DCMD_IPC_MSG, msg_buf, &status);
+        if (err == EOK) {
+            // Note: for LC->SUP, SM will send IPC_REPLY_NONE!
+            if (status != IPC_REPLY_NONE) {
+                invoke notification callback;
+                return (status == IPC_REPLY_ACK)? IPC_OK : IPC_INTERNAL;
+            }
+        }
+
+        // Send fail or delayed ACK/NACK, need to retry
+        calculate and set retry time for the destination port
+    }
+
+    // Either not the next seq_num to send, server still not connected,
+    // or initial send failed
+    put message to tx_que;
+    if (tx_timer not armed) {
+        arm_tx_timer();
+    }
+    return IPC_OK;
+}
+
+
+
+ipc_send_reliable_message_blocked ()
+{
+    if (server not connected) {
+        re-connect server;
+    }
+    err = devctl(DCMD_IPC_MSG, msg_buf, &status);
+    if (err == EOK) {
+        // Note: for LC->SUP, SM will send IPC_REPLY_NONE!
+        if (status != IPC_REPLY_NONE) {
+            return (status == IPC_REPLY_ACK)? IPC_OK: IPC_INTERNAL;
+        }
+    }
+
+    // Either server still not connected, or initial send failed
+    calculate and set retry time for the destination port;
+    put message to tx_que;
+    if (tx_timer not armed) {
+        arm_tx_timer();
+    }
+
+    sleepon_wait(message->error_code);
+    return (message->error_code);
+}
+
+
+
+ipc_send_reliable_rpc_blocked()
+{
+    if (server not connected) {
+        re-connect server;
+    }
+    err = devctl(DCMD_IPC_MSG, msg_buf, &status);
+    if (err == EOK) {
+        if (status == IPC_REPLY_ACK) {
+            *error = IPC_REPLY_ACK;
+            return received msg;
+        } else {
+            // Assume IPC_REPLY_NACK
+            *error = IPC_INTERNAL;
+            return NULL;
+        }
+    }
+
+    // Either server still not connected, or initial send failed
+    calculate and set retry time for the destination port;
+    put message to tx_que;
+    if (tx_timer not armed) {
+        arm_tx_timer();
+    }
+
+    sleepon_wait(message->error_code);
+    if (message->error_code == IPC_REPLY_ACK) {
+        *error = IPC_REPLY_ACK;
+        return received msg;
+    } else {
+        // Assume IPC_REPLY_NACK
+        *error = IPC_INTERNAL;
+        return NULL;
+    }
+}
+
+
+
+ipc_send_reliable_rpc_reply_blocked()
+{
+    err = MsgReply(reply_message, IPC_REPLY_ACK);
+    return (err == EOK)? IPC_OK : IPC_TIMEOUT;
+}
+
+
+
+ipc_rx_handle_message()
+{
+    if (reliable message) {
+        if (sequence number is expected) {
+            if (not RPC request) {
+                MsgReply(IPC_REPLY_ACK);
+            }
+        } else {
+            MsgReply(IPC_REPLY_NACK);
+        }
+    } else {
+        MsgReply(IPC_REPLY_NONE);
+    }
+
+    if (fast callback) {
+        invoke receive callback;
+    } else {
+        put message on rx_que;
+        signal WK through rx_cond;
+    }
+}
+
+
+
+ipc_sm_handle_message()
+{
+    MsgReply(IPC_REPLY_NONE);
+    forward message to io-net
+}
+
+
+
+ipc_sm_handle_ack_from_sup()
+{
+}
+
+
+
+// The following retry feature is preferrable
+//   retry_time should be per destination port (in port_info), not per message
+//
+ipc_tx_timer_wakeup()
+{
+    for all messages on tx_que {
+        if (this is next seq_num to send && message retry time has reached) {
+            if (server not connected) {
+                re-connect server;
+            }
+            err = devctl(DCMD_IPC_MSG, msg_buf, &status);
+            if (err == OK) {
+                if (status == IPC_REPLY_NONE) {
+                    dequeue the message from tx_que;
+                    if (tx_que is empty) {
+                        disarm retry_timer;
+                    }
+
+                    if (message is blocked send) {
+                        message->error_code = status;
+                        sleepon_signal(message->error_code);
+                    } else {
+                        invoke notification callback;
+                    }
+                }
+
+            } else {
+                if (retry_count > MAX_RETRY_COUNT) {
+                    drop message from tx_que;
+
+                    if (message is blocked send) {
+                        message->error_code = IPC_TIMEOUT;
+                        sleepon_signal(message->error_code);
+                    } else {
+                        invoke notification callback;
+                    }
+
+                } else {
+                    update retry time for the destination port
+                }
+            }
+        }
+    }
+}
+

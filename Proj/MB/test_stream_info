@@ -1,0 +1,39 @@
+CLabs250-40.ts
+==============
+mb> v q i 0 pat
+In session 0 PAT:
+  Ver 0, TSID 1, len 16, section 0/0
+    Prog 2: pmt 480
+mb> v q i 0 pmt
+In session 0 PMT:
+  Ver 0, program no 2, pcr pid 481, len 23
+    Type 2, PID 481, es_info_len 0
+    Type 4, PID 482, es_info_len 0
+
+
+DCII250-40.ts
+=============
+mb> v q i 0 pat
+In session 0 PAT:
+  Ver 0, TSID 1, len 16, section 0/0
+    Prog 2: pmt 480
+mb> v q i 0 pmt
+In session 0 PMT:
+  Ver 0, program no 2, pcr pid 481, len 23
+    Type 128, PID 481, es_info_len 0
+    Type 4, PID 482, es_info_len 0
+
+
+test1.ts (from Ice Age)
+=======================
+mb> v q i 0 pat
+In session 0 PAT:
+  Ver 0, TSID 1, len 16, section 0/0
+    Prog 1: pmt 500
+mb> v q i 0 pmt
+In session 0 PMT:
+  Ver 0, program no 1, pcr pid 481, len 40
+    Type 129, PID 482, es_info_len 6
+    Type 129, PID 483, es_info_len 6
+    Type 2, PID 481, es_info_len 0
+

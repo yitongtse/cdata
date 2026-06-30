@@ -1,0 +1,17 @@
+To set up printer for PC:
+
+run \\print-sj-6-2
+Double click selected printer
+
+In the add printer wizard, select in Manufacturers window "!Cisco Supported"
+if you can find it, and then select the correct Printer model on the right
+window.  Or, you can click Have Disk button, and in the bottom line select
+\\print-sj-6-2\!drivers\installs, then select the right printer model from
+the pop up window.
+
+
+---------------------------
+
+9/30/2004
+
+http://print-sj/w2kprintclient.html

@@ -1,0 +1,244 @@
+# confreg setting
+0x1820
+(Baud rate 115200)
+The config in term server should match the baud rate selected in ROMMON!
+
+# To show confreg
+In ROMMON: confreg
+In IOS: show bootvar
+
+# To set confreg
+In ROMMON: confreg 0x1820
+In IOS: config-register 0x1820
+
+# Rommon variable setting
+SR_MGMT_VRF=0
+
+# Copy bundled image to bootflash:
+scp $BINOS_ROOT/linkfarm/iso-ubr/ubr_super_adventerprisek9.ubr.bin root@172.22.80.28:/harddisk/ytse.bin
+cp /harddisk/ytse.bin /bootflash/ytse.bin
+sync
+
+# Boot bundled image
+boot bootflash:ytse.bin
+
+# If /harddisk not visible from Cylons, Restart NFS from SUP
+/etc/init.d/nfs restart
+
+# To access IOS prompt from SUP mgmt port
+mcp_ios_prompt.sh
+
+# Environment setup for cBR8
+export LD_LIBRARY_PATH=/lib64:/tmp/sw/cc/3/0/clc_video/mount/usr/binos/lib64:/tmp/sw/cc/3/0/clc_docsis/mount/usr/lib64
+export PATH=$PATH:/harddisk/tmp/mips:/tmp/sw/cc/3/0/clc_video/mount/usr/binos/bin:/tmp/sw/cc/3/0/clc_docsis/mount/usr/binos/bin
+
+# Prelib related environment settings
+export BINOS_CHASFS_ROOT=/tmp/cc/chasfs
+export BINOS_FRU_LOCAL=BINOS_FRU_CC
+export BINOS_SLOT_LOCAL=3
+export BINOS_BAY_LOCAL=0
+export SW_FRU_BASE=/tmp/sw/cc/3/0/clc_docsis/mount
+
+video_sniffer &
+video_srv /harddisk/tmp/mips/video_srv.par &
+ng_cli 127.0.0.1
+
+# CLI
+video add session 0 in 0 ip 1.1.1.1 udp 1-7680 bitrate 3850000 jitter 100 qam 0-767 program 1-10
+video delete session 1-9
+sniffer set monitor qam 0 0
+sniffer show monitor qam
+sniffer set monitor socket address 172.22.80.28 1234 mgmt0
+
+# Reboot LC
+hw slot 3 reload
+
+# SSH tunnel setup from PC (???)
+ssh root@172.22.80.28 -R1234:10.0.3.6:5678 
+
+# SSH study
+# Connect local port 1234 to LC's time server thru the SUP
+ssh -L 1234:10.0.3.3:13 root@172.22.80.28
+telnet localhost 1234
+
+==============================================
+COBALT commands:
+
+# Get help
+mist repo -h
+
+# List COBALT builds
+mist repo -p mcp_cable
+
+==============================================
+# SUP CLIs
+show platform software cdman 3 infra buffers
+show controllers Integrated-Cable 3/0/0 rf-channel 0-10
+
+==============================================
+# ASR config
+controller Integrated-Cable 3/0/0
+ max-carrier 128
+ base-channel-power 34
+ freq-profile 0
+ rf-chan 0
+  type DOCSIS
+  frequency 93000000
+  rf-output NORMAL
+  power-adjust -2
+  docsis-channel-id 1
+  qam-profile 1
+ rf-chan 1
+  type VIDEO
+  frequency 99000000
+  rf-output NORMAL
+  power-adjust -2
+  docsis-channel-id 2
+  qam-profile 1
+ rf-chan 2
+  type VIDEO
+  frequency 105000000
+  rf-output NORMAL
+  power-adjust -2
+  docsis-channel-id 3
+  qam-profile 1
+ rf-chan 3
+  type VIDEO
+  frequency 111000000
+  rf-output NORMAL
+  power-adjust -2
+  docsis-channel-id 4
+  qam-profile 1
+
+...
+
+controller Integrated-Cable 3/0/1
+ max-carrier 128
+ base-channel-power 34
+ freq-profile 0
+ rf-chan 0
+  type VIDEO
+  frequency 93000000
+  rf-output NORMAL
+  power-adjust -2
+  docsis-channel-id 1
+  qam-profile 1
+ rf-chan 1
+  type VIDEO
+  frequency 99000000
+  rf-output NORMAL
+  power-adjust -2
+  docsis-channel-id 2
+  qam-profile 1
+ rf-chan 2
+  type VIDEO
+  frequency 105000000
+  rf-output NORMAL
+  power-adjust -2
+  docsis-channel-id 3
+  qam-profile 1
+
+
+==============================================
+# Latest test
+export LD_LIBRARY_PATH=/lib64:/tmp/sw/cc/0/0/clc_video/mount/usr/binos/lib64:/tmp/sw/cc/0/0/clc_docsis/mount/usr/lib64
+export PATH=$PATH:/harddisk/tmp/mips:/tmp/sw/cc/0/0/clc_video/mount/usr/binos/bin:/tmp/sw/cc/0/0/clc_docsis/mount/usr/binos/bin
+
+# Prelib related environment settings
+export BINOS_CHASFS_ROOT=/tmp/cc/chasfs
+export BINOS_FRU_LOCAL=BINOS_FRU_CC
+export BINOS_SLOT_LOCAL=0
+export BINOS_BAY_LOCAL=0
+export SW_FRU_BASE=/tmp/sw/cc/0/0/clc_docsis/mount
+
+ulimit -c 1000000
+cd /harddisk/tmp/mips
+workon.sh status
+
+
+video_srv &
+
+# ESI link status
+show platform hardware slot F0 serdes status
+
+# Sup G10E config
+int te 4/1/0
+ip address 1.9.93.111 255.255.0.0
+load-interval 30
+no shutdown 
+
+int te 4/1/1
+ip address 1.8.90.222 255.255.0.0
+load-interval 30
+no shutdown 
+
+# Bundle config
+int Bundle101
+ip address 13.1.1.1 255.255.255.0
+
+# Create video interface
+test platform software cable-shim video add 3 0 20000000
+
+# Find out video interface DPIDX
+show platform software interface fp act b | i Video-Service-Engine3/0/0
+(say it is 5268)
+
+# Config JIB header for video
+test ubr-dp create defjibhdr-dpix 5268 hdr-len 16 1
+
+# Set Bundle IP route
+# (Assume video dest IP is 14.1.1.1)
+ip route 14.1.1.1 255.255.255.255 Bundle 101
+
+========================
+# SUP Linux prompt
+
+interface GigabitEthernet0
+ vrf forwarding Mgmt-intf
+ ip address 172.22.80.28 255.255.0.0
+ negotiation auto
+ no mop enabled
+
+# Also:
+ip route vrf Mgmt-intf 0.0.0.0 0.0.0.0 172.22.80.1
+
+=========================
+# Raider investigation
+
+# Check channel config:
+show controller in 3/0/0 rf-ch 0 ver
+show cab card 3/0 ds-mac all
+
+=========================
+# Checking video input path
+
+# From SUP #########################
+# From ingress port
+sh int Te4/1/x | inc packet
+
+# From CPP
+sh int video 7/0/0 | inc packet ; vidoe output packet count from out interface
+sh plat ha qfp ac stat drop     ; packet drop statistics
+
+# From LC ##########################
+# Note: Basestar is NOT clear on read
+#       Raider is clear on read
+
+# Basestar: input from CPP (Video + DOCSIS)
+oct-linux-memory -w 4 0x11b00f0626180   ; ESI-A
+oct-linux-memory -w 4 0x11b00f0629180   ; ESI-B
+
+# Basestar: video output to Raider
+oct-linux-memory -w 4 0x11b00f0626188   ; ESI-A
+oct-linux-memory -w 4 0x11b00f0629188   ; ESI-B
+
+# Raider: input from Basestar (chan 1)
+# Use "ioucon 7" to get to LC IOS console first
+# Use Ctrl-C to get out
+test jib4ds show ilk 0
+test jib4ds show ilk 1
+
+# Raider: output to CPU (chan 5)
+test jib4ds show ilk 2
+test jib4ds show ilk 3
+

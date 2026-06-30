@@ -1,0 +1,120 @@
+GQI model:
+
+Create Session Command:
+  sessionId: 10 bytes (Client)
+  incomingPrgmNmbr
+  outgoingPrgmNmbr
+  inputPortNmbr
+  sessionRate
+  multicast (boolean)
+  inputDestMcastIpAddr
+  inputDestUpdPort
+  inputSrcIpAddress[3]
+  noPidRemapping
+
+Delete Session Command:
+  sessionId
+
+Query Sessions Command:
+  outputPortNmbr
+
+Query Sessions Response:
+  outputPortNmbr
+  sessionId[]
+
+Query Session Info Command:
+  outputPortNmbr
+  sessionId
+
+Query Session Info Response
+  sessionId
+  incomingPrgmNmbr
+  outgoingPrgmNmbr
+  inputPortNmbr
+  outputPortNmbr
+  sessionRate
+  inputPsiDetected
+  packetsDetected
+  programPmt[1024]
+  multicast
+  inputDestMcastIpAddr
+  inputDestUdpPort
+  soruceIpAddress[3]
+  noPidRemapping
+
+Create Shell Session Group Command:
+  outputPortNmbr
+  sessionId[32]
+  groupRate
+  inputPortNmbr
+
+Create Shell Session Group Response:
+  groupSessionStatus[32]
+
+Delete Shell Session Group Command:
+  outputPortNmbr
+  sessionId[32]
+
+Delete Shell Session Group Response:
+  groupSessionStatus[32]
+
+
+Bind Request:
+  sessionId
+  outputPgmNmbr
+  inputPgmNmbr
+  overrideBindingFlag
+  pgmBandwidth
+  destIpAddr
+  destUdpPort
+  sourceIpAddr[3]
+  noPidRemapping
+
+Unbind Request:
+  sessionId
+
+Query Bindings Command:
+
+Query Bindings Response:
+  sessionId[1024]
+
+Query Binding Info Command:
+  sessionId
+
+Query Bind Info Response:
+  sessionId
+  outputPgmNmbr
+  inputPgmNmbr
+  overrideBindingFlag
+  pgmBandwidth
+  destIpAddr
+  sourceIpAddr[3]
+  noPidRemapping
+
+
+=========================================
+
+NGOD model:
+
+VOD: unicast
+  dest IP, dest UDP
+  src IP, src UDP
+  qam channel
+  out prog num
+  bandwidth
+  jitterBuffer
+
+
+SDV: multicast
+  qam channel
+  out prog num
+  bandwidth
+  For each source:
+    bandwidth
+    src IP
+    group IP
+    dst port
+    in prog num
+    (IP for IGMP join)
+
+

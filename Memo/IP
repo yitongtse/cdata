@@ -1,0 +1,5 @@
+ipconfig - show IP configuration
+
+ipconfig /release - release IP address
+
+ipconfig /renew - pick up new IP address

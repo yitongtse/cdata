@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <title>PID statistics</title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  </head>
+
+  <body>
+    <h1> HACKalizer: PID Statistics </h1>
+    <div id="piechart" style="width: 900px; height: 500px;"></div>
+
+    <script type="text/javascript">
+        var pid_stat_json = '\
+{DATA}
+                    ';
+        var pid_stat = JSON.parse(pid_stat_json);
+
+        var pid_stat_chart = new Array();
+        pid_stat_chart[0] = ["PIDs", "Percentage"];
+        for (i = 0; i < pid_stat.length; i++) {
+            pid_stat_chart[i + 1] = ["PID " + pid_stat[i].pid,
+                                     pid_stat[i].tp_cnt];
+        }
+
+        function drawChartWithData(myData) {
+            var f = function f2() {
+                var chartData = google.visualization.arrayToDataTable(myData);
+                var options = { title: 'PID Statistics',
+                                pieHole: 0.5,
+                              };
+                var chart = new google.visualization.PieChart(
+                                    document.getElementById('piechart'));
+                chart.draw(chartData, options);
+            }
+            return f;
+        }
+
+      var drawChart = drawChartWithData(pid_stat_chart);
+
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+
+      setTimeout(function(){ window.location.reload(1); }, 1800);
+
+    </script>
+  </body>
+</html>

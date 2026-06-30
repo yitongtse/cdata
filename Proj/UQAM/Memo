@@ -1,0 +1,46 @@
+7/27/04
+  Clipping on frequency adjustment has bad effect on the PLL performance.
+  Clipping slows down the convergence.
+  Need to do something special when clipping is on!
+
+7/28/04
+  Without the dejittering filter, we have a phase error of about 1.5 ms
+  at steady state.  With some light amount of dejittering (DJP = 0.025),
+  we can reduce the steady state phase error to -0.05 ms.
+  However, we don't have a way to determine DJP automatically.
+
+7/29/04
+  Noticed that if we initialize the dejitter filter's state (dj_tpi)
+  correctly, then the performance is exactly like when we have DJP=1
+  with dj_tpi init to 0, independent of what the DJP values are.
+
+  Tried to use adaptive loop filter to see whether we can reduce
+  ss phase offset.
+  It has a much faster initial response.
+  It doesn't help much on the steady state performance!
+  
+  Tried to use summing loop filter.  But it doesn't work at all.
+
+  Tried to use n-tap averaging filter.  It has the similar performance as
+  2-tap IIR.  Interestingly, the ss phase error is almost the same!
+
+  Try to investigate what ss phase error depends on:
+    ref: phase error 1.5 ms
+    IP delay skew (2 -> 1): 1.75 ms
+    IP delay skew (2 -> 3): 1.3 ms
+    Noticed that filter error TBO also changes.
+
+    Max IP delay (2000 -> 1000): 0.87 ms
+    Max IP delay (2000 -> 4000): 2.9 ms
+
+    Also noticed that the curves are quite different if we change
+    the random number generator's seed.
+    The initial behavior (e.g. phase error) is quite different,
+    but the ss response is about the same!
+
+    Even if we make the source clock the same as reference clock,
+    we still have 1.2 ms ss phase error!
+    Setting also #TP/IP to 1, get 1.6 ms
+
+  Conclusion: steady state behaviour is independent of the initial
+              behavior, but related to the IP network jitter distribution!

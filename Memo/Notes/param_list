@@ -1,0 +1,15 @@
+The followings are input parameters which are actually used in the mps program:
+
+param->input_file_name
+param->output_file_name
+param->base_name
+
+param->input_bitrate
+param->video_target_bit_rate
+param->total_target_bit_rate
+
+param->video_pid_to_extract
+param->audio_pid
+param->pcr_pid
+
+param->first_frame_num

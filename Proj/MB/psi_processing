@@ -1,0 +1,67 @@
+In session PSI processing:
+
+- input thread sees an PAT TP
+  - invoke_pat_snoop() -> parse_pat_tp()
+    - snoop_section(): search for complete PSI section in the TP payload
+                       copy snooped segment into snoop buffer
+    - snoop_pat_section(): return 1 only if new PAT section is snooped
+    - upate_pat()
+      - clean up all program in the in session if needed
+      - clean PID table
+      - allocate in_prog
+      - set up PAT and PMT PIDs in PID table
+
+- input thread sees an PMT TP
+  - invoke_pmt_snoop() -> parse_pmt_tp()
+    - snoop_section()
+    - snoop_pmt_section(): return 1 only if new PMT section is snooped
+    - pmt_pid_table_remove(): clean up pid table if needed
+    - parse_pmt()
+    - pmt_pid_table_add()
+
+
+---------------------------------------------------------------------------
+Out session configuration:
+
+- process_video_out_session_config()
+  - provision_qam_flow()
+  - out_session_init()
+    - set up out session according to out config and in session
+    - set up pid table
+    - out_session_psi_init()
+      - out_session_update_pat(): update QAM's PAT
+        - clean up program in out_session
+        - clean up PID table
+        - check for PMT PID / program number collision
+        - allocate out_prog
+        - add PMT PID in PID table
+      - regenerate_pmt(): for remap sesion only
+        - clean up PMT pid/program number from pid table/usage map
+        - free PMT sections and carousel buffers
+        - copy input PMT section to output PMT section
+        - parse_pmt(): to set up pointers
+        - pmt_modify(): for prog_num and pid remap
+        - psi_session_packetize(): to generate PMT carousel
+        - Add ES pids to PID table
+        - crsl_insert_schedule(): send 1st PMT carousel right away
+    - regenerate_pat()
+      - qam_collect_prog_into
+        - collect all prog_num/pmt_pid from qam's session/program list
+      - qam_build_pat
+        - construct PAT sections and PAT carousel
+        - parse_pat(): to set up pointers
+
+---------------------------------------------------------------------------
+Out session PSI processing:
+
+Note: for new PAT/PMT TP, the new_pai_flag in tp_info will be set.
+
+- out thread sees a tpinfo for PAT TP:
+  - out_session_update_pat()
+  - regenerate_pat()
+
+
+- out thread sees a tpinfo for PMT TP:
+  - regenerate_pmt()
+
+

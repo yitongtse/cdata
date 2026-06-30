@@ -1,0 +1,20 @@
+io-net
+
+mount -T io-net /flash/npm_cipc.so
+
+mount -T io-net /flash/ncm_cipc_en.so
+
+mount -T io-net npm-tcpip.so
+
+
+mount -T io-net -o mac=020000000501,tsec_index=0,promiscuous,duplex=1,speed=1000 devn-mpc85xx-mossbeach.so
+
+mount -T io-net -o mac=020000000502,tsec_index=1,promiscuous,duplex=1,speed=1000 devn-mpc85xx-mossbeach.so
+
+mount -T io-net -o mac=020000000500,tsec_index=2,promiscuous,duplex=0,speed=100 devn-mpc85xx-mossbeach.so
+
+ifconfig en0 192.168.1.3 netmask 255.255.0.0 
+
+ifconfig en1 192.168.1.4 netmask 255.255.0.0 
+
+

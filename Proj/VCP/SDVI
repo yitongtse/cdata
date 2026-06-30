@@ -1,0 +1,41 @@
+SDV Binding interface
+
+
+SDV Session Binding
+> session ID (assigned by SDV server/RM)
+  out program number
+  in program number (0 for SPTS)
+  overriding binding flag (unbinding existing session if set)
+  program bandwidth (in bps)
+  dest UDP port (fixed and well-known for multicast)
+  dest IP addr
+  array of src IP addr (up to 3)
+  pid remapping flag
+
+< result code
+
+
+SDV Session Unbinding
+> session ID
+
+< result code
+
+
+Quary Binding Information
+> 
+
+< session ID
+  out program number
+  in program number
+  program bandwidth
+  dest IP addr
+  array of src IP addr (up to 3)
+  pid mapping flag
+
+
+Query Binding
+>
+
+< result code
+  array of session IDs
+  

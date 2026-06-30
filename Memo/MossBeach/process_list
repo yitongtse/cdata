@@ -1,0 +1,28 @@
+Parse IP header: Version, TTL, IHL, total length, protocol
+                 source and dest IP
+
+Check for multicast packet
+
+Parse UDP header
+
+Map dest UDP to session ID for unicast packet by table lookup
+Map src and dst IP to session ID for multicast packet by hash table lookup
+
+Dropping packets not configured.
+
+
+
+Trojan horse UDP remapping (hopefully gone)
+
+Jumbo frame extra processing and shadow buffering
+
+Occasionally check session timeout and compute session bitrate
+
+Trigger PSI snooping for new session.
+
+Find out number of TPs in IP
+
+Pick TPs for PSI snooping.
+
+
+

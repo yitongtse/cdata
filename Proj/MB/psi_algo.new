@@ -1,0 +1,102 @@
+In session PSI processing:
+
+- input thread sees an PAT TP
+  - invoke_pat_snoop() -> parse_pat_tp()
+    - snoop_section(): search for complete PSI section in the TP payload
+                       copy snooped segment into snoop buffer
+    - snoop_pat_section(): return 1 only if new PAT section is snooped
+      - clear_pat() if needed
+    - parse_pat()
+    - update_pat()
+      - clean up all program in the in session if needed
+      - clean PID table
+      - allocate in_prog
+      - set up PAT and PMT PIDs in PID table
+
+- input thread sees an PMT TP
+  - invoke_pmt_snoop() -> parse_pmt_tp()
+    - snoop_section()
+    - snoop_pmt_section(): return 1 only if new PMT section is snooped
+    - pmt_pid_table_remove(): clean up pid table if needed
+    - parse_pmt()
+    - pmt_pid_table_add()
+
+
+---------------------------------------------------------------------------
+Out session configuration (this is no longer up-to-date!):
+
+- process_video_out_session_config()
+  - provision_qam_flow()
+  - out_session_init()
+    - set up out session according to out config and in session
+    - set up pid table
+    - out_session_psi_init()
+      - out_session_update_pat(): update QAM's PAT
+      - regenerate_pmt(): for remap sesion only
+    - regenerate_pat()
+
+---------------------------------------------------------------------------
+Out session PSI processing - Muxed session:
+
+Note: for new PAT/PMT TP, the new_pai_flag in tp_info will be set.
+
+- out thread sees a tpinfo for new PAT TP:
+  - out_session_update_pat()
+    - clean up program in out_session
+    - clean up PID table
+    - check for PMT PID / program number collision
+    - allocate out_prog
+    - add PMT PID in PID table
+
+  - regenerate_pat()
+    - qam_collect_prog_into
+      - collect all prog_num/pmt_pid from qam's session/program list
+    - qam_build_pat
+      - construct PAT sections and PAT carousel
+      - parse_pat(): to set up pointers
+
+- out thread sees a tpinfo for new PMT TP:
+  - regenerate_pmt(): for Muxed session
+    - clean up PMT pid/program number from pid table/usage map
+    - free PMT sections and carousel buffers
+    - copy input PMT section to output PMT section
+    - parse_pmt(): to set up pointers
+    - pmt_modify(): for prog_num and pid remap
+    - psi_session_packetize(): to generate PMT carousel
+    - Add ES pids to PID table
+    - crsl_insert_schedule(): send 1st PMT carousel right away
+
+  - passthru_pmt: for Passthru session
+    - clean up existing PMT structures
+    - psi_section_copy(): copy input PMT section to output
+    - parse_pmt: parse output PMT
+    - Check for pid collision or program number collision
+
+====================================================================
+
+How output PSI version should be updated:
+
+Case 1: In PMT change only (SPTS)
+  Out PAT should remain the same
+  Out PMT should change only if the PMT is actually different.
+  Ex: CLabs250-40.ts to DCII250-40.ts
+
+Case 2: In PAT/PMT change (SPTS)
+  Out PAT should remain the same - since number of program remains to be 1
+  Out PMT should change only if the PMT is actually different
+
+--------------------
+
+For SPTS mux session:
+  - in PAT change: only update out PAT if the no. of programs changes.
+  - in PMT change: always update out PMT, even if it turns out to be the same.
+
+For MPTS passthru session:
+  - in PAT change: always update out PAT, and rebuild qam's PAT
+  - in MPT change: should pass on the change to the output
+
+PAT change handling:
+  - Pid table
+    - remove the PMT pid(s) (mark them unused.  This may introduce "holes")
+  - in prog list
+

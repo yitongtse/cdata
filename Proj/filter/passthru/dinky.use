@@ -1,0 +1,13 @@
+Dinky Control Utility.
+
+	dinky-ctl [options]
+
+where options are:
+
+dev=device                Set the device name, "/dev/io-net/en_en0" by default.
+stat                      Get the states of "dinky" filter
+flag=arp|ip|tcp|udp|qnet  Set the type of the packet which should be looking at
+irate=total,drop          Set the rate for inbound packets. Drop "drop" packets
+                          per "total" packets.
+orate=total,drop          Set the drop rate for outbound packets.
+rate=toatl,drop           Set both inbound/outbound drop rate.

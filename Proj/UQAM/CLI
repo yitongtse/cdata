@@ -1,0 +1,7 @@
+Global level:
+  [no] docsis <slot> wideband pid-remap
+
+QAM level:
+  docsis udp <dest_udp_port> [wideband]
+
+

@@ -1,0 +1,42 @@
+To save: cx cw
+To quite: cx cc
+
+C-v	forward one screen
+M-v	backward one screen
+C-l	redisplay, positoning cursor at center
+
+C-f	forward one character
+C-b	backward one character
+M-f	forward one word
+M-b	backward one word
+
+C-n	next line
+C-p	previous line
+C-n	next paragraph
+C-p	previous paragraph
+
+C-a	beginning of line
+C-e	end of line
+M-a	beginning of sentence
+M-e	end of sentence
+
+M-<	beginning of file
+M->	end of file
+
+C-u n	repeat following command n times
+
+C-g	cancel current command
+
+C-x 2	Open another pane
+C-x 1	shink to one pane
+
+
+<del>	delete previous character
+C-d	delete current character
+C-k	delete to end of line
+M-<del>	delete to beginning of current word
+M-d	delete to end of current word
+M-k	delete to end of sentence
+
+C-y	yank delete text back
+

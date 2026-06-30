@@ -1,0 +1,593 @@
+IOS view:
+  branch: cosmos-vnbu
+  vob: /vob/ios
+  directory: /vob/ios/sys/src-video
+
+---------------------------
+To debug PB code using eval board:
+  - use eval_con to connect to eval board
+  - connect to Cat4k through a access switch:
+      telnet to pb-ts, port 200x (where x corresponding to the line number
+                                  the Cat4k is hooked up to)
+
+
+To setup fast ethernet:
+  Go to ROMMON:
+    set interface fa1 <ip_addr> <subnet_mask>
+    Fa1Enable=1
+
+  Boot up IOS:
+    conf t
+    int fa1
+      ip addr <ip_addr> <subnet_mask>
+      no shut
+    end
+
+
+To boot IOS:
+  Go to Cat4k ROMMON:
+    b tftp://223.255.254.254/tftpboot/ytse/cat4000-is-mz
+
+To set up Cat4k to use new IOS image
+  Go to Cat4k ROMMON:
+    reload
+    priv
+    sprom read linecard 1
+    sprom write linecard 1
+      (change min type to 349, and card index to 111)
+
+
+To set jitter:
+  Go to IOS:
+    conf t
+    int qam 3/1.1
+    no video sessions
+    video sessions 10 udp 0xc000 prog 1
+    (or video udp 0xc000 prog 1)
+    exit
+
+    int gi 3/16
+    video udp 0xc000 jitter 100
+
+
+Before rerunning mpeg_process, make sure you stop the sessions being started
+previously:
+  test video 3 session 0xc000 stop
+
+
+Other useful CLIs:
+  show int gi 3/16 video
+
+
+To run mpeg_process and send output to dechen-ultra5's /tmp directory:
+  mpeg_proecss "/mnt/ytse" > /mnt/ytse/log
+
+
+How to use the embedded CLI
+===========================
+
+A. From QNX console
+
+1. Start the process where the message handler is running on (say mpeg_process)
+   and put it in background:
+   E.g. mpeg_process > log &
+
+2. Start the cli_process:
+   cli_process
+
+3. Then type in the command for your module under the pb> prompt.
+   To end, type exit.
+
+
+B. From Cat4k
+
+1. Repeat steps 1 and 2 in A
+2. Telnet to the QNX IP address:
+   telnet 1.14.80.XX
+3. Same as step 3 in A
+
+
+----------------------------------------------------
+
+Mini Video Server
+
+cd D:\miniServer
+miniserver divicom36mbps.pre 172.22.95.255 0xc000
+
+
+On my lab PC, use:
+miniserver divicom36mbps.pre 172.22.94.255 0xc000
+
+
+----------------------------------------------------
+
+Routing live video to eval board:
+
+Tandberg server requires ARP from destination.
+Need to route it through a gateway.
+
+Connect server to a routed port, on same sub-net
+Send packet to destination on same sub-net of routed port
+connected to eval board.
+Provide MAC address and encapsulation.
+
+Configuration example:
+
+interface FastEthernet4/15
+ no switchport
+ ip address 11.11.11.1 255.255.255.0
+!
+interface FastEthernet4/16
+ no switchport
+ ip address 12.12.12.1 255.255.255.0
+ load-interval 30
+!
+!   (Not sure we need this!!)
+ip route 12.12.12.2 255.255.255.255 FastEthernet4/16
+!
+arp 12.12.12.2 1234.4321.1234 ARPA
+
+
+----------------------------------------------------
+
+
+ASI work on Farhad's Cat4k:
+  (pw: rHoz)
+
+Need to build image with: make image_integ
+  - Note: no longer need to match watch_process IP address!
+
+Cat4k is connected terminal server: pb-ts, port 1
+  telnet pb-ts 2001
+  pw: lab
+
+To power cycle remotely:
+  Telnet into pb-ts
+  line2
+  modem dtr-act
+  no modem drt-act
+
+eval_con <PBLC> -x /tftpboot/...
+
+To look at mpeg analyzer:
+  Use web browser to connect to 172.22.94.94
+
+If you want to mount dechen-ultra5's tmp directory to /mnt on QNX, do this:
+  On QNX:
+    ifconfig en1 <ip_address>
+       Note:
+         <ip_address> should be an available IP address on the 1.14.80 subnet.
+         en1 is the extra GE port.
+         en0 is already assigned for EOBC.
+    fs-nfs3 1.14.80.1:/tmp /mnt &
+
+ E.g.:
+    ifconfig en1 1.14.80.25
+    fs-nfs3 1.14.80.1:/tmp /mnt &
+
+To load cat4k with Fahad's latest image:
+  at ROMMON, use the alias fs.
+
+------------------------------------------------------
+dechen-ultra5 is out of commission.  Use Friday instead!
+
+Friday: eth0: 2.10.36.253
+You can try to ping the gateway: 2.10.0.1 (remember to use -c <cnt> to come out)
+
+
+------------------------------------------------------
+
+Latest PB images in:
+  /tftpboot/pb/ios
+  Use cat4000-is-mz619
+
+To turn on configuration controller debugging:
+  debug video cc session
+
+------------------------------------------------------
+
+To go back to ROMMON from QNX:
+    test_ipc -R0
+
+If there is already a QNX image on the flash, simple do:
+   b qnx:
+to boot up QNX.
+
+
+To stop a video session:
+  video 3 session 0xc000 stop
+
+
+Latest live feed to Fahad's Cat4k:
+  HBO, vlan 109, to gigi1/1
+
+To set PBLC's IP:
+  ifconfig en1 1.14.80.42/24
+
+To see whether Marvell description wrap around:
+  test_ipc -M2860
+
+Quick reference:
+  ifconfig en1 1.14.80.42/24
+  fs-nfs3 1.14.80.1:/tmp /mnt &
+  mpeg_process "/mnt/ytse" &
+
+
+To start NFS server on Dean's Sun:
+share -F nfs /tmp &
+/usr/lib/nfs/mountd &
+/usr/lib/nfs/nfsd &
+
+
+
+
+Interface g3/17 is for video input
+Interface g3/16 is assigned to the additional data interface
+
+-------------------------------
+
+My Cat4k setup:
+
+video source: DiviCom encoder
+  src ip: 192.168.111.6
+  udp: 41953
+
+
+To capture screen dump:
+  script log_file
+  ...
+  ctrl D
+
+------------------------------
+
+Logger usage:
+
+cli_process <s>
+ s can be anything.
+
+logger target sup
+logger target lc
+logger target both
+
+
+-----------------------------
+
+My video source setup:
+
+Currently there are two video source sent to my Cat4k
+  - Concurrent
+  - live HBO feed
+
+The Concurrent feed can be controlled by mhclient.ext (Media Hawk)
+  #1, Vlan 111, IP 192.168.111.6, Port 49154
+  Go to etup/set definition to check or change above setting
+  Can do rewind and fast forward, but pause does not work.
+  
+------------------------------
+
+modem dtr-active
+  Use the DTR signal to turn on/off the Cat4k.
+  DTR is active when telnet into the console.
+
+no modem dtr-active
+  Cat4k will be turned on, or remain on when the console session ends.
+
+------------------------------
+
+To do a coredump in QNX:
+  dumper -d /tmp -p proc_id &
+This will include the trace log as well as variables.
+
+proc_id is the process ID found in pidin
+-d specifies the destination directory
+The core dump is named as "process_name".core
+
+Then you can copy the file to workstation and use qnx_gdb to look into it.
+
+qnx_gdb binary_file core_file
+
+
+By default, the dumper will dump the trace log but not the variables when
+a process crash in /flash.  If you want to dump also the variables, you need to:
+  first stop MPEG process from autostart
+  mount NFS:
+    ifconfig en2 1.14.80.42/24
+    fs-nfs3 1.14.80.1:/tmp /mnt &
+  slay dumper		// kill the default dumper
+  dumper -d /tmp &	// start dumper again
+  mpeg_process &	// then start mpeg_process
+------------------------------
+
+There are 4 images:
+  ROMMON
+  DIAGS
+  FPGA (sailfish and blackfin)
+  QNX
+
+They all can be download using x-modem using:
+    evalcon <LC_NAME> -x <IMG>
+
+=============================
+Embedded CLI:
+  Show commands:
+            (1) show mux qam#     show each program scheduled packet
+                                  number: accumulated, average, max,
+                                  and min.
+            (2) show idma         show IDMA read/write pointer distance
+            (3) show progErr qam# show underflow, schedulea late, and
+                                  delivery time backward error count when
+                                  mux a program.
+            (4) show syncErr qam# show 0x47 sync byte error in packet.
+            (5) show pidErr qam#  show PID error in packet header.
+            (6) show ccErr qam#   show the CC error between packet.
+            (7) show pcktDrop qam# show the number of packet been drop due
+                                  to delivery time go backward.
+
+  Clear commands:
+            (1) clear mux qam#
+            (2) clear idma
+            (3) clear progErr qam#
+            (4) clear pcktErr qam#
+
+  Input:
+    input show counters
+    input show session <session_no>
+----------------------------------------------
+To log from IOS:
+  conf t
+  logging console
+
+
+---------------------------------------------
+
+To configure vlan:
+
+In privileged exec mode:
+  vlan database
+  vlan 111 state active
+  exit
+
+Also make sure you do a "no shut" on the vlan
+
+
+To config RF:
+
+int q3/1.1
+video format 64
+
+
+To find the source code corresponding to an IP from a segmentation fault message:
+ntoppc-gdb
+sym bin_file (e.g. control_process or mpeg_process)
+l *0x????????
+
+
+---------------------------------------------
+
+To support non-promiscous mode, we need to set up static arp and mac addresses:
+arp 192.168.111.6 0c12.2334.1143 ARPA
+mac-address-table static 0c12.2334.1143 vlan 111 interface GigabitEthernet3/17
+
+Also need to make sure the MAC address matches that shown with "show int g3/17".
+
+
+---------------------------------------------
+
+New CLI:
+  show video <slot_num> session {session_upd}
+
+---------------------------------------------
+
+To mount Emma's station to dechen-ultra5:
+  ifconfig en1 1.14.150.6/16
+  fs-nfs3 1.14.80.1:/tmp /mnt &
+
+
+To reboot QNX only:
+  IOS: hw slot 3 reset
+
+
+--------------------------------------------
+
+QNX> confreg
+     Can configurate QNX to boot to ROMMON or QNX.
+
+To avoid autoboot in QNX if configured so, press ctrl-C as soon as QNX is up.
+
+
+---------------------------------------------
+
+Use access list to turn off sessions:
+
+
+To turn off sessions:
+
+conf t
+no access-list 101
+access-list 101 deny udp any any lt 0xc0ef
+access-list 101 permit ip any any
+
+int g1/1
+ip access-group 101 in
+
+To turn them back on:
+int g1/1
+no ip access-group 101 in
+
+--------------------------------------------
+
+PB ROMMON settings:
+FPGADNLD=1
+TFTP_SERVER=223.255.254.254
+IP_SUBNET_MASK=255.255.0.0
+DEFAULT_GATEWAY=1.14.0.1
+IP_ADDRESS=1.14.0.118
+TFTP_FILE=ytse/ifs-palmbeach.bin
+?=1
+
+-------------------------------------------
+
+To power cycle Cat4k & PB:
+eval_con <SUP> -e modem_dtr
+eval_con <SUP> -e no_modem_dtr
+
+-------------------------------------------
+
+By default, the G3/17 interfaced is hid.
+To make it visible, add debug keyward to the video route command:
+
+video 3 route vlan 111 ip-address 192.168.111.6 debug
+
+
+To show CPU cycles:
+  PB> show dtime
+
+==================================================
+
+Currently, we don't have a convenient way to
+do that, because I haven't gotten root access
+to the replacement workstation (dechen-ultra5)
+to mount an NFS drive
+
+1) assume we have root access to dechen-ultra5, on it, we do:
+    share -F nfs /tmp &
+    /usr/lib/nfs/mountd &
+    /usr/lib/nfs/nfsd &
+   (password may change: Ch@nge)
+
+2) on SUP, we unhide gigX/16, configure that to a VLAN
+   that is connected to the lab network:
+    service internal
+    video 3 switch vlan 201 debug
+   Also make sure g3/16 and vlan201 is up, and vlan201 has an IP address
+   [ Currently I have vlan202 configured instead: 2.9.35.2]
+
+3) on PB, configure en2 to be a lab address: 1.14.80.X/24
+   then mount the NFS directory
+    ifconfig en2 2.9.34.34/24  (or other address in same subnet not being used)
+    fs-nfs3 2.9.34.5:/tmp /mnt &
+
+   Note: the PB_COM port is connected to g3/16.  The en number is assigned
+         in order it is configured, starting from en0, en1, en2.
+
+
+To find out IP address of a UNIX station, do
+  ifconfig -a
+
+
+
+To clone a UDP to all QAMs:
+
+test video 3 session <udp> program <prog_num>
+
+---------------
+
+10/100/1000 port: g?/13
+SFP port: g?/14
+
+------------------
+
+To build bundle image:
+
+cd /vob/ios/sys/rommon/obj-g4-palmbeach/misc
+build_base -q /tftpboot/ytse/ifs-palmbeach.bin 999
+  or
+build_base -q /tftpboot/ytse/ifs-pb-uqam.bin 999
+
+cd /vob/ios/sys/obj-ppc-video
+co vnbu-ifs-palmbeach.bin.gz
+cp /vob/ios/sys/rommon/obj-g4-palmbeach/misc/vnbu-ifs-palmbeach.bin.gz .
+
+cd /vob/ios.sys6/sys/obj-ppc-galaxy
+make -j8 cat4000-i5su3-mz REBUILD_ALL=1 GALAXY_IOS_DEVELOPMENT=1
+
+-------------------
+
+Download PB image from PB console using PC serial port:
+  Need a rollover cable and a serial port adaptor.  Connect the PB console
+  port to the PC's serial port.
+
+From PB ROMMON, type:
+  dir qnx:
+Note the filename.  This is the filename you need to download.
+Then download the same file using xmodem:
+  xmodem <filename>
+
+From the host, send file using xmodem.
+Will take about 10 minute for the image.
+
+---------------------
+
+Latest PB rommon setting:
+rommon 1 > set
+PS1=rommon ! > 
+FPGADNLD=1
+TFTP_SERVER=223.255.254.254
+IP_SUBNET_MASK=255.255.0.0
+DEFAULT_GATEWAY=2.9.0.1
+IP_ADDRESS=2.9.35.3
+TFTP_FILE=ytse/ifs-palmbeach.bin
+?=0
+BOOTED_IMAGE=qnx:
+
+
+-----------------------
+
+QNX CLI:
+
+To show input PID table:  input show session <sid>
+To show output PID table:  muxcfg show qam <qam_id>
+
+----------------------
+
+To change the line speed of QNX console:
+
+eecon PB0_YTSE_________ -e speed 115200
+
+----------------------
+
+You can change the number of configurated QAMs by the hidden CLI:
+  video <slot> nqams <num_qams>
+
+
+-------------------------------
+SNMP
+
+conf t
+snmp-server enable traps video 
+snmp-server enable traps snmp linkdown linkup
+snmp-server community public RW
+snmp-server host 1.8.8.8 version 2c public udp-port 4000
+debug snmp packets
+
+int q3/1
+snmp trap link-status
+
+-------------------------------
+To test QAM HW failure feature:
+
+cli> clear rfReg <port_id> 0xf0
+cli> test qam-fail <port_id>
+
+------------------------------
+Palm Beach Linecard image download is through the data path from g3/16.
+Since g3/16 joins vlan 202 (video 3 switch vlan 202), and int fa6/1 is
+also join vlan 202, image download is through fa6/1.
+
+Cat4k image download is through the fa1.
+
+---------------------------
+
+To make g3/17 visible:
+
+conf t
+service internal
+video route 3 udp x y debug
+
+--------------------------
+
+Alternative TFTP server: 223.255.254.253
+
+----------------------------
+
+The PB images are backed up in /vws/nmi/pb_back.

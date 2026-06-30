@@ -1,0 +1,1076 @@
+#################################
+
+# ios snapshot
+
+/auto/ios-snaps/mcp_dev.snap/ios/cscope.out
+
+#################################
+
+# binos snapshot
+
+/nfs/bemr-nightly1/binos_snapshot/cscope.out
+
+#################################
+
+# find latest successful label on both IOS and BINOS
+
+http://mcpdt-lablnx-2.cisco.com/cgi-bin/smoketest_data (select official, full and chassis)
+
+#################################
+
+# create HA project
+
+acme project_create -proj mcp_cable_ha -base main%BLD_MCP_DEV_LATEST_20120102_170125 \
+     -comment "This is a project for cmts ha development"
+
+# assign notifications 
+
+acme pa -devl mcp_cable_ha -set NOTIFICATION_LIST:ng-cmts-ha-sw
+
+# create clearcase branch 
+
+mkbrtype -v /vob/ios -b mcp_cable_ha -s DDTS -base_label BLD_MCP_DEV_LATEST_20120102_170125 
+
+#################################
+
+# create MCP STANDARD Views
+
+cd /nobackup/aswitzer; mkdir BLD_MCP_DEV_LATEST_20120102_170125
+
+# create BINOS View
+
+cd /nobackup/aswitzer/BLD_MCP_DEV_LATEST_20120102_170125
+mkdir aswitzer-BLD_MCP_DEV_LATEST_20120102_170125-binos; cd aswitzer-BLD_MCP_DEV_LATEST_20120102_170125-binos;
+acme nw -sb binos -proj main%BLD_MCP_DEV_LATEST_20120102_170125
+
+# create IOS View
+
+cd /nobackup/aswitzer/BLD_MCP_DEV_LATEST_20120102_170125
+start_task -l BLD_MCP_DEV_LATEST_20120102_170125 -v /vob/ios -f -t BLD_MCP_DEV_LATEST_20120102_170125-ios -a -d /nobackup/aswitzer/BLD_MCP_DEV_LATEST_20120102_170125
+
+
+#################################
+
+# create MCP-CABLE Views (LATEST)
+
+cd /nobackup/aswitzer; mkdir MCP-CABLE-LATEST-5-11-2012
+
+# create BINOS View
+
+cd /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012
+mkdir aswitzer-MCP-CABLE-LATEST-5-11-2012-binos; cd aswitzer-MCP-CABLE-LATEST-5-11-2012-binos;
+acme nw -sb binos -proj mcp_cable_binos%LATEST
+
+# create IOS View
+
+cd /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012
+start_task -l LATEST -b mcp_cable -v /vob/ios -f -t MCP-CABLE-LATEST-5-11-2012-ios -a -d /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012
+
+#################################
+
+# create MCP-CCE_PI1 Views (LATEST)
+
+cd /nobackup/aswitzer; mkdir MCP-CABLE-PI1-LATEST-6-01-2012
+
+# create BINOS View
+
+cd /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012
+mkdir aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos; cd aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos;
+acme nw -sb binos -proj mcp_cce_binos_pi1%LATEST
+
+# create IOS View
+
+cd /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012
+start_task -l LATEST -b mcp_cce_pi1 -v /vob/ios -f -t MCP-CABLE-PI1-LATEST-6-01-2012-ios -a -d /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012
+
+#################################
+
+# create MCP-CABLE Views (LABEL - MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705)
+
+cd /nobackup/aswitzer; mkdir MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705
+
+# create BINOS View
+
+cd /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705
+mkdir aswitzer-MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-binos; cd aswitzer-MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-binos;
+acme nw -sb binos -proj mcp_cable_binos%MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705
+
+# create IOS View
+
+cd /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705
+start_task -l LATEST -b mcp_cable -v /vob/ios -f -t MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-ios -a -d /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705
+
+#################################
+
+# create MCP_CABLE_HA_1 Views
+
+cd /nobackup/aswitzer; mkdir MCP_CABLE_HA_1-LATEST-6-04-2012
+
+# create BINOS View
+
+cd /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012
+mkdir aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos; cd aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos;
+acme nw -sb binos -proj mcp_cable_ha_1%LATEST
+
+# create IOS View
+
+cd /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012
+start_task -l LATEST -b mcp_cable_ha_1 -t MCP_CABLE_HA_1-LATEST-6-04-2012-ios -d /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012 -a -v /vob/ios
+
+
+
+
+#################################
+
+# build MCP STANDARD RP2 super-package
+
+ct setview aswitzer-BLD_MCP_DEV_LAT x86_64EST_20120102_170125-ios; cd /vob/ios/sys; make dependencies
+mcp_ios_precommit    -r /nobackup/aswitzer/BASE_FOR_V152_1_S_XE35_THROTTLE/aswitzer-BASE_FOR_V152_1_S_XE35_THROTTLE-binos rp2_super
+mcp_ios_precommit -c -r /nobackup/aswitzer/BASE_FOR_V152_1_S_XE35_THROTTLE/aswitzer-BASE_FOR_V152_1_S_XE35_THROTTLE-binos rp2_super
+
+# copy standard rp2 super-package onto router
+ 
+scp /nobackup/aswitzer/BASE_FOR_V152_1_S_XE35_THROTTLE/aswitzer-BASE_FOR_V152_1_S_XE35_THROTTLE-binos/linkfarm/iso-rp2/rp*super*rp2* root@172.22.10.48:/harddisk
+
+#################################
+
+# build MCP-CABLE ubr super-package (LATEST)
+
+setenv BINOS_ROOT /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012/aswitzer-MCP-CABLE-LATEST-5-11-2012-binos
+
+cd /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012
+ct setview aswitzer-MCP-CABLE-LATEST-5-11-2012-ios; cd /vob/ios/sys; make dependencies
+mcp_ios_precommit    -r    /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012/aswitzer-MCP-CABLE-LATEST-5-11-2012-binos ubr_super
+mcp_ios_precommit -c -u -r /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012/aswitzer-MCP-CABLE-LATEST-5-11-2012-binos ubr_super
+mcp_ios_precommit -u -r    /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012/aswitzer-MCP-CABLE-LATEST-5-11-2012-binos ubr_super
+
+# copy standard ubr super-package onto router
+ 
+scp /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012/aswitzer-MCP-CABLE-LATEST-5-11-2012-binos/linkfarm/iso-ubr/ubr*super*ubr* root@172.22.11.177:/harddisk
+
+
+#################################
+
+# build MCP-CCE_PI1 ubr super-package (LATEST)
+
+setenv BINOS_ROOT /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012/aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos
+
+cd /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012
+ct setview aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-ios; cd /vob/ios/sys; make dependencies
+mcp_ios_precommit    -r    /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012/aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos ubr_super
+mcp_ios_precommit -c -u -r /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012/aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos ubr_super
+mcp_ios_precommit -u -r    /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012/aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos ubr_super
+
+# copy standard ubr super-package onto router
+ 
+scp /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012/aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos/linkfarm/iso-ubr/ubrsup-adventerprisek9* root@172.22.11.177:/harddisk
+
+
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP-CABLE-PI1-LATEST-6-01-2012/aswitzer-MCP-CABLE-PI1-LATEST-6-01-2012-binos/linkfarm/x86_64/usr/binos/bin/x86_64bi_linux_iosd_ubr-adventerprisek9-ms.sun
+
+
+#################################
+
+# build MCP-CABLE ubr super-package (LABEL - MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705)
+
+cd /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705
+ct setview aswitzer-MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-ios; cd /vob/ios/sys; make dependencies
+mcp_ios_precommit    -r    /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705/aswitzer-MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-binos ubr_super
+mcp_ios_precommit -c -u -r /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705/aswitzer-MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-binos ubr_super
+mcp_ios_precommit -u -r    /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705/aswitzer-MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-binos ubr_super
+
+# copy standard ubr super-package onto router
+ 
+scp /nobackup/aswitzer/MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705/aswitzer-MCP_CABLE_UBR_CCE_NIGHTLY_20120506_0705-binos/linkfarm/iso-ubr/ubr*super*ubr* root@172.22.11.177:/harddisk
+
+
+#################################
+
+# build MCP_CABLE_HA_1 ubr super-package
+
+ct setview aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-ios
+cd /vob/ios/sys;make dependencies
+mcp_ios_precommit    -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos ubr_super
+mcp_ios_precommit -c -u -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos ubr_super
+mcp_ios_precommit -u -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos ubr_super
+
+
+# copy ubr super-package onto router
+ 
+scp /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/iso-ubr/ubrsup-adventerprisek9* root@172.22.10.48:/harddisk
+scp /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/iso-ubr/ubrsup-adventerprisek9* root@172.22.11.177:/harddisk
+
+
+# decode traceback
+ 
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/x86_64/usr/binos/bin/x86_64bi_linux_iosd_ubr-adventerprisek9-ms.sun
+
+
+#################################
+
+# build MCP_CABLE_HA iosd-rp or iosd-cc daemons
+
+setenv BINOS_ROOT /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos
+
+# build iosd-rp daemon
+
+mcp_ios_precommit -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos x86_64bi_iosd
+mcp_ios_precommit -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos ubr_x86_64bi_iosd
+
+# build iosd-cc daemon
+
+mcp_ios_precommit -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos mcpcc 
+mcp_ios_precommit -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos ubr_clc 
+mcp_ios_precommit -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos ubr_clc_sim 
+
+
+make MIPS simulation
+
+make -C /vob/ios/sys/obj-mips-ubr-clc default
+
+
+
+# relink the superpackage with the new daemon
+
+#gmk -jmakej TARGET=ppc  PLATFORM=rp2 release-packages |& tee build.log
+#gmk -jmakej TARGET=i686  PLATFORM=rp2 release-packages |& tee build.log
+gmk -jmakej TARGET=i686 PLATFORM=rp2 release-iso |& tee build.log
+
+#################################
+
+# build BINOS processes/infra only
+
+gmk -jmakej TARGET=ppc binos-all-mcp
+gmk -jmakej TARGET=ppc binos-all-ubr
+
+gmk -jmakej TARGET=x86_64 binos-all-mcp
+gmk -jmakej TARGET=x86_64 binos-all-ubr
+
+gmk -jmakej TARGET=i686 binos-all-mcp
+gmk -jmakej TARGET=i686 binos-all-ubr
+
+gmk -jmakej TARGET=ppc64 binos-all-mcp
+gmk -jmakej TARGET=ppc64 binos-all-ubr
+
+
+#################################
+
+# clean acme binos view
+
+/auto/binos-tools/bin/gmk clean_all_targets
+
+#################################
+
+# destroy BINOS views
+
+rm -R -f /nobackup/aswitzer/<binos root>
+
+# destroy IOSd views
+
+cc_rmview -view <iosd view> -vob /vob/ios
+
+#################################
+
+# ssh to linux server
+
+ssh aswitzer-aurora  
+ssh cr-intel-lnx-002  (LAB)
+
+#################################
+
+# update BINOS view
+
+acme update -workspace
+acme update -proj mcp_cable_ha%LATEST  -workspace
+
+#################################
+
+# update CLEARCASE view
+
+cc_update -m LATEST -prep_opts '-r -l rcs.log' 
+
+#################################
+
+# commit BINOS view
+
+acme precommit
+acme commit
+
+#################################
+
+# commit CLEARCASE view
+
+prepare -m LATEST
+commit
+
+#################################
+
+# list change set in BINOS view
+
+acme lsc
+
+
+#################################
+
+# generate acme diff against binos main @ reference point
+
+mkdir BASE_FOR_V152_4_S_XE37_THROTTLE-DIFF; cd BASE_FOR_V152_4_S_XE37_THROTTLE-DIFF
+acme nw -sb binos -proj main%BASE_FOR_V152_4_S_XE37_THROTTLE
+
+execute ~aswitzer/bin/branch-diff
+
+
+
+#################################
+
+# Decode mcp traceback
+
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/x86_64/usr/binos/bin/x86_64bi_linux_iosd_ubr-adventerprisek9-ms.sun
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/ppc/usr/binos/bin/mcpcc-lc-ms.sun
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP-CABLE-LATEST-5-11-2012/aswitzer-MCP-CABLE-LATEST-5-11-2012-binos/linkfarm/ppc/usr/binos/bin/ubrclc-lc-ms.sun
+
+ADAM
+scp root@172.22.11.177:/harddisk/core/HA-6RU_SIP_0_lchaman_8130.core.gz /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012
+
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/ppc-mcp/usr/binos/bin/vidman
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/ppc-mcp/usr/binos/bin/cdman
+/auto/binos-tools/bin/mcp_stump -p /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/ppc-mcp/usr/binos/bin/lchaman
+
+#################################
+
+# ha (rp2) test chassis
+
+HA 6ru
+======
+# rp2 1 ios:
+172.22.11.44 2046   enable passwd: lab
+
+# rp2 1 aux:
+172.22.11.44 2047
+
+#################################
+
+# create clearcase diff and save it to tftpboot
+
+ct lsco -cview -avobs -s | cc_diff > /tftpboot/aswitzer/diffs/ng-proto-lcred-chasfs-stage-1.diffs.clearcase
+
+# create acme diff and save it to tftpboot
+
+acme diff -patch_mode > /tftpboot/aswitzer/diffs/ng-proto-lchautil-stage-1.diffs.acme
+
+
+#################################
+
+# patch in acme diffs
+
+acme patch /tftpboot/aswitzer/diffs/ng-proto-lchaman-stage-10.diffs.acme
+
+
+#################################
+
+# add acme file / directory
+
+acme add
+
+
+#################################
+
+# list modified acme files / directories
+
+acme lsc
+
+#################################
+
+# move acme file / directory
+
+acme move
+
+#################################
+
+# list all acme components
+
+acme describe -comp all
+
+#################################
+
+# publish acme components
+
+acme modify -component lchaman@main/latest 
+acme modify -component cable/cdman@main/latest 
+acme modify -component cable/vcms@main/latest 
+acme modify -component cable/vidman@main/latest 
+acme modify -component infra/lchalib@main/latest 
+acme modify -component infra/dblib@main/latest 
+
+#################################
+
+# access ios from rp linux
+
+mcp_ios_prompt.sh
+
+#################################
+
+# object directories used for builds
+
+/vob/ios.sys7/sys/obj-x86_64bi-iosd  - rp2 iosd
+
+/vob/ios.sys7/sys/obj-ppc-iosd       - rp1 iosd
+
+/vob/ios/sys/obj-ppc-mcpcc           - cc iosd               
+
+/vob/ios/sys/obj-x86_64bi-ubr-iosd   - ubr iosd
+
+/vob/ios/sys/obj-mips-ubr-clc        - clc iosd               
+/vob/ios/sys/obj-ppc-ubr-clc         - clc iosd               
+
+
+#################################
+
+# show chasfs entries for mastership
+
+show platform software chasfs 0 brief | inc mastership 
+show platform software chasfs 1 brief | inc mastership
+show platform software chasfs 2 brief | inc mastership 
+
+#################################
+
+# cbs build for lcred
+
+cbs obj-x86_64bi-iosd/lcred
+
+#################################
+
+# display processes on linux console
+
+workon.sh status detail
+
+#################################
+
+# attach gdbserver to a running program
+
+workon.sh debug linux_iosd_image
+
+#################################
+
+# drop down into linux shell from ios
+
+request platform software shell
+
+#################################
+
+
+# clean cbs objects
+
+cbs clean
+
+
+# rebuild dependencies
+
+cbs generic
+
+ 
+gmk -jmakej TARGET=ppc lchaman/cc
+gmk -jmakej TARGET=x86_64 PLATFORM=rp2 release-iso
+
+
+
+
+
+mcp_ios_precommit -j4 -r /nobackup/aswitzer/NGEDGE_HA_PROTO-LATEST/aswitzer-NGEDGE_HA_PROTO-LATEST-binos x86_64bi_iosd
+
+
+
+
+cp -f x86_64bi_linux_iosd-universalk9-ms.sun /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/x86_64/usr/binos/bin/x86_64bi_linux_iosd-universalk9-ms.sun
+
+
+
+makej -w BUILD_ALL=1 CPP_BUILD=1 --include-dir=/nobackup/aswitzer/NGEDGE_HA_PROTO-LATEST-1/aswitzer-NGEDGE_HA_PROTO-LATEST-1-binos/build/make-lib --include-dir=/nobackup/aswitzer/NGEDGE_HA_PROTO-LATEST-1/aswitzer-NGEDGE_HA_PROTO-LATEST-1-binos/cpp/build/make-lib -r -f build/make-lib/Makefile.binos TARGET=i686 all all-mcp
+
+
+
+cbs obj-x86_64bi-iosd/lcred
+cbs obj-x86_64bi-iosd/lcred/sub_lcred_reded.o
+
+ cbs -k obj-x86_64bi-iosd/lcred/sub_lcred_redib.o/redib_lc_clear_chain.o 
+
+
+# rebuild CC only (ppc)
+setenv BINOS_ROOT /bstar/aswitzer/binos-mcp-TEST/linkfarm/ppc
+alias mki /auto/binos-tools/bin/makej TOOLS_VER=c3.4.5-p1 
+cd /vob/ios/sys/obj-ppc-mcpcc
+gmake -j4 GDB_FLAG='-g -debug extended' default |& tee build.log
+
+
+# rebuild CLC only (ppc)
+setenv BINOS_ROOT /nobackup/aswitzer/<binos root>linkfarm/ppc
+alias mki /auto/binos-tools/bin/makej TOOLS_VER=c3.4.5-p1 
+cd /vob/ios/sys/obj-ppc-mcpclc
+mki -j4 default |& tee build.log
+
+# rebuild CLC only (i86bi)
+setenv BINOS_ROOT /nobackup/aswitzer/<binos root>/linkfarm/i686
+alias mki /auto/binos-tools/bin/makej TOOLS_VER=c3.4.5-p1 
+cd /vob/ios/sys/obj-i86bi-mcpclc
+mki GDB_FLAG='-g -debug extended' default |& tee build.log
+
+
+# rebuild IOSd only
+setenv BINOS_ROOT /nobackup/aswitzer/binos-BLD_MCP_DEV_LATEST_20090420_141307/linkfarm/ppc
+alias mki /auto/binos-tools/bin/makej TOOLS_VER=c3.4.5-p1 
+mki GDB_FLAG='-g -debug extended' ppc_linux_iosd-adventerprisek9-ms |& tee build.log
+
+
+
+# tftpboot the superpackage
+cd /nobackup/aswitzer/binos-BLD_MCP_DEV_LATEST_20090316_080059/
+cp linkfarm/iso/*rp_super* /tftpboot/aswitzer/.
+boot tftp://223.255.254.254/aswitzer/2009-05-02_11.30.rp_super.ppc.bin
+
+copy tftp://223.255.254.254/tftpboot/aswitzer/mountiso harddisk:
+
+
+
+
+# deubg mcp daemon 
+
+
+
+
+interface GigabitEthernet0
+ vrf forwarding Mgmt-intf
+ ip address 172.22.11.162 255.255.255.128
+ negotiation auto
+
+
+
+# ping dirt from mcp
+ping vrf Mgmt-intf ip 171.69.17.19
+
+
+# copy image onto hard disk 
+conf t
+ip tftp source-interface GigabitEthernet0
+copy tftp://171.69.17.19/tftpboot/aswitzer/2009-05-12_13.29.rp_super.ppc.bin harddisk:
+copy tftp://171.69.17.19/tftpboot/aswitzer/mountiso harddisk:
+
+# boot image on hard disk 
+boot harddisk:2009-05-12_13.29.rp_super.ppc.bin
+
+
+# mcp src 
+/vob/ios/sys/mcp/
+
+# mcp objects 
+/vob/ios/sys/obj-ppc-iosd
+/vob/ios/sys/obj-ppc-mcpcc
+
+
+
+
+
+
+cd /vob/ios/sys/obj-ppc-iosd
+/auto/binos-tools/bin/mcp_gdb -r /nobackup/aswitzer/binos-BLD_MCP_DEV_LATEST_20090316_080059/ -p ./ppc_linux_iosd-adventerprisek9-ms.sun
+target remote 2.38.48.1:9906
+
+
+
+
+mcpcc/  mcp-common/  mcprp/
+
+docsis
+
+
+
+/auto/binos-tools/bin/mcp_ios_precommit.mk
+
+
+
+
+
+#show process env
+workon.sh show psenv
+
+
+#show process tree
+workon.sh show pstree
+
+
+
+
+acme  branch_create 
+
+
+# create an acme diff
+acme  diff 
+
+
+
+
+
+stop console timeouts
+=====================
+conf t
+line console 0
+exec-timeout 0 0
+
+
+
+
+CMTS directories
+================
+src-4k-cr7200
+src-4k-cr10k-rp
+src-4k-cr10k-clc
+wb_docsis
+src-cmts
+
+
+obj-4k-cr7200
+/vob/ios/sys/obj-4k-cr10k-clc
+/vob/ios/sys/obj-4k-cr10k2-rp
+
+
+
+make -C /vob/ios/sys/obj-4k-cr10k2-rp -k -j8 ubr10k2-k9p6u2-mz |& tee /vob/ios/ubr10k2-k9p6u2-mz.log
+make -C /vob/ios/sys/obj-4k-cr10k-clc -k -j8 ubr10kclc-lc-mz |& tee /vob/ios/ubr10kclc-lc-mz.log
+
+
+
+
+obj-ppc-iosd obj-ppc-mcpcc \
+
+
+
+
+   1. acme diff -patch_mode > ~/patch.diff to generate a patch for others to apply (unified diffs are easier on the eyes, though)
+   2. acme patch < ~/patch.diff to apply patch.diff to the current tree (you might want to use -root PATH to help it find the right path)
+   3. acme patch -reverse -input ~/patch.diff to unapply the changes that ~patch.diff incorporated (useful if you've made a bunch of changes and want to nuke a few of them)
+
+
+#################################
+#################################
+#################################
+
+
+
+
+
+
+
+Build mcp SUPER PACKAGE (R1)
+============================
+
+[in clearcase]
+
+make -j8 dependencies                     (can be done at the same time as world build       )
+
+[in acme]
+
+cd <binos root>
+gmk -j8 GDB_FLAG='-g' TARGET=ppc world    (can be done at the same time as dependencies build)
+
+
+[in clearcase]
+
+setenv BINOS_ROOT /nobackup/aswitzer/<binos root>/linkfarm/ppc
+alias mki /auto/binos-tools/bin/makej TOOLS_VER=c3.4.5-p1 
+
+cd /vob/ios/sys/obj-ppc-iosd
+mki -j8 -k GDB_FLAG='-g' CABLE_IOS_DEVELOPMENT=1 default |& tee build.log
+
+cd /vob/ios/sys/obj-ppc-mcpcc
+mki -j8 -k GDB_FLAG='-g' default |& tee build.log
+
+cd /vob/ios/sys/obj-ppc-mcpclc
+mki -j8 -k GDB_FLAG='-g' CABLE_IOS_DEVELOPMENT=1 default |& tee build.log
+
+[in acme]
+
+gmk -j8 PLATFORM=rp1 BUILD_CABLE=1 GDB_FLAG='-g' release-iso
+
+[ copy superpackage onto router's hard disk ]
+
+scp linkfarm/iso/rp*super*rp2* root@172.22.10.48:/harddisk (copy super-package onto router)
+
+
+
+
+--- CRAP
+workon.sh package 
+workon.sh version 
+workon.sh status 
+workon.sh status detail
+workon.sh show psenv
+
+
+172.22.11.162
+
+
+#################################
+#################################
+#################################
+
+Build mcp SUPER PACKAGE (R2)
+============================
+
+[in clearcase]
+
+make -j8 dependencies                     (can be done at the same time as world build )
+
+[in acme]
+
+cd <binos root>
+gmk -j8 GDB_FLAG='-g -debug extended' TARGET=x86_64 world (can be done at the same time as dependencies build)
+gmk -j8 GDB_FLAG='-g' TARGET=ppc  world                    
+gmk -j8 GDB_FLAG='-g' TARGET=i686 world    (optional for now)               
+
+[in clearcase]
+
+setenv BINOS_ROOT /nobackup/<user>/<binos root>/linkfarm/x86_64
+alias mki /auto/binos-tools/bin/makej TOOLS_VER=c3.4.5-p1 
+
+cd /vob/ios/sys/obj-x86_64bi-iosd
+mki -j8 GDB_FLAG='-g -debug extended' default |& tee build.log
+
+
+setenv BINOS_ROOT /nobackup/<user>/<binos root>/linkfarm/ppc
+alias mki /auto/binos-tools/bin/makej TOOLS_VER=c3.4.5-p1 
+
+cd /vob/ios/sys/obj-ppc-mcpcc
+mki -j8 GDB_FLAG='-g' default |& tee build.log
+
+cd /vob/ios/sys/obj-ppc-mcpclc
+mki -j8 GDB_FLAG='-g' default |& tee build.log
+
+[in acme]
+
+gmk -j8 PLATFORM=rp2 BUILD_CABLE=1 GDB_FLAG='-g -debug extended' release-packages
+gmk -j8 PLATFORM=rp2 BUILD_CABLE=1 GDB_FLAG='-g -debug extended' release-iso
+
+scp linkfarm/iso/rp*super*rp2* root@172.22.11.162:/harddisk  (copy super-package onto router)
+
+
+--- CRAP
+workon.sh package 
+workon.sh version 
+workon.sh status 
+workon.sh status detail
+workon.sh show psenv
+
+
+172.22.11.162
+
+
+#################################
+#################################
+#################################
+
+Build ROMMON package
+====================
+
+[in clearcase]
+
+setenv BINOS_ROOT /nobackup/aswitzer/binos-mcp-new-ccsubtype
+cd /vob/ios/sys/rommon/obj-m8500-mcp
+make
+
+[in acme]
+
+setenv ROMMON_BIN_DIR /view/aswitzer-mcp_battlestar_dev-mcp-ccsubtype/vob/ios/sys/rommon/obj-m8500-mcp
+/auto/binos-tools/bin/setup_rommon_linkfarm.sh.v3 
+
+gmk -j8 PLATFORM=rp1 BUILD_CABLE=1 GDB_FLAG='-g' release-iso
+
+scp linkfarm/iso/rp1-rommon* aswitzer@cr-intel-lnx-001:/bstar/aswitzer/packages
+
+[on router]
+
+cp /nfs_stage/bstar/aswitzer/packages/rp1-rommon*  /harddisk
+
+
+
+
+#################################
+#################################
+#################################
+
+Load ROMMON package
+====================
+
+[ on rp console ]
+
+upgrade rom-monitor filename harddisk:rp1-rommon 0
+upgrade rom-monitor filename harddisk:rp1-rommon 1
+upgrade rom-monitor filename harddisk:rp1-rommon 2
+
+
+
+
+#################################
+#################################
+#################################
+
+Debug mcp process crash using GDB
+=================================
+
+[ on router ]
+
+scp SIP_0_mcpclc-lc-ms_5516.core.gz aswitzer@171.70.172.102:/nobackup/aswitzer/core
+
+[in clearcase]
+
+cd /vob/ios/sys/obj-ppc-mcpclc
+
+gzip -d /nobackup/aswitzer/core/SIP_0_mcpclc-lc-ms_5516.core.gz
+
+/auto/binos-tools/bin/mcp_gdb_core -r /nobackup/aswitzer/binos-mcp-new-ccsubtype -c  /nobackup/aswitzer/core/SIP_0_mcpclc-lc-ms_5516.core
+
+
+#################################
+#################################
+#################################
+
+Display process maps
+====================
+less /proc/[iosd process]/smaps 
+
+CABLE_SUBSCRIBER_DB
+
+workon.sh s d
+
+grep -A 5 CABLE /proc/24848/smaps 
+
+#################################
+#################################
+#################################
+
+
+
+
+/nobackup/aswitzer/binos-mcp-new-ccsubtype/linkfarm/ppc/usr/binos/bin/mcpclc-lc-ms.sun
+/nobackup/aswitzer/binos-mcp-new-ccsubtype/linkfarm/ppc/usr/binos/bin/ppc_linux_iosd-adventerprisek9-ms.sun
+            
+            
+                                                                                       
+#################################
+#################################
+#################################
+
+Turn on clc console
+====================
+
+[ on the CLC ]
+
+/tmp/sw/clc/local/0/clc/mount/usr/binos/bin/ioucon 0
+/tmp/sw/clc/local/0/clc/mount/usr/binos/bin/ioucon 1
+/tmp/sw/clc/local/0/clc/mount/usr/binos/bin/ioucon 2
+
+[ on the CC ]
+
+/tmp/sw/cc/local/0/cc/mount/usr/binos/bin/ioucon 0
+
+[ on the RP ]
+ipc-con
+
+
+#################################
+#################################
+#################################
+
+execute a cc as a clc
+=====================
+cd 
+cd /tftp
+rm  base_cc_00.pkg base_cc_01.pkg base_cc_02.pkg
+ln -s  /tmp/sw/cc/0/0/clc/iso base_cc_00.pkg
+ln -s /tmp/sw/cc/1/0/clc/iso  base_cc_01.pkg
+ln -s /tmp/sw/cc/2/0/clc/iso  base_cc_02.pkg
+
+ 
+clc
+===
+test platform software cable modem database operation create 1
+test platform software cable modem database operation update
+test platform software cable modem database operation destroy 
+test platform software cable modem database operation cou  
+
+
+rp
+==
+test platform software cable lcred operation slot 0 bulksync to slot 1
+test platform software cable lcred operation slot 0 protected by slot  1
+test platform software cable lcred operation slot 1 go-hot using slot 0
+                                                                                                                                                                
+#################################
+#################################
+#################################
+
+
+Copy super image to harddisk
+============================
+
+cp /nfs_stage/bstar/aswitzer/<binos-root>/linkfarm/iso/*super*  /harddisk
+cp /nfs_stage/bstar/aswitzer/packages/*super*rp1*  /harddisk
+
+
+#################################
+#################################
+#################################
+
+Turn on lab mode for nfs access
+===============================
+
+[on router - ROMMON]
+
+REAL_MGMTE_DEV=
+SR_MGMT_VRF=0
+
+
+
+#################################
+#################################
+#################################
+
+Set mcp router up for nfs access
+================================
+
+[on build server]
+cd <binos-root>/linfarm/iso
+nfsprovision.sh -i packages.conf -o foo.conf
+
+[on router] 
+
+mkdir -p /nfs_stage/bstar; mcp_chvrf.sh management mount 172.22.12.21:/bstar /nfs_stage/bstar
+cp /nfs_stage/bstar/<username>/<binos-root>/linkfarm/iso/*.pkg  /harddisk
+cp /nfs_stage/bstar/<binos-root>/linkfarm/iso/*.conf /harddisk
+
+
+[reset mcp]
+
+[on router - rommon]
+b harddisk:foo.conf
+
+
+#################################
+#################################
+#################################
+
+Attach gdb server to a process
+==============================
+
+[on router] 
+
+workon.sh status detail
+
+test platform software infra watchdog off
+
+workon.sh debug linux_iosd_image
+
+/auto/binos-tools/bin/mcp_gdb -r /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos -p /nobackup/aswitzer/MCP_CABLE_HA_1-LATEST-6-04-2012/aswitzer-MCP_CABLE_HA_1-LATEST-6-04-2012-binos/linkfarm/x86_64/usr/binos/bin/x86_64bi_linux_iosd_ubr-adventerprisek9-ms.sun
+
+target remote 172.22.11.177:9908
+
+handle SIGUSR1 pass nostop noprint
+
+
+
+
+
+#################################
+#################################
+#################################
+
+Patch ACME Patch into view
+==========================
+base_cc_00.pkg
+acme diff > /tftpboot/aswitzer/diffs/next-gen-acme.diffs.4
+
+acme patch -input  /tftpboot/aswitzer/diffs/next-gen-acme.diffs.4
+
+
+#################################
+#################################
+#################################
+
+Sync mcp_battlestar_dev
+=======================
+
+# find label to sync to
+cc_branch_labels -v /vob/ios -b mcp_dev
+
+-->BLD_MCP_DEV_LATEST_20090610_083017
+
+sync_get_host -v /vob/ios -b mcp_battlestar_dev
+
+-->infra-view9
+
+sync_start -b mcp_battlestar_dev -l BLD_MCP_DEV_LATEST_20090610_083017 -v /vob/ios -s /ws/aswitzer-sjc -notify battlestar-sw |& tee sync_start.log
+
+ct setview <sync view>
+
+sync_resolve_trivial -changeset
+
+sync_status -unresolved
+
+sync_publish -list
+
+sync_publish -remove <component_name>
+
+sync_publish -comp 'make-lib@1.17.10'
+
+sync_publish -cspec_update
+
+sync_superclean
+ 
+cd /vob/ios/sys
+sync_make -flag "-k -j8" dependancies |& tee /vob/ios/dependancies.log
+sync_make id
+cd /vob/ios/sys/obj-ppc-rfgw 
+sync_make -flag "-k -j8 GALAXY_IOS_DEVELOPMENT=1 GDB_FLAG=-g" rfgw-entservices-mz   |& tee /vob/ios/rfgw-entservices-mz.log
+sync_make -flag "-k -j8 GALAXY_IOS_DEVELOPMENT=1 NO_RFGW_EMBEDDED_BUILD=1 GDB_FLAG=-g" rfgw-entservices-mz   |& tee /vob/ios/rfgw-entservices-mz.log
+
+sync_rm_identical
+sync_verify_view -all
+sync_commit -exec
+
+
+#################################
+#################################
+#################################
+
+Sync cmts acme project
+======================
+
+mkdir /nobackup/aswitzer/sync_ws; cd /nobackup/aswitzer/sync_ws
+acme pull -sb binos -proj cmts -sync_to main%BLD_MCP_DEV_LATEST_20090610_083017
+LOOK FOR COMMAND ON SCREEN
+acme precommit
+acme commit
+
+
+
+#################################
+
+# create ORIGINAL PROTO Views
+
+cd /nobackup/aswitzer; mkdir ORIG_PROTO-LATEST
+
+# create BINOS View
+
+cd /nobackup/aswitzer/ORIG_PROTO-LATEST
+mkdir aswitzer-ORIG_PROTO-LATEST-binos; cd aswitzer-ORIG_PROTO-LATEST-binos;
+acme nw -sb binos -proj cmts%LATEST
+
+# create IOS View
+
+cd /nobackup/aswitzer/ORIG_PROTO-LATEST
+start_task -l LATEST -b mcp_battlestar_dev -t ORIG_PROTO-LATEST-ios -d /nobackup/aswitzer/ORIG_PROTO-LATEST -a -v /vob/ios
+
+#################################
+
+
+
+start_task -l LATEST -b flo_dsgs7 -t flo_dsgs7-LATEST-ios -d /nobackup/aswitzer/flo_dsgs7-LATEST -a -v /vob/ios
+

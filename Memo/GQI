@@ -1,0 +1,157 @@
+GQI VMs:
+
+Mine  : Util-ser-A1: 10.90.21.97 / 1.200.1.97
+Meng's: Util-ser-A4: 10.90.21.183 / 1.200.1.183
+login ansvt, pw 1*svtlab
+
+ssh ansvt@10.90.21.97
+
+cd GQITools_04.06.09
+gqitools
+
+# Client IP should be within subnet of VirtualPortGroup0
+# Use GQI v2
+1.25.2.10
+
+===================================
+# GQI basic config
+
+cable video
+  mgmt-intf VirtualPortGroup 0
+
+  service-distribution-group sdg1 id 1
+    rf-port integrated-cable 7/0/0
+  service-distribution-group sdg2 id 2
+    rf-port integrated-cable 7/0/1
+  service-distribution-group sdg3 id 3
+    rf-port integrated-cable 7/0/2
+  service-distribution-group sdg4 id 4
+    rf-port integrated-cable 7/0/3
+  service-distribution-group sdg5 id 5
+    rf-port integrated-cable 7/0/4
+  service-distribution-group sdg6 id 6
+    rf-port integrated-cable 7/0/5
+  service-distribution-group sdg7 id 7
+    rf-port integrated-cable 7/0/6
+  service-distribution-group sdg8 id 8
+    rf-port integrated-cable 7/0/7
+
+  virtual-carrier-group vcg1 id 1
+    rf-channel 0-55 tsid 1-56 output-port-number 1-56
+  virtual-carrier-group vcg2 id 2
+    rf-channel 0-55 tsid 57-112 output-port-number 57-112
+  virtual-carrier-group vcg3 id 3
+    rf-channel 0-55 tsid 113-168 output-port-number 113-168
+  virtual-carrier-group vcg4 id 4
+    rf-channel 0-55 tsid 169-224 output-port-number 169-224
+  virtual-carrier-group vcg5 id 5
+    rf-channel 0-55 tsid 225-280 output-port-number 225-280
+  virtual-carrier-group vcg6 id 6
+    rf-channel 0-55 tsid 281-336 output-port-number 281-336
+  virtual-carrier-group vcg7 id 7
+    rf-channel 0-55 tsid 337-392 output-port-number 337-392
+  virtual-carrier-group vcg8 id 8
+    rf-channel 0-55 tsid 393-448 output-port-number 393-448
+
+  bind-vcg
+    vcg vcg1 sdg sdg1
+    vcg vcg2 sdg sdg2
+    vcg vcg3 sdg sdg3
+    vcg vcg4 sdg sdg4
+    vcg vcg5 sdg sdg5
+    vcg vcg6 sdg sdg6
+    vcg vcg7 sdg sdg7
+    vcg vcg8 sdg sdg8
+
+  logical-edge-device led1 id 1
+    protocol gqi
+      mgmt-ip 1.22.2.10
+      mac-address c414.3c17.e000
+      server 1.200.1.97
+      virtual-edge-input-ip 174.101.1.1 input-port-number 1
+      vcg vcg1
+      vcg vcg2
+      vcg vcg3
+      vcg vcg4
+      vcg vcg5
+      vcg vcg6
+      vcg vcg7
+      vcg vcg8
+      active
+
+==================================
+# Two LED config
+
+  logical-edge-device led1 id 1
+    protocol gqi
+      mgmt-ip 1.24.2.11
+      mac-address 3c08.f651.6301
+      server 1.200.1.97
+      keepalive retry 3 interval 10
+      virtual-edge-input-ip 174.101.1.1 input-port-number 1
+      vcg vcg1
+      vcg vcg2
+      vcg vcg3
+      vcg vcg4
+      active
+  logical-edge-device led2 id 2
+    protocol gqi
+      mgmt-ip 1.24.2.12
+      mac-address 3c08.f651.6302
+      server 1.200.1.97
+      keepalive retry 3 interval 10
+      reset interval 8
+      virtual-edge-input-ip 174.102.1.1 input-port-number 1
+      vcg vcg5
+      vcg vcg6
+      vcg vcg7
+      vcg vcg8
+      active
+
+===================================
+# With PKEY Encryption
+
+cable video
+  encryption
+    linecard 7/0 ca-system powerkey scrambler des
+
+  virtual-carrier-group vcg1 id 1
+    encrypt
+  virtual-carrier-group vcg2 id 2
+    encrypt
+  virtual-carrier-group vcg3 id 3
+    encrypt
+  virtual-carrier-group vcg4 id 4
+    encrypt
+  virtual-carrier-group vcg5 id 5
+    encrypt
+  virtual-carrier-group vcg6 id 6
+    encrypt
+  virtual-carrier-group vcg7 id 7
+    encrypt
+  virtual-carrier-group vcg8 id 8
+    encrypt
+
+===================================
+# Delete all sessions from an LED
+
+clear cable video session log id 1 int 7/0/0
+y
+clear cable video session log id 1 int 7/0/1
+y
+clear cable video session log id 1 int 7/0/2
+y
+clear cable video session log id 1 int 7/0/3
+y
+clear cable video session log id 2 int 7/0/4
+y
+clear cable video session log id 2 int 7/0/5
+y
+clear cable video session log id 2 int 7/0/6
+y
+clear cable video session log id 2 int 7/0/7
+y
+
+# Show GQI connections
+show cable video gqi connections
+

@@ -1,0 +1,5 @@
+* View Time Record
+* Input file (string) * test.ti
+* Number of TPs to process (-1 for all) (int) * -1
+* show PCR TPs? (int) * 1
+* show non-PCR TPs? (int) * 1

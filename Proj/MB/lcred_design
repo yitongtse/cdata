@@ -1,0 +1,37 @@
+Video data structures
+
+Provisioning:
+- destination IP addresses (Y)
+- unicast lookup map (Y)
+- multicast lookup map (Y)
+- multicast entries (Y)
+
+
+Session:
+- in session
+  - TP info buffer (N)
+  - pid table (N, built in parsing PAT/PMT)
+    - pid info (N)
+  - pat info (N)
+  - in program list (N, built in parsing PMT)
+    - pmt info (N)
+  - statistics (N)
+
+
+- out session
+  - pid table
+    - pid info
+  - out program list
+    - pmt info
+  - statistics
+
+
+- qam info
+  - out session list
+  - pat info
+  - flow array
+  - statistics
+
+
+Carousels:
+

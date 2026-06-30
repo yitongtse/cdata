@@ -1,0 +1,347 @@
+Link map of __start
+  1] __start (func,global) found in Runtime.PPCEABI.H.a __start.c
+   2] __init_registers (func,local) found in Runtime.PPCEABI.H.a __start.c
+    3] _stack_addr found as linker generated symbol
+    3] _SDA2_BASE_ found as linker generated symbol
+    3] _SDA_BASE_ found as linker generated symbol
+   2] __init_hardware (func,global) found in __ppc_eabi_init.o 
+   2] __init_data (func,local) found in Runtime.PPCEABI.H.a __start.c
+    3] _rom_copy_info found as linker generated symbol
+    3] __copy_rom_section (func,local) found in Runtime.PPCEABI.H.a __start.c
+     4] memcpy (func,global) found in Runtime.PPCEABI.H.a __mem.c
+     4] __flush_cache (func,global) found in __ppc_eabi_init.o 
+    3] _bss_init_info found as linker generated symbol
+    3] __init_bss_section (func,local) found in Runtime.PPCEABI.H.a __start.c
+     4] memset (func,global) found in Runtime.PPCEABI.H.a __mem.c
+      5] __fill_mem (func,global) found in Runtime.PPCEABI.H.a __mem.c
+   2] __init_user (func,global) found in __ppc_eabi_init.o 
+   2] main (func,global) found in main.o 
+    3] enable_timer (func,global) found in bench.o 
+    3] enable_cache (func,global) found in bench.o 
+    3] dataBuf (object,global) found in main.o 
+    3] rawData (object,global) found in main.o 
+    3] record_time (func,global) found in bench.o 
+    3] find_check_sum (func,global) found in main.o 
+    3] get_time_elapsed (func,global) found in bench.o 
+     4] @17 (object,local) found in bench.o 
+     4] @14 (object,local) found in bench.o 
+     4] @15 (object,local) found in bench.o 
+   2] exit (func,global) found in MSL_C.PPCEABI.BARE.H.a abort_exit.c
+   2] >>> UNREFERENCED DUPLICATE exit
+   2] >>> (func,weak) found in __ppc_eabi_init.o 
+    3] __aborting (object,global) found in MSL_C.PPCEABI.BARE.H.a abort_exit.c
+    3] atexit_funcs (object,global) found in MSL_C.PPCEABI.BARE.H.a atexit.c
+    3] atexit_curr_func (object,global) found in MSL_C.PPCEABI.BARE.H.a atexit.c
+    3] __destroy_global_chain (func,global) found in Runtime.PPCEABI.H.a global_destructor_chain.c
+     4] __global_destructor_chain (object,global) found in Runtime.PPCEABI.H.a global_destructor_chain.c
+    3] _dtors found as linker generated symbol
+    3] __stdio_exit (object,global) found in MSL_C.PPCEABI.BARE.H.a abort_exit.c
+    3] __exit (func,global) found in MSL_C.PPCEABI.BARE.H.a abort_exit.c
+     4] __atexit_funcs (object,global) found in MSL_C.PPCEABI.BARE.H.a atexit.c
+     4] __atexit_curr_func (object,global) found in MSL_C.PPCEABI.BARE.H.a atexit.c
+     4] __console_exit (object,global) found in MSL_C.PPCEABI.BARE.H.a abort_exit.c
+     4] _ExitProcess (func,global) found in __ppc_eabi_init.o 
+  1] .dtors (section,local) found in Runtime.PPCEABI.H.a global_destructor_chain.c
+  1] __destroy_global_chain_reference (object,local) found in Runtime.PPCEABI.H.a global_destructor_chain.c
+
+
+.compress.init section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.init section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 000044 00200000  1 .init 	__ppc_eabi_init.o 
+  00000000 000010 00200000  4 __init_hardware 	__ppc_eabi_init.o 
+  00000010 000034 00200010  4 __flush_cache 	__ppc_eabi_init.o 
+  00000044 000160 00200044  1 .init 	Runtime.PPCEABI.H.a __start.c
+  00000044 00004c 00200044  4 __start 	Runtime.PPCEABI.H.a __start.c
+  00000090 000050 00200090  4 __copy_rom_section 	Runtime.PPCEABI.H.a __start.c
+  000000e0 000030 002000e0  4 __init_bss_section 	Runtime.PPCEABI.H.a __start.c
+  00000110 00001c 00200110  4 __init_registers 	Runtime.PPCEABI.H.a __start.c
+  0000012c 000078 0020012c  4 __init_data 	Runtime.PPCEABI.H.a __start.c
+  000001a4 000138 002001a4  1 .init 	Runtime.PPCEABI.H.a __mem.c
+  000001a4 000050 002001a4  4 memcpy 	Runtime.PPCEABI.H.a __mem.c
+  000001f4 0000b8 002001f4  4 __fill_mem 	Runtime.PPCEABI.H.a __mem.c
+  000002ac 000030 002002ac  4 memset 	Runtime.PPCEABI.H.a __mem.c
+
+
+.compress.text section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.text section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 000050 00200348  1 .text 	__ppc_eabi_init.o 
+  00000000 00000c 00200348  4 __init_user 	__ppc_eabi_init.o 
+  0000000c 000004 00200354  4 _ExitProcess 	__ppc_eabi_init.o 
+  00000010 000128 00200358  1 .text 	bench.o 
+  00000010 000030 00200358  4 enable_cache 	bench.o 
+  00000040 000030 00200388  4 enable_timer 	bench.o 
+  00000070 000020 002003b8  4 record_time 	bench.o 
+  00000090 0000a8 002003d8  4 get_time_elapsed 	bench.o 
+  00000138 0000b4 00200480  1 .text 	main.o 
+  00000138 000038 00200480  4 find_check_sum 	main.o 
+  00000170 00007c 002004b8  4 main 	main.o 
+  000001ec 000000 00200534  1 .text 	Runtime.PPCEABI.H.a __start.c
+  000001ec 00001c 00200534  1 .text 	Runtime.PPCEABI.H.a __mem.c
+  000001ec 000060 00200534  1 .text 	Runtime.PPCEABI.H.a global_destructor_chain.c
+  UNUSED   000018 ........ __register_global_object Runtime.PPCEABI.H.a global_destructor_chain.c
+  000001ec 000048 00200534  4 __destroy_global_chain 	Runtime.PPCEABI.H.a global_destructor_chain.c
+  00000234 00016c 0020057c  1 .text 	MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  UNUSED   000034 ........ abort MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  00000234 0000c0 0020057c  4 exit 	MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  000002f4 000078 0020063c  4 __exit 	MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  0000036c 000068 002006b4  1 .text 	MSL_C.PPCEABI.BARE.H.a atexit.c
+  UNUSED   000034 ........ atexit MSL_C.PPCEABI.BARE.H.a atexit.c
+  UNUSED   000034 ........ __atexit MSL_C.PPCEABI.BARE.H.a atexit.c
+
+
+.compress.fini section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.fini section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.rodata section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.ctors section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.dtors section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 000004 002006b4  1 .dtors 	Runtime.PPCEABI.H.a global_destructor_chain.c
+  00000000 000004 002006b4  4 __destroy_global_chain_reference 	Runtime.PPCEABI.H.a global_destructor_chain.c
+
+
+extab section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+extabindex section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.BINARY section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.data section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 01e000 01000000  1 .data 	main.o 
+  00000000 01e000 01000000  4 rawData 	main.o 
+
+
+.sdata section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 000004 0101e000  1 .sdata 	main.o 
+  00000000 000004 0101e000  4 dataBuf 	main.o 
+
+
+.sbss section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 000004 0101e008  1 .sbss 	Runtime.PPCEABI.H.a global_destructor_chain.c
+  00000000 000004 0101e008  4 __global_destructor_chain 	Runtime.PPCEABI.H.a global_destructor_chain.c
+  00000008 00000c 0101e010  1 .sbss 	MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  00000008 000004 0101e010  4 __aborting 	MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  0000000c 000004 0101e014  4 __stdio_exit 	MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  00000010 000004 0101e018  4 __console_exit 	MSL_C.PPCEABI.BARE.H.a abort_exit.c
+  00000018 000008 0101e020  1 .sbss 	MSL_C.PPCEABI.BARE.H.a atexit.c
+  00000018 000004 0101e020  4 atexit_curr_func 	MSL_C.PPCEABI.BARE.H.a atexit.c
+  0000001c 000004 0101e024  4 __atexit_curr_func 	MSL_C.PPCEABI.BARE.H.a atexit.c
+
+
+.sdata2 section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 000018 0101e028  1 .sdata2 	bench.o 
+  00000000 000008 0101e028  8 @14 	bench.o 
+  00000008 000008 0101e030  8 @15 	bench.o 
+  00000010 000008 0101e038  8 @17 	bench.o 
+
+
+.sbss2 section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.PPC.EMB.sdata0 section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.PPC.EMB.sbss0 section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.bss section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+  00000000 000200 0101e040  1 .bss 	MSL_C.PPCEABI.BARE.H.a atexit.c
+  00000000 000100 0101e040  4 atexit_funcs 	MSL_C.PPCEABI.BARE.H.a atexit.c
+  00000100 000100 0101e140  4 __atexit_funcs 	MSL_C.PPCEABI.BARE.H.a atexit.c
+
+
+.debug_srcinfo section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.debug_sfnames section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.debug section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+.line section layout
+  Starting        Virtual
+  address  Size   address
+  -----------------------
+
+
+Memory map:
+                   Starting Size     File
+                   address           Offset
+   .compress.init  00200000 00000000 00000140
+            .init  00200000 00000348 00000140
+   .compress.text  00200348 00000000 00000488
+            .text  00200348 0000036c 00000488
+   .compress.fini  002006b4 00000000 000007f4
+            .fini  002006b4 00000000 000007f4
+          .rodata  002006b4 00000000 000007f4
+           .ctors  002006b4 00000000 000007f4
+           .dtors  002006b4 00000008 000007f4
+            extab  002006bc 00000000 000007fc
+       extabindex  002006bc 00000000 000007fc
+          .BINARY  002006bc 00000000 000007fc
+            .data  01000000 0001e000 00000800
+           .sdata  0101e000 00000004 0001e800
+            .sbss  0101e008 00000020 0001e808
+          .sdata2  0101e028 00000018 0001e808
+           .sbss2  0101e040 00000000 0001e820
+  .PPC.EMB.sdata0  ffff8000 00000000 0001e820
+   .PPC.EMB.sbss0  ffff8000 00000000 0001e820
+             .bss  0101e040 00000200 0001e820
+   .debug_srcinfo           000000 00000000
+   .debug_sfnames           000000 00000000
+           .debug           0016cc 0001ef50
+            .line           00072e 0001e820
+
+
+Linker generated symbols:
+         _f_compress_init 00200000
+     _f_compress_init_rom 00200000
+         _e_compress_init 00200000
+                  _f_init 00200000
+              _f_init_rom 00200000
+                  _e_init 00200348
+         _f_compress_text 00200348
+     _f_compress_text_rom 00200348
+         _e_compress_text 00200348
+                  _f_text 00200348
+              _f_text_rom 00200348
+                  _e_text 002006b4
+         _f_compress_fini 002006b4
+     _f_compress_fini_rom 002006b4
+         _e_compress_fini 002006b4
+                  _f_fini 002006b4
+              _f_fini_rom 002006b4
+                  _e_fini 002006b4
+                _f_rodata 002006b4
+            _f_rodata_rom 002006b4
+                _e_rodata 002006b4
+                 _f_ctors 002006b4
+             _f_ctors_rom 002006b4
+                 _e_ctors 002006b4
+                 _f_dtors 002006b4
+             _f_dtors_rom 002006b4
+                 _e_dtors 002006bc
+                  _fextab 002006bc
+              _fextab_rom 002006bc
+                  _eextab 002006bc
+             _fextabindex 002006bc
+         _fextabindex_rom 002006bc
+             _eextabindex 002006bc
+                _f_BINARY 002006bc
+            _f_BINARY_rom 002006bc
+                _e_BINARY 002006bc
+                  _f_data 01000000
+              _f_data_rom 01000000
+                  _e_data 0101e000
+                 _f_sdata 0101e000
+             _f_sdata_rom 0101e000
+                 _e_sdata 0101e004
+                  _f_sbss 0101e008
+                  _e_sbss 0101e028
+                _f_sdata2 0101e028
+            _f_sdata2_rom 0101e028
+                _e_sdata2 0101e040
+                 _f_sbss2 0101e040
+                 _e_sbss2 0101e040
+        _f_PPC_EMB_sdata0 ffff8000
+    _f_PPC_EMB_sdata0_rom ffff8000
+        _e_PPC_EMB_sdata0 ffff8000
+         _f_PPC_EMB_sbss0 ffff8000
+         _e_PPC_EMB_sbss0 ffff8000
+                   _f_bss 0101e040
+                   _e_bss 0101e240
+              _stack_addr 00100000
+               _stack_end 000f8000
+               _heap_addr 000f0000
+                _heap_end 000f8000
+             _nbfunctions 00000015
+           _rom_copy_info 002002dc
+           _bss_init_info 00200330
+               _SDA_BASE_ 01026000
+              _SDA2_BASE_ 01026028
+                   _ctors 00000000
+                   _dtors 002006b4
+           _eti_init_info 00000000

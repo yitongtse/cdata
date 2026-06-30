@@ -1,0 +1,11 @@
+Q: Should we include PSI pids in the PID lookup table?
+Not sure what is the best.  Will use separate lookup first!
+
+
+Q: How to pass info between input thread and PSI thread.
+The following info are needed for each PSI TP:
+  - tp_addr
+  - in_session 
+Difficult to fit them into the 32-bit pulse code.
+Instead, we create a tp_info for each PSI TP.  The address of the tp_info
+will be used in the pulse code.

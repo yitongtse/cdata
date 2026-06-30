@@ -1,0 +1,44 @@
+Implemnted in snoop_section().
+
+
+Types of TP input:
+  1: TP without payload (AFC = 10)
+  2: PUSI off (single continuing segment)
+  3: PUSI on, ptr = 0 (start with new section or segment)
+  4: PUSI on, ptr > 0 (start with ending segment)
+     4a: the ending segment occupy the entire payload
+     4b: the ending segment is following by STUFF byte (no more segment)
+  5: subsequence starting segment in TP
+
+4a and 4b are illegal cases, but need to be handled.
+
+
+Snoop state:
+  A: looking for new PSI section
+  B: already started a PSI section
+
+
+Processing:
+  a: done with this TP (tp_ptr = NULL, return NULL)
+  b: start a new PSI section (set snoop->sect, snoop->snooped_len)
+  c: append to currnet PSI section (update snoop->snooped_len)
+  d: finish a section (snoop->sect = NULL, return completed section)
+  e: drop current section, and start a new one (error handling)
+
+
+-------------------------------------
+
+1A: a, OK
+1B: a, OK
+2A: a, OK
+2B: c, OK
+3A: b, OK
+3B:
+4A:
+4B:
+4aA:
+4aB:
+4bA:
+4bB:
+
+  

@@ -1,0 +1,168 @@
+h26740
+s 00024/00043/00047
+d D 1.2 06/11/15 11:21:15 ytse 2 1
+c update
+e
+s 00090/00000/00000
+d D 1.1 06/11/14 17:07:36 ytse 1 0
+c date and time created 06/11/14 17:07:36 by ytse
+e
+u
+U
+f e 0
+t
+T
+I 1
+Moss Beach Video SW Interface
+
+This interface is used between the Moss Beach Video SW and the
+IOS Linecard Controller (LCC).
+
+
+For unicast traffic, the dest UDP port is used to identify the input session.
+D 2
+A UDP port may be in one of the following states:
+  - not used
+  - provisioned, but not started: session struct not created
+  - started: session struct created
+The UDP port map needs to include the state, together with the session info.
+The UDP session struct is created when the session traffic is first detected.
+E 2
+I 2
+A UDP port map will be used for unicast mapping.
+E 2
+
+D 2
+
+E 2
+For multicast traffic, the source and dest IP address, and the dest UDP port,
+D 2
+are used to identify the input session.
+A multicast session must be provisioned before it can start.
+Multicast session provision will also create the session struct.
+So a multicast session can be in one of the following states:
+  - provisioned, but not started
+  - started
+The multicast lookup table needs to carry the state info and the session info.
+E 2
+I 2
+are used to identify the input session.  A hashed multicast lookup table will
+be used for multicast mapping.
+E 2
+
+I 2
+Both the unicast and multicasting lookup table will need to indicated whether
+an entry is configured, and if so, the info of the corresponding session.
+E 2
+
+D 2
+Unicast Session Provisioning
+  Purpose: To create entries in the unicast port map (N sessions per message)
+E 2
+I 2
+A session may be in one of the following states:
+  - configured, but not started: session struct not created
+  - active: session struct created
+
+The session struct is created when the session traffic is first detected.
+
+
+
+Unicast Session Config / Unconfig
+  Purpose: To create/remove entries in the unicast port map
+           (N sessions per message)
+E 2
+  Parameters:
+I 2
+    - action (create or remove)
+E 2
+    - number of sessions
+    - udp port start
+I 2
+    - Session type: SPTS muxing, MPTS passthru, MPTS muxing, data injection
+E 2
+  Return:
+    - status (OK)
+  Note: current we assume a continuous range of UPD port.  May need to extend
+        if this proves to be insufficient for some mapping table that we need
+        to support.
+
+
+D 2
+Unicast Session Unprovisioning
+  Purpose: To remove entries in the unicast port map (N sessions per message)
+E 2
+I 2
+Multicast Session Config / Unconfig
+  Purpose: To create/remove an entry in the multicast lookup table
+           (one session per message)
+E 2
+  Parameters:
+D 2
+    - number of sessions
+    - udp port start
+    - forced: whether to force the teardown if a session is active
+              (Do we want this?  This may lead to inconsistent states between
+               SUP and linecard!)
+  Return:
+    - status (OK, session active)
+
+
+Multicast Session Provisioning
+  Purpose: To create entry and allocate session struct
+           in the multicast lookup table (one session per message)
+  Parameters:
+E 2
+I 2
+    - action (create or remove)
+E 2
+    - multicast mode? (ASM, SSM)
+    - source/dest IP, dest UDP
+I 2
+    - Session type: SPTS muxing, MPTS passthru, MPTS muxing, data injection
+E 2
+  Return:
+D 2
+    - status (OK, not supported, session already created)
+    - allocated session ID
+E 2
+I 2
+    - status (OK, not supported)
+E 2
+
+
+D 2
+Multicast Session Unprovisioning
+  Purpose: To remove entry and deallocate session struct
+           in the multicast lookup table (one session per message)
+  Parameters:
+    - session ID
+  Return:
+    - status (OK, session not found)
+
+
+E 2
+Video Input Session Configuration
+  Purpose: To add an video input session
+
+  Parameters:
+D 2
+    - Session type: SPTS muxing, MPTS passthru, MPTS muxing, data injection
+E 2
+    - Input type: unicast or multicast
+      - For unicast, we need dest UDP port (IP address needed?)
+      - For multicast, we need source and dest IP, and dest UDP port
+
+  Return: MB Video SW will return the session ID created.
+
+
+Video Output Session Configuration
+  Purpose: To create an video output session
+
+  Parameters:
+    - QAM ID
+    - Program number (for SPTS muxing)
+    - 
+
+
+E 1

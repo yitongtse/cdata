@@ -1,0 +1,32 @@
+How Trojan Horse works:
+
+The Trojan Horse hijacks the video route message to include emulation mode
+information to line card.
+
+When in emulation mode, an input IP packet's destination UDP port will be
+mapped to the default Palm Beach UDP port map.
+
+For example, in 24-qam emulation mode, input UDP port 0x0203 will be
+mapped to QAM 2, program 3.  According to the default Palm Beach UDP
+port map, the corresponding UDP port number should be 0xd843
+(assuming PB in slot 3).  Hence the packet's destination UDP port
+will be changed to 0xd843.  Everything works as if in normal Palm Beach
+mode after this point.
+
+
+How to support cloning in Trojan Horse modes:
+
+Using the above example, if we also want to map that UDP to QAM 4, program 5,
+we can use the following CLI:
+
+video 3 udp 0x0203 qam 3/2.2 program 5
+
+Internally, CC needs to do similar mapping from the input UDP to the default
+Palm Beach UDP (0x0203 -> 0xd843), and store this cloning port map in its data
+structure.
+
+When the input session 0x0203 actually starts, Palm Beach will detect it and
+report it to IOS with session_start message, UDP port 0xd843.  CC should
+then configure the mux module on the line card to set up QAM 2, program 3,
+as well as QAM 4, program 5 to output this session.
+

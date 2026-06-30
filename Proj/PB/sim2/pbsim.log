@@ -1,0 +1,33 @@
+Reading data from file dat.10x15...
+Raw data size: 3840000 bytes
+15000 cells read
+QAM rate: 51300000 bps
+Schedule window size: 4 ms
+Number of slots in mux table: 137
+Slot interval: 00000314
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+**** Data wrap around ****
+
+
+Summary:
+  Input : 987056 TPs (0 NULL)
+  Mux   : 955017 TPs
+  Null  : 414983 TPs
+  Output: 1370000 TPs
+

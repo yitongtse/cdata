@@ -1,0 +1,10 @@
+IPC benchmarks
+
+message size: 1000 bytes
+message count: 100000
+
+Result on PB
+Unreliable (1):			26.36
+Reliable non-blocking (2):	26.55
+Reliable blocking (3):		30.53
+Reliable blocking RPC (4):	53.79

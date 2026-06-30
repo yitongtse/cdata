@@ -1,0 +1,28 @@
+Clearcase branchs:
+  IOS: flo_vnbu_ph2
+  QNX: flo_vnbu_ph2
+
+
+EDCP: Edge Device Control Protocol
+      stream configuration, establishment and termination
+      Client(ERM) & Server(EQAM)
+      EDCP session ID
+
+---------------------------------------------------------------
+
+How a session is setup:
+
+STB -> SM
+SM -> ERM : SM provides BW, SG
+ERM -> EDA : Between ERM & EDA, who provides QAM (freq), program #, UDP?
+EDA -> ERM
+ERM -> SS: ERM provides UDP
+ERM -> SM: ERM provides Freq, prog #, udp
+
+---------------------------------------------------------------
+
+How to set up Cat4k to join a multicast group on behalf of PB:
+
+conf t
+ip multicast-routing
+

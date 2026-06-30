@@ -1,0 +1,36 @@
+To reach Linux for our ASR1K:
+IP: 172.22.10.240
+user: root
+PW: lab
+
+ssh root@172.22.10.240
+telnet 172.22.10.240
+
+scp <file> root@172.22.10.240:/harddisk/ytse/<file>
+
+--------
+
+Available TFTP servers:
+Friday: 172.22.70.157
+171.70.42.150
+
+--------
+# IOS commands
+user <user> pass <pw>           : set user name and password
+
+show romvar
+request platform software system shell r0
+
+# To enable platform shell on IOS
+conf t
+platform shell
+end
+
+# General Linux commands
+ifconfig                : to see interface config
+host <hostname>         : to find IP address of a host
+
+
+--------
+# Location of vidman binary
+linkfarm/mips64-ubr/ubr/binos/bin/vidman

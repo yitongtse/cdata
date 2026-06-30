@@ -1,0 +1,717 @@
+/*****************************************************************************
+    File: ipmpeg2dec.c
+
+    IP MPEG-2 video decoder
+*****************************************************************************/
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define FILENAME_SZ		128
+
+#include "def.h"
+
+#ifdef UNIX
+#include "util.h"
+#include "param.h"
+#include "block.h"
+#include "imageio.h"
+#include "stat.h"
+#include "bitbuf.h"
+#include "reader.h"
+#include "writer.h"
+#include "infile.h"
+#include "vld.h"
+#include "tp.h"
+#include "pes.h"
+#include "mpeg2.h"
+#include "info.h"
+#include "gethdr.h"
+#include "getmb.h"
+#include "decode.h"
+#include "display.h"
+#else
+#include "win.h"
+#include "util.h"
+#include "param.h"
+#include "block.h"
+#include "imageio.h"
+#include "stat.h"
+#include "bitbuf.h"
+#include "reader.h"
+#include "writer.h"
+#include "infile.h"
+#include "vld.h"
+#include "tp.h"
+#include "pes.h"
+#include "mpeg2.h"
+#include "info.h"
+#include "gethdr.h"
+#include "getmb.h"
+#include "decode.h"
+#endif
+
+
+#define	MAX_IP_SIZE		1600
+
+/* Note: The following variables are moved out from the main loop to here
+         to avoid reserved memory problem.
+*/
+unsigned char ipBuf[MAX_IP_SIZE];
+FILE*  inFp;
+Reader *sysIn;         // system stream reader
+Reader *vidIn;         // video elementary stream reader
+int    udpDstPort;
+PicInfo pic;
+MbInfo mb;
+RlInfo rl[6];          // Note: for 4:2:0 seq only
+
+int tsFlag = 1;		// support only TS stream
+
+char comment[80];
+int tpSz;
+int tpCnt = 0;
+int ipPktCnt = -1;
+
+int decodeFlag;
+int displayFlag = 0;
+int vidVerboseLev;
+
+int pid;
+
+/* For debugging purpose only */
+int debugFlag;
+int debugFrmNo;
+int debugMba;
+int debugTemp;
+int dumpCoefFlag;
+int prevDTS;    // previous DTS in 45 kHz form
+
+int totQs, totSlcQs, qsCnt;  // to compute average picture quant
+int qsCnt = 0;
+
+
+void reportStatus()
+{
+    printf("\nIP Pkt %d, TP %d, ES Byte %d\n\n", ipPktCnt, tpCnt, ftell(inFp));
+}
+
+
+int getNextIp()
+{
+    static int numTp = 0;
+    static uint *curTpPtr;
+    unsigned short dstPort;
+    int ipSz, len, nbytes;
+
+    if (numTp == 0) {
+        while (1) {
+            ipPktCnt++;
+            nbytes = fread(ipBuf, 1, 20, inFp);	// read 1st 4 bytes of IP header
+            if (nbytes != 20)  return EOF;
+            ipSz = *(short*)(ipBuf+2);
+            nbytes = fread(ipBuf+20, 1, ipSz-20, inFp);
+						// read rest of the IP packet
+            if (nbytes != ipSz-20)  return EOF;
+            dstPort = *(short*)(ipBuf+22);
+            if (dstPort == udpDstPort)  break;
+        }
+
+        len = *(short*)(ipBuf+24);
+        numTp = len / TP_SIZE;
+        curTpPtr = (uint*)(ipBuf+28);
+    }
+
+    // Set up system reader's buffer
+    setBitBuf(&sysIn->bitBuf, curTpPtr, curTpPtr + TP_SIZE/4, 32);
+
+    numTp--;
+    curTpPtr += TP_SIZE/4;
+    return 0;
+}
+
+
+static int getMorePesPayload()
+{
+    static uint prevDts = 0;	// in 45 kHz
+    static int firstTime = 1;
+    TpInfo tp;
+    PesInfo pes;
+    while (1) {                 /* loop till next TP with right PID is found */
+        sprintf(comment, "\n\nPacket %d at byte %d (ES byte %d):",
+                ++tpCnt, ftell(inFp), vidIn->byteCnt);
+        commentReader(sysIn, comment);
+        if (getByte(sysIn, "sync") != TP_SYNC) {
+            printf("\nLost of TP SYNC!");
+            reportStatus();
+            exit(-7855);
+        }
+
+        if (sysIn->errFlag == EOF) {
+            printf("\nEOF reached.\n");
+            exit(-2707);
+        }
+ 
+        /* Get transport packet header */
+        getTpHdr(&tp, sysIn);
+ 
+        if (tp.PID==pid) {
+            /* Get adaptation field if needed */
+            if (tp.adaptation_field_control & 2)
+                getTpAf(&tp, sysIn);
+ 
+            /* Get PES header if needed */
+            if (tp.payload_unit_start_indicator) {
+                if (getBits(sysIn, 24, "start code prefix") != 1)
+                    printf("\nTP %d: Expected start code prefix not found!"\
+                           "  Ignored.", tpCnt);
+                getPesHdr(&pes, sysIn);
+ 
+#if 1
+                /* Print PTS/DTS if available */
+                if (pes.PTS_DTS_flags & 2) {
+                    printf("\n  PTS %01x%04x",
+                        (pes.PTS[0]>>31), (pes.PTS[0]<<1)|(pes.PTS[1]&1));
+
+                    if (pes.PTS_DTS_flags & 1)
+                        printf(", DTS %01x%04x",
+                            (pes.DTS[0]>>31), (pes.DTS[0]<<1)|(pes.DTS[1]&1));
+                }
+
+                /* Check for backward DTS */
+                if (pes.PTS_DTS_flags & 2) {
+                    uint dts = pes.PTS_DTS_flags==2? pes.PTS[0] : pes.DTS[0];
+                    int diff = (int)(dts - prevDts);
+                    printf("\n  DTS diff (45 kHz) %d", diff);
+                    if (diff<0)  printf(", ## Backward DTS");
+                    prevDts = dts;
+                }
+            }
+#endif
+ 
+            /* Pass control back to ES parsing only if TP has payload */
+            if (tp.adaptation_field_control & 1) {
+                copyReader(sysIn, vidIn);
+                flushReader(sysIn);
+                return 0;
+            }
+
+            flushReader(sysIn);
+        }
+        else {
+            skipTp(&tp, sysIn, tpSz);
+        }
+    }
+}
+
+
+
+/* Note: return first start code after picture data
+   Assumed first slice start code already read
+*/
+static int decodePic(Reader *in, PicInfo *pic, MbInfo *mb, RlInfo rl[],
+                     uchar *curFrm[], uchar *newRefFrm[], uchar *oldRefFrm[])
+{
+    int SC;
+    int errCode;
+    int mbaIncr;
+    uchar **fwdRefFrm, **bwdRefFrm;
+    int nBlks, nAcCoefs, nAcBits;
+    int bitPos = getReaderBitPos(in);	// mark beginning of picture
+
+//    printf("\n  TR %d", pic->temporal_reference);
+
+    totQs = totSlcQs = qsCnt = 0;
+    nBlks = nAcCoefs = nAcBits = 0;
+    pic->mbCnt = 0;
+
+    /* Select reference frames */
+    if (pic->picture_coding_type==B_PIC) {
+        fwdRefFrm = oldRefFrm;  bwdRefFrm = newRefFrm;
+    }
+    else {	/* I or P picture */
+        fwdRefFrm = newRefFrm;
+    }
+
+    /* Get first slice header */
+    setReaderEcho(in, vidVerboseLev>=SLC, NULL);
+    getSlcHdr(mb, in, 1);
+    initSlc(pic, mb);
+    totSlcQs += quantScaleTab[pic->q_scale_type][mb->quantiser_scale_code-1];
+
+    /* Get first MBA_increment */
+    setReaderEcho(in, vidVerboseLev>=MB, NULL);
+    mbaIncr = getMbaIncr(in, &SC);
+    mb->index = mb->mbaRef + mbaIncr;
+    if (mb->index != 0) {
+        /* Either mbaIncr!=1 or another start code found */
+        printf("\nError: Wrong first slice start position %d", mbaIncr);
+        reportStatus();
+        exit(-937);
+    }
+
+    while (1) {
+        if (mb->index>=pic->nMb) {
+            printf("\nError: Too many macroblocks in picture %d!",
+                   pic->frmNo);
+            printf("\n  MB index: %d    # MBs in picture: %d",
+                   mb->index, pic->nMb);
+            reportStatus();
+            exit(-18);
+        }
+
+        /* Display second field */
+        /* Note: assumes frame picture */
+#ifdef UNIX
+        if (displayFlag && !pic->progressive_sequence
+            && mb->index==(pic->nMb>>1)) {	/* half picture */
+            display_second_field();
+//printf("\n2nd field");
+//getchar();
+        }
+#endif
+
+        initMb(pic, mb);
+
+        debugFlag = (pic->frmNo==debugFrmNo && mb->index==debugMba);
+        if (debugFlag) {
+            printf("\nFrm %d, MB %d:", debugFrmNo, debugMba);
+            printf("\n  PMV: (%d,%d), (%d,%d), (%d,%d), (%d,%d)",
+                   mb->pmv[0][0].x, mb->pmv[0][0].y,
+                   mb->pmv[0][1].x, mb->pmv[0][1].y,
+                   mb->pmv[1][0].x, mb->pmv[1][0].y,
+                   mb->pmv[1][1].x, mb->pmv[1][1].y);
+        }
+
+        if (mbaIncr==1) {	/* Process coded macroblock */
+            /* Read macroblock header (after mba_incr field) and coefficients */
+            errCode = getMb(in, pic, mb, rl, &nBlks, &nAcCoefs, &nAcBits);
+            if (errCode != -1) {
+                printf("\nError when decoding MB %d block %d.",
+                       mb->index, errCode);
+                reportStatus();
+                exit(-32);
+            }
+
+            // Compute average quant
+            if (mb->pattern || mb->intra) {
+                qsCnt++;
+                totQs += quantScaleTab[pic->q_scale_type] \
+                                      [mb->quantiser_scale_code-1];
+            }
+
+
+            if (decodeFlag) {
+                /* Get motion prediction component */
+                if (!mb->intra) {
+                    getPredMb(pic, mb, curFrm, fwdRefFrm, bwdRefFrm, 0);
+                    if (debugFlag) {
+                        printf("\nPrediction MB:\n");
+                        printUcharBlock(curFrm[Y] + mb->pos.y*pic->nCol + mb->pos.x,
+                                        16, 16, pic->nCol);
+                    }
+                }
+
+                if (mb->pattern || mb->intra) {
+                    /* Get DCT component */
+                    invQuantScanDct(pic, mb, rl, curBlk, debugFlag);
+
+                    /* Combine two components */
+                    combineMb(pic, mb, curFrm, curBlk);
+
+                    if (debugFlag) {
+                        printf("Reconstructed MB:\n");
+                        printUcharBlock(curFrm[Y] + mb->pos.y*pic->nCol + mb->pos.x,
+                                        16, 16, pic->nCol);
+                        printf("\n  PMV: (%d,%d), (%d,%d), (%d,%d), (%d,%d)",
+                            mb->pmv[0][0].x, mb->pmv[0][0].y,
+                            mb->pmv[0][1].x, mb->pmv[0][1].y,
+                            mb->pmv[1][0].x, mb->pmv[1][0].y,
+                            mb->pmv[1][1].x, mb->pmv[1][1].y);
+                    }
+                }
+            }    // decodeFlag
+        }    // mbaIncr==1
+
+        else if (mbaIncr>1) {	/* Process skipped macroblock */
+            /* Resets for skipped macroblocks */
+            if (pic->picture_coding_type==P_PIC) {
+                resetMvPred(pic, mb);
+                resetFwdMv(mb);
+            }
+            setDefaultMotion(pic, mb);
+            resetDcDctPred(pic, mb);
+
+            if (decodeFlag) {
+                getPredMb(pic, mb, curFrm, fwdRefFrm, bwdRefFrm, 0);
+                if (debugFlag) {
+                    printf("\nPrediction MB:\n");
+                    printUcharBlock(curFrm[Y] + mb->pos.y*pic->nCol + mb->pos.x,
+                                    16, 16, pic->nCol);
+                }
+            }
+        }
+
+        /* Update */
+        pic->mbCnt++;
+        mb->index++;
+        mbaIncr--;
+
+        if (!mbaIncr) {
+            mbaIncr = getMbaIncr(in, &SC);	/* get next MBA_increment */
+
+            if (!mbaIncr) {		/* start code found */
+
+                if (SC>=MIN_SLICE_START_CODE && SC<=MAX_SLICE_START_CODE) {
+                    /* Slice start code found here */
+                    setReaderEcho(in, vidVerboseLev>=SLC, NULL);
+                    getSlcHdr(mb, in, SC);
+                    initSlc(pic, mb);
+                    totSlcQs += quantScaleTab[pic->q_scale_type]\
+                                             [mb->quantiser_scale_code-1];
+
+                    /* Get next MBA_incr */
+                    setReaderEcho(in, vidVerboseLev>=MB, NULL);
+                    mbaIncr = getMbaIncr(in, &SC);
+                    if (mbaIncr==-1) {
+                        printf("\nError: Illegal MBA increment found");
+                        reportStatus();
+                        exit(-346);
+                    }
+
+                    /* Compute and check slice start position */
+                    if (mb->mbaRef + mbaIncr != mb->index) {
+                        printf("\nError: Wrong slice start position: "\
+                               "%d (%d, %d), expected %d", mb->mbaRef+mbaIncr,
+                               mb->slice_vertical_position, mbaIncr, mb->index);
+                        reportStatus();
+                        exit(-721);
+                    }
+                }
+
+                else if (pic->mbCnt<pic->nMb) {
+						/* non-slice start code */
+                    printf("\nError: unexpected start code 0x000001%02x "\
+                           "within picture", SC);
+                    printf("\n  current MB: %d", pic->mbCnt);
+                }
+
+                else switch (SC) {
+                    case SEQ_START_CODE:
+                    case GOP_START_CODE:
+                    case PIC_START_CODE:
+                    case SEQ_END_CODE:
+                       {
+                         int totBits = getReaderBitPos(in) - bitPos;
+                         printf("\n  Total: %d bits, %d blks, AC: %d%c, %2.1f/blk",
+                             totBits, nBlks, nAcBits*100/totBits, '%',
+                             (nAcCoefs==0)? 0. : (float)nAcCoefs/nBlks);
+                         return SC;
+                       }
+
+                    default:
+                         printf("\nError: Unexpected start code 0x000001%02x "\
+                                "at end of picture\n", SC);
+                         return SC;
+                }
+            }
+        }
+    }
+}
+
+
+int main(int argc, char** argv)
+{
+    Param par;
+    char bitstreamFile[FILENAME_SZ];    // bitstream filename
+    char outSeqName[FILENAME_SZ];       // output sequence filename
+    char origSeqName[FILENAME_SZ];      // original sequence filename
+    char sysSyntaxFile[FILENAME_SZ];    // system syntax filename
+    char vidSyntaxFile[FILENAME_SZ];    // video syntax filename
+    int tpMode;
+    int updDstPort;
+    int mseFlag = 0;
+    int sysVerboseLev;
+
+    uchar *curFrm[3];
+    uchar *newRefFrm[3];
+    uchar *oldRefFrm[3];
+    uchar *origFrm[3];
+
+    int state;
+    int SC;			// start code
+    int firstFrm;
+    int bitMarker = 0;		// for picture size calculation
+
+    long fileLoc;
+    int skipBytes;
+
+    outSeqName[0] = 0;
+
+    if (argc>1)  beginParam(&par, argc, argv);
+    else  readParam(&par, "ipmpeg2dec.par");
+    commentParam(&par, "This program decode a IP/UDP/MPEG-2 video bitstream");
+    commentParam(&par, "");
+    getStringParam(&par, "IP/UDP/MPEG bitstream filename", bitstreamFile,
+        "test.ip");
+    getIntParam(&par, "UDP destination port", &udpDstPort, 49152);
+    getIntParam(&par, "Video PID", &pid, 0);
+    getIntParam(&par, "System syntax verbose level", &sysVerboseLev, 0);
+    getStringParam(&par, "System syntax output file", sysSyntaxFile,
+        "syntax.sys");
+
+    getIntParam(&par, "Video syntax verbose level (0:OFF 1:SEQ 2:GOP 3:PIC "\
+        "4:SLC 5:MB 6:ALL)", &vidVerboseLev, 0);
+    getStringParam(&par, "Video syntax output file", vidSyntaxFile,
+        "syntax.vid");
+    getIntParam(&par, "First frame number", &firstFrm, 0);
+    getIntParam(&par, "Decode bitstream?", &decodeFlag, 1);
+    getCondStringParam(&par, "Decode?", decodeFlag, "Output sequence name",
+        outSeqName, "");
+    getCondIntParam(&par, "Decode?", decodeFlag, "Show output video?",
+        &displayFlag, 0);
+    commentParam(&par, "");
+    commentParam(&par, "Distortion calculation:");
+    getCondIntParam(&par, "Decode?", decodeFlag, "Compute MSE?", &mseFlag, 0);
+    getCondStringParam(&par, "MSE?", mseFlag, "Original sequence name",
+        origSeqName, "");
+    commentParam(&par, "");
+    commentParam(&par, "Debugging parameters:");
+    getIntParam(&par, "Frame number", &debugFrmNo, -1);
+    getIntParam(&par, "Macroblock number", &debugMba, -1);
+    getIntParam(&par, "No. of bytes to skip", &skipBytes, 0);
+    endParam(&par);
+
+    debugTemp = vidVerboseLev;
+
+    tpSz = TP_SIZE;
+
+    /* MPEG-2 channel setup */
+    inFp = fopen(bitstreamFile, "r");
+    if (inFp == NULL) {
+        printf("Error: Failed to open input file %s\n", bitstreamFile);
+        exit (-1);
+    }
+
+    printf("Input bitstream: %s", bitstreamFile);
+    printf("\nPID: %d", pid);
+
+    sysIn = (Reader*)malloc(sizeof(Reader));
+    initReader(sysIn, getNextIp, NULL);
+    setBitBuf(&sysIn->bitBuf, 0, 0, 0);
+    setReaderEcho(sysIn, sysVerboseLev, fopen(sysSyntaxFile, "wb"));
+    
+    vidIn = (Reader*)malloc(sizeof(Reader));
+    initReader(vidIn, getMorePesPayload, NULL);
+    setBitBuf(&vidIn->bitBuf, 0, 0, 0);
+    setReaderEcho(vidIn, 0, fopen(vidSyntaxFile, "wb"));
+
+    initVld();
+    init_idct();
+    initClipTab();
+
+    /* To prevent memory deallocation */
+    curFrm[Y] = curFrm[Cb] = curFrm[Cr] = 0;
+    newRefFrm[Y] = newRefFrm[Cb] = newRefFrm[Cr] = 0;
+    oldRefFrm[Y] = oldRefFrm[Cb] = oldRefFrm[Cr] = 0;
+    if (mseFlag)
+        origFrm[Y] = origFrm[Cb] = origFrm[Cr] = 0;
+
+    pic.resetFlag = 1;
+    pic.trBase = pic.nextTrBase = firstFrm;
+
+    seekSeqHdr(vidIn);
+    fileLoc = ftell(inFp);
+    state = SEQ;
+
+    while (1) {
+        switch (state) {
+            case SEQ:
+                printf("\n\n\nSEQ Header found");
+                setReaderEcho(vidIn, vidVerboseLev>=SEQ, NULL);
+                if (getSeqLayer(vidIn, &pic, &SC)) {
+                    seekSeqHdr(vidIn);		/* resync */
+                    break;
+                }
+
+                /* One time initialization */
+                if (pic.resetFlag) {
+                    printf("\nInitialize buffers...");
+                    initBuffers(&pic, curFrm);
+                    initBuffers(&pic, newRefFrm);
+                    initBuffers(&pic, oldRefFrm);
+                    if (displayFlag) {
+#ifdef UNIX
+                        init_display("", &pic);
+                        init_dither();
+#else
+			initDisplay (pic.nCol, pic.nRow);
+#endif
+                    }
+                    if (mseFlag)
+                        initBuffers(&pic, origFrm);
+
+                    pic.resetFlag = 0;
+                }
+
+                /* Find next state */
+                switch (SC) {
+                    case GOP_START_CODE: state = GOP;  break;
+                    case PIC_START_CODE: state = PIC;  break;
+                    default:
+                        printf("\nGOP or picture header expected!");
+                        seekSeqHdr(vidIn);	/* resync */
+                }
+                break;
+
+            case GOP:
+                printf("\nGOP Header found");
+                setReaderEcho(vidIn, vidVerboseLev>=GOP, NULL);
+                if (getGopLayer(vidIn, &pic, &SC)) {
+                    seekSeqHdr(vidIn);		/* resync */
+                    break;
+                }
+                printf("\n  TC %02d:%02d:%02d:%02d, drop %d",
+                       pic.time_code_hours, pic.time_code_minutes,
+                       pic.time_code_seconds, pic.time_code_pictures,
+                       pic.drop_frame_flag);
+
+                /* Find next state */
+                if (SC==PIC_START_CODE)
+                    state = PIC;
+                else {
+                    printf("\nGOP or picture header expected!");
+                    seekSeqHdr(vidIn);	/* resync */
+                    state = SEQ;
+                }
+                break;
+
+            case PIC:
+                setReaderEcho(vidIn, vidVerboseLev>=PIC, NULL);
+                if (getPicLayer(vidIn, &pic, &SC)) {
+                    seekSeqHdr(vidIn);		/* resync */
+                    break;
+                }
+
+                if (SC!=1) {
+                    printf("\nError: Invalid slice start code 0x000001%02x "\
+                           "found!", SC);
+                    reportStatus();
+                    exit(-283);
+                }
+
+                if (pic.picture_structure!=FRAME) {
+                    printf("\nSorry!  Field picture not supported yet!");
+                    reportStatus();
+                    exit(-267);
+                }
+
+                sprintf(comment, "%s-%d", PIC_TYPE[pic.picture_coding_type],
+                    pic.frmNo);
+                commentReader(vidIn, "\nPic ");
+                commentReader(vidIn, comment);
+                commentReader(vidIn, "...");
+
+                printf("\n\nDecoding %s...", comment);
+                printf("\n  File loc %d", fileLoc);
+                if (tsFlag)  printf(", TP %d", tpCnt);
+
+                vidVerboseLev = pic.frmNo==debugFrmNo? 6 : debugTemp;
+
+                /* Decode a picture */
+                SC = decodePic(vidIn, &pic, &mb, rl, curFrm, newRefFrm,
+                               oldRefFrm);
+                fileLoc = ftell(inFp);
+
+                printf("\n  qs %.1f, slcQs %.1f",
+                    (qsCnt? (float)totQs/qsCnt : 0.),
+                    (float)totSlcQs/pic.nMbRow);
+
+                bitMarker = vidIn->byteCnt;
+
+                if (vidIn->echoFlag)
+                    fflush(vidIn->echoFp);  // flush video syntax
+
+                if (mseFlag) {
+                    float mse, mseY, mseCb, mseCr;
+                    double psnrY, psnrCb, psnrCr;
+                    int frmSz = pic.nCol * pic.nRow;
+
+                    /* Compute MSE */
+                    readFrm(origSeqName, &pic, origFrm);
+                    mseY = blockTse(curFrm[Y], origFrm[Y], pic.nCol,
+                                    pic.nRow, pic.nCol) / (float)frmSz;
+                    mseCb = blockTse(curFrm[Cb], origFrm[Cb], pic.nCol>>1,
+                                pic.nRow>>1, pic.nCol>>1) / (float)(frmSz>>2);
+                    mseCr = blockTse(curFrm[Cr], origFrm[Cr], pic.nCol>>1,
+                                pic.nRow>>1, pic.nCol>>1) / (float)(frmSz>>2);
+                    mse = (mseY*4 + mseCb + mseCr) / 6;
+                    printf("\n  MSE: Y %.2f  Cb %.2f  Cr %.2f  Tot %.2f",
+                           mseY, mseCb, mseCr, mse);
+
+                    // Compute PSNR in dB
+                    //   PSNR = 10 x log_10(255^2 / mse)
+                    //
+                    psnrY = 48.1308 - 10 * log10(mseY);
+                    psnrCb = 48.1308 - 10 * log10(mseCb);
+                    psnrCr = 48.1308 - 10 * log10(mseCr);	
+                    printf("\n  PSNR: Y %3.2f  Cb %3.2f  Cr %3.2f",
+                           psnrY, psnrCb, psnrCr);
+                }
+
+                if (pic.picture_structure==FRAME || pic.secondFld) {
+                    if (strlen(outSeqName))
+                        saveFrm(outSeqName, &pic, curFrm);
+                    if (pic.picture_coding_type!=B_PIC)
+                        swapBuffers(curFrm, newRefFrm, oldRefFrm);
+                    if (displayFlag) {
+#ifdef UNIX
+                        dither(pic.picture_coding_type==B_PIC? curFrm:oldRefFrm,
+                               &pic);
+#else
+                        if (pic.picture_coding_type==B_PIC)
+                            Display_Image(curFrm[0], curFrm[2], curFrm[1]);
+                        else
+                            Display_Image(oldRefFrm[0], oldRefFrm[2],
+                                          oldRefFrm[1]);
+#endif
+//printf("\n1st field");
+//getchar();
+                    }
+                }
+
+                /* Find next state */
+                switch (SC) {
+                    case SEQ_START_CODE: state = SEQ;  break;
+                    case GOP_START_CODE: state = GOP;  break;
+                    case PIC_START_CODE: state = PIC;  break;
+
+                    case SEQ_END_CODE:
+                        printf("\n\nEnd of sequence reached!!\n");
+                        /* Continuous to look for next sequence start code */
+                        seekSeqHdr(vidIn);
+                        state = SEQ;
+                        break;
+
+                    default:
+                        while (1) {
+                            SC = getNextStartCode(vidIn);
+                            if (SC==PIC_START_CODE)  state = PIC;  break;
+                            if (SC==GOP_START_CODE)  state = GOP;  break;
+                            if (SC==SEQ_START_CODE)  state = SEQ;  break;
+                        }
+                }
+                break;
+        }
+    }
+
+    if (displayFlag) {
+#ifdef UNIX
+	    exit_display();
+#else
+            closeDisplay();
+#endif
+    }
+}
+

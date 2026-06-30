@@ -1,0 +1,19 @@
+Input PMT:
+
+02 b0 28 00 01 c1 00 00 e1 e1 f0 00	: PMT hdr
+03 e1 e2 f0 06 0a 04 65 6e 67 00	: Pid 482
+81 e1 e3 f0 06 0a 04 66 72 61 00	: Pid 483
+02 e1 e1 f0 00				: Pid 481
+0e d9 3b 2c 				: CRC
+
+
+
+
+Input PMT:
+02 b0 28 00 01 c1 00 00 e1 e1 f0 00 03 e1 e2 f0 
+06 0a 04 65 6e 67 00 81 e1 e3 f0 06 0a 04 66 72 
+61 00 02 e1 e1 f0 00 0e d9 3b 2c 
+
+CA descriptor to insert:
+09 08 00 00 03 e8 aa bb cc dd 
+

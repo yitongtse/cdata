@@ -1,0 +1,17 @@
+* Input MPEG TS filename (string) * /auto/cproject/shared/szhu/miniVideoServer/data/CBR_3Mbps_2048pkt.mp2t
+* Input MPEG transport packet size (int) * 188
+* Bitrate (bps) (int) * 3000000
+* UDP destination port number (int) * 49152
+* Number of IP packets to generate (int) * 292
+* IP packet size (int) * 256
+* IP header size (int) * 32
+* MPEG-2 packets per IP (int) * 7
+* Output MPEG-2 packet size (int) * 32
+* PIDs to include (max 8) (int) * 4
+* PID (int) * 64
+* PID (int) * 65
+* PID (int) * 66
+* PID (int) * 89
+* Max network jitter (ms) (int) * 100
+* Random number generator seed (int) * 0
+* Output filename (string) * CBR_3M.ip3

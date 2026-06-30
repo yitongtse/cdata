@@ -1,0 +1,160 @@
+// For each input transport stream
+//
+RfQamTransportStream Entry {
+  Index
+  DestAddrType
+  DestAddress 		// * Need to modify description
+  UdpPort 
+  Type			// SPTS or MPTS
+  Rate			// declared rate, or measured rate?
+  PacketsDetected	// boolean
+  PsiDetected		// description missing!
+  SyncLoss		// counter
+  StartTime		// configuration, or stream being detected?
+  ResourceAllocated	// boolean
+  PsiNumPrograms	// number of programs
+  BitRate		// how is this different from Rate?
+}
+
+
+// PSI parameters of each input TS
+//   * How to handle MPTS??
+//
+RfQamInputProgPsi Entry {
+  Index
+  Number		// * Wrong name?!
+  PmtVersion
+  PmtPid
+  PcrPid
+  EcmPid
+  NumElems
+  NumEcms		// ?
+  CaDescr
+  Scte35Descr		// ?
+  PatVersion
+  CatVersion
+  NitPid
+  NumEmms		// ?
+  TSID
+}
+
+
+// For each ES
+//
+RfQamProgElemStream Entry {
+  Index
+  PID			// * Question on description
+  ProgNum		// how about shared PID?
+  Type
+  Descr			// * Why only CA descriptors!
+}
+
+
+// TS stats for each TS (for SPTS or MPTS)
+//
+RfQamStatsStream Entry {
+  Jitter		// need better description
+  JitterTimeStamp	// What is this????
+  PcrPackets
+  NonPcrPackets
+  DroppedPackets
+  CountinuityErrors
+  SyncLossPackets
+}
+
+
+// Packet insertion info
+//
+RfQamInsertPacket Entry {
+  Index
+  ListId
+  IdActive		// boolean: currently being inserted
+  ImmediateExecution
+  StartTime		// insert start time (if not immediately executed)
+  Repeat		// one-shot or continuous
+  ContinuousFlag	// * Should the Repeat field already take care of this??
+  Rate			// * Rate measured in what??
+}
+
+
+// For each QAM channel
+//  * Should these in the M-CMTS MIB?
+//
+RfQamChannel Entry {
+  Frequency
+  ModulationFormat
+  InterleaverLevel
+  InterleaverMode
+  Power
+  Squelch
+  ContWaveMode
+  AnnexMode
+}
+
+
+// MPEG and DOCSIS characteristics not in DOCSIS-IF-MIB
+//
+RfQamChannelCommon Entry {
+  OutputBw
+  HighWaterMark		// for trap triggering
+  Utilization		// percentage utilization
+}
+
+
+// Diags stats for each RF output
+//
+RfQamOutputStats Entry {
+  DroppedPackets	// num of MPEG packets dropped on this QAM channel
+  FifoOverflow
+  DataRate
+  AvailableBandwidth
+}
+
+
+// Output transport stream (SPTS?? and MPTS)
+//
+RfQamChannelTransportStream Entry {
+  Index
+  Type			// SPTS or MPTS
+  NumPrograms
+  TSID
+  NitPid
+  CaPid			// what is CA pid, ECM or EMM? how about more than 1?
+  CatInsertRate		// rate measured in what?
+  PatInsertRate
+  PmtInsertRate
+}
+
+
+// For each active session in session-based QAM.  Not for table-based QAM.
+//  - Where is table-based QAM addressed?
+//  - Why should they be handled differetnly?
+//
+RfQamSession Entry {
+  InputIpAddress	// confusing description!
+  RfQamChannelNumber
+}
+
+
+// For SDV session binding
+//  - how to support redundant multicast sources?
+//
+RfQamBinding Entry {
+  SessionId
+  InputProgNo
+  OutputProgNo
+  OverrideFlag
+  ProgBandwidth		// requested bandwidth
+  DestAddressType
+  DestAddress		// can be unicast or multicast
+  DestUdpPort
+}
+
+
+RfQamContentSource Entry {
+  rfQamBindingSourceAddressType
+  rfQamBindingSourceAddress
+  rfQamContentSourceRank	// primary, secondary, tertiary
+}
+
+

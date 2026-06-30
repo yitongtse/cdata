@@ -1,0 +1,142 @@
+NEED TO INCREASE PRECISION FOR TP_ITVL FOR MPTS CLOCK RECOVERY (F.12 to F.22)
+=============================================================================
+
+
+
+Notation:
+  Fixed point notation: Fx.y(z)
+  x: location of most significant bit, relative to the fixed point.
+     x >=0 for interger part, x<0 for fractional part
+  y: number of bits after the fixed point
+  z: (optional) location of least significant bits, relative to the fixed point
+     z >=0 for fractional part, z<0 for integer part
+
+E.g.:
+  F42.16: 42-bit integer part, 16-bit fractional part (fully used)
+          I.e. leftmost 6-bit of the varaible unused.
+  F42.16(4): Similar to above, with only 4 most significant fractional bits
+             used.  The others fractional bits should be 0.
+  F-10.16: 16-bit fractional part, with most significant 10 fractional bits
+           being 0 (or 1 for negative values)
+
+===============================
+
+pcr_time/arvl_time: 42 bit integer, no fraction
+pcr_inc: 24 bit integer (max about 1 sec)
+
+freq_adj: max +/- 10 ppm (2^-16),
+          resolution 0.075 Hz/sec => 2^-28 if PCRs are 1 sec apart.
+          For Annex B, inter TP time is ~38 us, so back to back PCR requires
+             a resolution of 2^-43.
+          For Annex A, inter TP time is ~29 us, so back to back PCR requires
+             a resolution of 2^-43.
+Let's say freq_adj is F-14.64
+
+tbo_drift = pcr_inc * freq_adj
+             F24.16  * F-14.64  ->  F10.64 -> F10.40
+Max drift between 2 PCR should be up to about 810 ticks,
+or within 10 bits integer.
+
+tbo_err is dominant by the tbo_in_diff term, assume F24.40
+
+tbo_err_norm = tbo_err / pcr_inc
+  The smallest pcr_inc is ~29 us (783 ticks), so tbo_err_norm is F16.48  
+
+Assuming tbo_err_lpf is the same as tbo_err_norm, F16.48
+
+freq_adj = tbo_err_lpf * loop_gain
+F-14.64      F16.48    *  (F0.64)  ->  F16.112 -> F0.64
+
+
+----------------
+
+Notes:
+    freq_adj is a ratio (without unit)
+    freq_adj < 30 ppm => F-15.x
+    We choose to use F-14.64 for freq_adj.
+
+    The drift rate is related to the minimal adjustment for freq_adj.
+    F-14.64 means adjustment resolution of 2^-64, which is far more than needed.
+  
+    pcr_inc in F24.16 means max PCR inc < ~600 msec.
+    freq_adj < 30 ppm =>
+
+----------------
+
+Notes:
+  The key is in tbo_err.  It needs to have 42 bit integer, and also very
+  accurate fractional part!
+
+  Maybe we should split it into two parts:  tbo_err to be precise enough
+  for the filtering, but also a rounding error part for accumulation.
+
+
+==============================================================================
+
+Simplificed clock recovery algo (for dynamic range study):
+
+    tbo_in = pcr_time - arvl_time;                          // 42 bits
+
+    // Drift estimate
+    pcr_inc = pcr_time - prev_pcr_time;                     // 24 bits
+    tbo_drift = pcr_inc * freq_adj;                         // 10 bits
+
+    // Scheduling
+    pcr_out_time_inc = pcr_inc - tbo_drift;                 
+    pcr_out_time = prev_pcr_out_time + pcr_out_time_inc;    
+    tp_itvl = pcr_out_time_inc / pcr_tp_idx_inc;            
+
+    // PLL update
+    tbo_err = tbo_in - tbo_est;                             // 24 bits
+    tbo_err_norm = tbo_err / pcr_inc;                       // 16 bits
+    tbo_err_lpf = LPF(tbo_err_norm);                        // 24 bits
+    freq_adj = tbo_err_lpf * loop_gain;                     // -12 bits
+
+    // Output
+    tbo_est = tbo_in - tbo_err;                             // 42 bits
+
+    LPF() {
+        tbo_err_diff = tbo_err_norm - tbo_err_lpf;          // 24 bits
+        tbo_err_lpf += tbo_err_diff * lpf_par;              // 24 bits
+    }
+
+==============================================================================
+
+Clock recovery algo:
+
+    tbo_in = pcr_time - arvl_time;                  // F42.0
+
+    // Drift estimate
+    pcr_inc = pcr_time - prev_pcr_time;             // F24.0
+    tbo_drift += pcr_inc * freq_adj;                // F24.0 * F-12.64
+                                         (>> 12)    // => F12.64 => F12.52
+    tbo_drift_quant = quant(tbo_drift);             // F12.40
+    tbo_drift -= tbo_drift_quant;                   // F-40.52
+
+    // Scheduling
+    pcr_out_time_inc = pcr_inc - tbo_drift_quant;   // F24.40
+    pcr_out_time = prev_pcr_out_time
+                       + pcr_out_time_inc;          // (needs alignment)
+    tp_itvl = pcr_out_time_inc / pcr_tp_idx_inc;    // F.12 of 45 kHz ticks
+
+    // PLL update
+    tbo_in_diff = tbo_in - prev_tbo_in;             // F24.0
+    tbo_err += tbo_in_diff - tbo_drift_quant;       // F24.40
+    tbo_err_norm = tbo_err / pcr_inc;               // F24.40 / F9 => F16.40
+    tbo_err_lpf = LPF(tbo_err_norm);                // F16.40
+    freq_adj = tbo_err_lpf * loop_gain;             // F16.40 * F0.24 
+                                                    // => F16.64
+
+    // Output
+    tbo_est = tbo_in - tbo_err;                     // required F42.0
+
+    LPF() {
+        tbo_err_diff = tbo_err_norm - tbo_err_lpf;  // F16.40
+        tbo_err_lpf += tbo_err_diff * lpf_par;      // F16.40 * F0.24
+                                         (>> 24)    // => F16.64 => F16.40
+    }
+
+Note: lpf_par, loop_gain, max_freq_adj are in F0.24
+
+
+

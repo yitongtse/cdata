@@ -1,0 +1,4 @@
+* Input filename (string) * /users/ytse/Shared/IP_capture/TomorrowNeverDies.csv
+* Output IP/UDP/MPEG filename (string) * test.ip
+* Output ATS filename (string) * test.ats
+* Output TP info filename (string) * test.info

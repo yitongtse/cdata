@@ -1,0 +1,33 @@
+Society of Cable Telecommunications Engineers Inc.
+www.scte.org
+
+-------------------------
+
+# Set environment variables
+export LD_LIBRARY_PATH=/lib64:/tmp/sw/cc/3/0/clc_video/mount/usr/binos/lib64:/tmp/sw/cc/3/0/clc_docsis/mount/usr/lib64
+export PATH=$PATH:/harddisk/tmp/mips:/tmp/sw/cc/3/0/clc_video/mount/usr/binos/bin:/tmp/sw/cc/3/0/clc_docsis/mount/usr/binos/bin
+export BINOS_CHASFS_ROOT=/tmp/cc/chasfs
+export BINOS_FRU_LOCAL=BINOS_FRU_CC
+export BINOS_SLOT_LOCAL=3
+export BINOS_BAY_LOCAL=0
+export SW_FRU_BASE=/tmp/sw/cc/3/0/clc_docsis/mount
+
+# Launch video server
+video_srv.sh
+
+# Start CLI
+ng_cli 127.0.0.1
+
+# Config the video session
+video add session 0 in 0 ip 1.1.1.1 udp 1-2 bitrate 3750000 jitter 100 qam 8 program 1-2
+
+# Turn on QAM 8 output
+video set qam 8 enable on
+
+# Check session status
+video show qam 8 flow
+
+# To exit ng_cli
+exit
+
+

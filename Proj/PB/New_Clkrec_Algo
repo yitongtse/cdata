@@ -1,0 +1,216 @@
+10/8/2004
+
+This algorithm is designed to handling rate changes.
+
+Dejittering filter will be removed to reduce complexity.
+Should have minimal impact in performance.
+
+(Q: Is normalization necessary?)
+
+** May want to run PLL and do time base tracking and adjustment
+   even in VBR mode.  Need to recalculate delay on PCR in VBR mode.
+   (This is already been done.  Since we will always switch back to
+    CBR mode on the 2nd PCR!!)
+
+Move most clock recovery related variable to static variables in pb_clkrec,
+instead of in clkrec_info_t.  This should save some memory.
+
+There are two modes of operations: CBR and VBR.
+
+
+In VBR mode:
+  non-PCR TP: out_time = arvl_time + delay
+  PCR TP:     out_time = prev_pcr_out_time + pcr_inc
+
+
+In CBR mode:
+  non-PCR TP: out_time = prev_out_time + out_tpi
+              (Note: prev_out_time is the out_time, not adj_out_time!)
+
+  PCR TP:     out_time = prev_pcr_out_time + pcr_inc + est_tb_drift
+  If out_time <= prev_out_time, adj_out_time = prev_out_time + min_out_tpi
+
+
+PCR out_time adjustment:
+  If out_time <= prev_out_time, adj_out_time = prev_out_time + min_out_tpi
+  This should not trigger out timebase adjustment
+
+Buffer violation detection:
+  For PCR TP, if out_time cause underflow or overflow,
+  adjust out timebase and set discontinuity indicator.
+    new_out_time = arvl_time + sys_delay
+
+  For non-PCR TP, buffer underflow or overflow can only happen in CBR mode.
+  If out_time cause underflow or overflow, switch to VBR mode.
+  
+  For VBR mode, non-PCR TP's out_time = arvl_time + delay.
+  As long as delay does not cause buffer underflow or overflow,
+  the out_time should be fine.
+
+
+Switch from CBR to VBR mode:
+  - when a non-PCR TP has buffer violation
+  - when bitrate change is detected on a PCR TP (??)
+    (Q: should we only switch to VBR on non_PCR buffer violation?)
+
+  Need to set delay:
+    delay = prev_pcr_out_time - prev_pcr_arvl_time
+
+
+Switch from VBR to CBR mode:
+  - when two PCRs are found
+      out_tpi = (pcr_inc + est_tb_drift) / pcr_tp_idx_inc
+
+======================================================================
+
+Pseudo code:
+
+
+clkrec_init_group()
+{
+    tp_found = FALSE;
+    pcr_found = FALSE;
+    cbr_mode = FALSE;
+    new_timebase = TRUE;
+    reset_pll();
+}
+
+
+reset_pll()
+{
+    err_tbo = 0;
+    filt_err_tbo = 0;
+    freq_adj = 0;
+
+    delay = sys_delay;
+}
+
+
+check_out_time()
+{
+    check for backward delivery time
+    check for out_time rollover
+}
+
+
+clkrec_pcr_tp()
+{
+    in_tbo = pcr_time - arvl_time;
+
+    if (pcr_found) {
+        pcr_inc = pcr_time - prev_pcr_time;
+
+        check for pcr_jump or timebase_discontuty;
+        if (pcr_jump || timebase_dicontinuity) {
+            new_timebase = TRUE;
+            delay = sys_delay;
+        }
+    }
+
+    if (!new_timebase) {
+        // Time base drift estimation
+        tbo_drift = pcr_inc * freq_adj;
+        out_pcr_inc = pcr_inc + tbo_drift;
+
+        // Update output TP interval for non-PCR TPs (extrapolation)
+        out_tpi = out_pcr_inc / pcr_tp_idx_inc;
+
+        // PLL update
+        est_tbo += tbo_drift;
+        err_tbo = in_tbo - est_tbo;
+        norm_err_tbo = err_tbo / pcr_inc;
+        clkrec_loop_filter();
+        new_freq_adj = loop_gain * filt_err_tbo;
+        clkrec_clamp_freq_adj(&new_freq_adj);
+        freq_adj = new_freq;
+
+        // Compute delivery time based on PCR increment
+        out_time = prev_pcr_out_time + out_pcr_inc;
+        stay_time = out_time - arvl_time;
+
+        // Check for buffer violation
+        check_buffer_violation();
+        if (underflow || overflow) {
+            new_timebase = TRUE;
+            set discontinuity flag
+            delay = sys_delay;
+        }
+    }
+
+    if (new_timebase) {
+        // Initialize/Reset timebase offset
+        est_tbo = in_tbo;
+
+        // Compute delivery time
+        out_time = arvl_time + delay;
+        stay_time = delay;
+    }
+
+    check_out_time();
+
+    // Set delivery time
+    p_tp->shr.out_time = out_time;
+
+    // PCR correction offset calculation
+    set_out_tbo();
+
+    // Updating
+    tp_udpate();
+    pcr_update();
+}
+
+
+clkrec_non_pcr_tp()
+{
+    if (cbr_mode) {
+        out_time = prev_out_time + out_tpi;
+        check_buffer_violation();
+        if (buffer_underflow || buffer_overflow) {
+            cbr_mode = FALSE;
+            delay = prev_pcr_stay_time;
+        }
+
+    } else {
+        out_time = arvl_time + delay;
+    }
+
+    check_out_time();
+
+    // Set delivery time
+    p_tp->shr.out_time = out_time;
+
+    // Updating
+    tp_update();
+}
+
+
+clkrec_slave_pcr_tp()
+{
+    if (cbr_mode) {
+        out_time = prev_out_time + out_tpi;
+    } else {
+        out_time = arvl_time + delay;
+    }
+
+    check_out_time();
+
+    out_tbo = pcr_time - adj_out_time
+}
+
+
+check_buffer_violation()
+{
+    stay_time = out_time - arvl_time;
+    if (stay_time < min_stay_time)  buffer_underflow;
+    if (stay_time > max_stay_time)  buffer_overflow;
+}
+
+
+pcr_update ()
+{
+    Update:
+        prev_pcr_tp_idx
+        prev_pcr_time
+        prev_pcr_out_time
+        prev_pcr_stay_time
+}

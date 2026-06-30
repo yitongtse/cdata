@@ -1,0 +1,16 @@
+* Source parameters:
+* Number of transport packets to generate (int) * 10000
+* Reference clock frequency (Hz) (float) * 10240000
+* Source clock frequency (Hz) (float) * 10240100
+* Packet rate (Hz) (float) * 25798
+* Initial timestamp value (int) * 0
+* Min packets per timestamp (int) * 5
+* Max packets per timestamp (int) * 10
+* 
+* IP network parameters:
+* Number of TPs per IP (int) * 7
+* Min IP network delay (us) (float) * 200
+* Max IP network delay (us) (float) * 1000
+* IP delay skew factor (int) * 2
+* 
+* Output filename (string) * tp_info.dat

@@ -1,0 +1,97 @@
+head	1.1;
+access;
+symbols;
+locks
+	ytse:1.1; strict;
+comment	@ * @;
+
+
+1.1
+date	2010.12.03.21.05.42;	author ytse;	state Exp;
+branches;
+next	;
+
+
+desc
+@DPAA API
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@// DPAA Frame Descriptor (FD)
+//   See Sec 21.3.1.1
+//
+typedef struct {
+    uint32 dd : 2;              // debug trace mode
+    uint32 pid : 6;             // partition ID
+    uint32 bpid : 8;            // buffer pool ID
+    uint32 addr_hi : 16;        // frame address (upper 8 bits)
+    uint32 addr_lo;             // frame address (lower 8 bits)
+    uint32 format : 3;          // frame format
+    uint32 offset : 9;          // frame offset
+    uint32 length : 20;         // frame length
+    uint32 status_cmd;          // frame status / command
+} dpaa_fd_t;
+
+
+// DPAA Buffer Descriptor
+//   See Sec 22.3.3.5.4
+//
+typedef struct {
+    uint8 verb;
+    uint8 bpid;
+    uint16 addr_hi;
+    uint32 addr_lo;
+} dpaa_buf_t;
+
+
+
+// Free buffers to a portal
+//
+// Assumptions:
+//   - will use PI write mode, cache-enabled for production notification
+//   - will support freeing of up to 8 buffers with different BPIDs
+//   - non-blocking call
+//
+// Return codes:
+//   - EOK: successful
+//   - EINVAL: bad input parameters
+//   - EAGAIN: RCR is currently full, should retry later
+//
+int dpaa_release_buffer(dpaa_portal_t *portal, dpaa_buf_t *buf, int num_buf);
+
+
+// Dequeue a frame from a portal
+//
+// Assumptions:
+//   - will support dequeueing from portal only
+//   - will support DQRR scheduled Push Mode only
+//   - non-blocking call
+//
+// Return codes:
+//   - EOK: successful
+//   - EINVAL: bad input parameters
+//   - EAGAIN: No frame currently available
+//
+int dpaa_dequeue_frame(dpaa_portal_t *portal, dpaa_fd_t *fd);
+
+
+// Enqueue a frame to a Frame Queue
+//
+// Assumptions:
+//   - will use PI write mode, cache-enabled for ENCR production notification
+//   - non-blocking call
+//
+// Return codes:
+//   - EOK: successful
+//   - EINVAL: bad input parameters
+//   - EAGAIN: ENCR currently full, should retry later
+//
+int dpaa_enqueue_frame(dpaa_portal_t *portal, dpaa_fq_t *fq, dpaa_fd_t *fd);
+
+
+@

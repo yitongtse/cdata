@@ -1,0 +1,1025 @@
+Switch#test ping status 3
+
+Ping Statistics for slot [3]:
+                                                supervisor  linecard
+                                                reported    reported
+packets     packets     data        data        crc         crc
+sent        received    sent        received    errors      errors
+==========  ==========  ==========  ==========  ==========  ==========
+13273163    13273163    46365158624077  15927795600  0           0
+
+total elapsed time: 00028800 seconds
+
+
+Switch#test ping status 5
+
+Ping Statistics for slot [5]:
+                                                supervisor  linecard
+                                                reported    reported
+packets     packets     data        data        crc         crc
+sent        received    sent        received    errors      errors
+==========  ==========  ==========  ==========  ==========  ==========
+12920966    12920966    45380739108679  15505159200  0           0
+
+total elapsed time: 00028800 seconds
+
+
+Switch#test ping status 7
+
+Ping Statistics for slot [7]:
+                                                supervisor  linecard
+                                                reported    reported
+packets     packets     data        data        crc         crc
+sent        received    sent        received    errors      errors
+==========  ==========  ==========  ==========  ==========  ==========
+12290193    12290193    46291941905384  14748231600  0           0
+
+total elapsed time: 00028800 seconds
+
+
+Switch#test ping status 11
+
+Ping Statistics for slot [11]:
+                                                supervisor  linecard
+                                                reported    reported
+packets     packets     data        data        crc         crc
+sent        received    sent        received    errors      errors
+==========  ==========  ==========  ==========  ==========  ==========
+10037160    10037160    43400964382637  12044592000  0           0
+
+total elapsed time: 00028800 seconds
+
+
+Switch#test ping status 12
+
+Ping Statistics for slot [12]:
+                                                supervisor  linecard
+                                                reported    reported
+packets     packets     data        data        crc         crc
+sent        received    sent        received    errors      errors
+==========  ==========  ==========  ==========  ==========  ==========
+12782271    12782271    44476276477469  15338725200  0           0
+
+total elapsed time: 00028800 seconds
+
+
+Switch#test ping status 13
+
+Ping Statistics for slot [13]:
+                                                supervisor  linecard
+                                                reported    reported
+packets     packets     data        data        crc         crc
+sent        received    sent        received    errors      errors
+==========  ==========  ==========  ==========  ==========  ==========
+2029605     2029605     40749190132198  2435526000  0           0
+
+total elapsed time: 00028800 seconds
+
+
+Switch#test ping status 14
+
+Ping Statistics for slot [14]:
+                                                supervisor  linecard
+                                                reported    reported
+packets     packets     data        data        crc         crc
+sent        received    sent        received    errors      errors
+==========  ==========  ==========  ==========  ==========  ==========
+2244811     2244811     42994423902399  2693773200  0           0
+
+total elapsed time: 00028800 seconds
+
+
+Switch#
+
+Switch#sh controller
+Mac Statistics:
+--------------
+8540 MAC: Supervisor EOBC port
+Restarts: 1
+Internal errors: 0
+Interrupts: 164879961
+MAC address:02:00:00:00:01:00
+Phy status:
+100Mbps Half Duplex
+
+Queue Statistics:
+----------------
+Current queue occupancy:0
+Max queue occupancy:    12
+
+Receive Statistics:
+------------------
+Software byte count:    831357092
+Hardware byte count:    0
+Software packet count:  131386052
+Hardware packet count:  0
+Drop Count:             0
+No buffers available:   0
+Pause frames count:     0
+Control frames count:   0
+FCS Error:              0
+Unknown Opcode:         0
+Alignment Error:        0
+Code Error:             0
+Carrier Sense Error:    0
+Too Long Error:         0
+Too Short Error:        0
+CRC Error:              0
+Overrun Error:          0
+Truncation Error:       0
+
+Transmit Statistics:
+-------------------
+Software byte count:    4195340778
+Hardware byte count:    0
+Software packet count:  131641107
+Hardware packet count:  0
+Drop count:             0
+Pause frames count:     0
+Control frames count:   0
+Collisions:             0
+FCS Errors:             0
+
+_____________________________________________________________________________
+
+SLOT 3
+
+localhost#nicinfo
+MPC85XX TSEC Ethernet Controller
+
+  Physical Node ID ........................... 020000 000300
+  Current Physical Node ID ................... 020000 000300
+  Current Operation Rate ..................... 100.00 Mb/s half-duplex
+  Active Interface Type ...................... MII
+    Active PHY address ....................... 2
+  Maximum Transmittable data Unit ............ 1514
+  Maximum Receivable data Unit ............... 1514
+  Hardware Interrupt ......................... 0xf
+  Hardware Interrupt ......................... 0x10
+  Hardware Interrupt ......................... 0x11
+  Memory Aperture ............................ 0xe0026000 - 0xe0026fff
+  Promiscuous Mode ........................... Off
+  Multicast Support .......................... Enabled
+
+  Packets Transmitted OK ..................... 26647476
+  Bytes Transmitted OK ....................... 17897154253
+
+  Packets Received OK ........................ 236921445
+  Bytes Received OK .......................... 157056680173
+
+  Single Collisions on Transmit .............. 1957939
+  Multiple Collisions on Transmit ............ 1905272
+  Deferred Transmits ......................... 0
+  Late Collision on Transmit errors .......... 0
+  Transmits aborted (excessive collisions) ... 504
+  Transmits aborted (excessive deferrals) .... 0
+  Transmit Underruns ......................... 0
+  Jabber detected ............................ 0
+  Receive Alignment errors ................... 0
+  Received packets with CRC errors ........... 0
+  Packets Dropped on receive ................. 234615
+  Ethernet Header length field mismatches .... 0
+  Ethernet Headers out of range .............. 0
+  Oversized Packets received ................. 0
+  Short packets .............................. 0
+  Total Frames experiencing Collison(s) ...... 4995348
+localhost#cat /ipc/port/Seatmgr
+Port table:
+  [Seatmgr] id 02030003, spid 40972, flags: local, static
+  [Gateway] id 02030004, spid 40972, flags: remote, static
+  [IpcBootstrap] id 02030022, spid 36872, flags: local
+  [RFGW: control] id 0001001f, spid 40972, flags: remote, reg
+  [RFGW: lc 3:control] id 02030023, spid 36872, flags: local, reg
+  [RFGW: lc 3:image upgrade] id 02030024, spid 77838, flags: local, reg
+  [RFGW: image upgrade] id 0001001b, spid 40972, flags: remote
+  [RFGW: lc 3:ping] id 02030025, spid 77839, flags: local, reg
+  [RFGW: lc 3:rfs] id 02030026, spid 77840, flags: local, reg
+  [RFGW: lc 3:info] id 02030027, spid 77841, flags: local, reg
+  [RFGW: lc 3:lcred] id 02030028, spid 77842, flags: local, reg
+  [RFGW: lc 3:mb hw control] id 02030029, spid 77843, flags: local, reg
+  [RFGW: lc 3:mb tsec control] id 0203002a, spid 77844, flags: local
+  [RFGW: lc 3:mb depi plane] id 0203002b, spid 77845, flags: local, reg
+  [RFGW: lc 3:mb video config] id 0203002c, spid 77846, flags: local, reg
+  [video_cli] id 0203002d, spid 77846, flags: local
+  [RFGW: config control] id 00010022, spid 40972, flags: remote
+  [RFGW: config control] id 00010022, spid 40972, flags: remote
+
+Outgoing session table:
+  cln pid 36872, port 0001001f, index 1
+  cln pid 77845, port 00010022, index 7
+  cln pid 77846, port 00010022, index 8
+
+Incoming session table:
+  port 02030029, index 3, last heard 0, last ack 0
+  port 02030025, index 1, last heard 0, last ack 0
+
+Process table:
+  pid 40972, fd -1
+  pid 36872, fd 12
+  pid 77838, fd 14
+  pid 77839, fd 18
+  pid 77840, fd 19
+  pid 77841, fd 20
+  pid 77842, fd 22
+  pid 77843, fd 24
+  pid 77844, fd -1
+  pid 77845, fd 27
+  pid 77846, fd 29
+
+Out que: 0
+
+Control message retry statistics: 13218104 54928 158 0 0 0 0 0 0
+Dropped rx messages: 0
+Unforwarded rx messages: 0
+Dropped ACKs: 3
+Skipped ACKs: 14
+
+Port info:
+  Port id 02030003, pid 40972
+
+Session table:
+  Index 1, cpid 36872, fd 9, last ACK 12
+      rx 0, proc 12, drop 0
+  Index 2, cpid 77838, fd 13, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 3, cpid 77839, fd 15, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 4, cpid 77840, fd 16, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 5, cpid 77841, fd 17, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 6, cpid 77842, fd 21, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 7, cpid 77843, fd 23, last ACK 5
+      rx 0, proc 5, drop 0
+  Index 8, cpid 77844, fd 25, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 9, cpid 77845, fd 26, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 10, cpid 77846, fd 28, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 11, cpid 86039, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Total: 11 sessions, rx 0, proc 53, drop 0
+
+Pools: msgBuf 272, ipcMsg 256
+Queues: rx 0, tx 0
+Rx ack 0
+
+Retry statistics: 0 0 0 0 0 0 0 0 0
+localhost#
+
+____________________________________________________________________________-
+
+SLOT 5
+
+localhost#nicinfo
+MPC85XX TSEC Ethernet Controller
+
+  Physical Node ID ........................... 020000 000300
+  Current Physical Node ID ................... 020000 000500
+  Current Operation Rate ..................... 100.00 Mb/s half-duplex
+  Active Interface Type ...................... MII
+    Active PHY address ....................... 2
+  Maximum Transmittable data Unit ............ 1514
+  Maximum Receivable data Unit ............... 1514
+  Hardware Interrupt ......................... 0xf
+  Hardware Interrupt ......................... 0x10
+  Hardware Interrupt ......................... 0x11
+  Memory Aperture ............................ 0xe0026000 - 0xe0026fff
+  Promiscuous Mode ........................... Off
+  Multicast Support .......................... Enabled
+
+  Packets Transmitted OK ..................... 25946027
+  Bytes Transmitted OK ....................... 17430681313
+
+  Packets Received OK ........................ 237472528
+  Bytes Received OK .......................... 157455165822
+
+  Single Collisions on Transmit .............. 1905965
+  Multiple Collisions on Transmit ............ 1855095
+  Deferred Transmits ......................... 0
+  Late Collision on Transmit errors .......... 0
+  Transmits aborted (excessive collisions) ... 34
+  Transmits aborted (excessive deferrals) .... 0
+  Transmit Underruns ......................... 0
+  Jabber detected ............................ 0
+  Receive Alignment errors ................... 0
+  Received packets with CRC errors ........... 0
+  Packets Dropped on receive ................. 225746
+  Ethernet Header length field mismatches .... 0
+  Ethernet Headers out of range .............. 0
+  Oversized Packets received ................. 0
+  Short packets .............................. 0
+  Total Frames experiencing Collison(s) ...... 6339051
+localhost#cat /ipc/port/Seatmgr
+Port table:
+  [Seatmgr] id 02050003, spid 40972, flags: local, static
+  [Gateway] id 02050004, spid 40972, flags: remote, static
+  [IpcBootstrap] id 02050022, spid 36872, flags: local
+  [RFGW: control] id 0001001f, spid 40972, flags: remote
+  [RFGW: lc 5:control] id 02050023, spid 36872, flags: local, reg
+  [RFGW: lc 5:image upgrade] id 02050024, spid 77838, flags: local, reg
+  [RFGW: image upgrade] id 0001001b, spid 40972, flags: remote
+  [RFGW: lc 5:ping] id 02050025, spid 77839, flags: local, reg
+  [RFGW: lc 5:rfs] id 02050026, spid 77840, flags: local, reg
+  [RFGW: lc 5:info] id 02050027, spid 77841, flags: local, reg
+  [RFGW: lc 5:lcred] id 02050028, spid 77842, flags: local, reg
+  [RFGW: lc 5:mb hw control] id 02050029, spid 77843, flags: local, reg
+  [RFGW: lc 5:mb tsec control] id 0205002a, spid 77844, flags: local
+  [RFGW: lc 5:mb depi plane] id 0205002b, spid 77845, flags: local, reg
+  [RFGW: lc 5:mb video config] id 0205002c, spid 77846, flags: local, reg
+  [video_cli] id 0205002d, spid 77846, flags: local
+  [RFGW: config control] id 00010022, spid 40972, flags: remote
+  [RFGW: config control] id 00010022, spid 40972, flags: remote
+
+Outgoing session table:
+  cln pid 36872, port 0001001f, index 0
+  cln pid 77845, port 00010022, index 5
+  cln pid 77846, port 00010022, index 9
+
+Incoming session table:
+  port 02050029, index 4, last heard 0, last ack 0
+  port 02050025, index 1, last heard 0, last ack 0
+
+Process table:
+  pid 40972, fd -1
+  pid 36872, fd 12
+  pid 77838, fd 14
+  pid 77839, fd 18
+  pid 77840, fd 19
+  pid 77841, fd 20
+  pid 77842, fd 22
+  pid 77843, fd 24
+  pid 77844, fd -1
+  pid 77845, fd 27
+  pid 77846, fd 29
+
+Out que: 0
+
+Control message retry statistics: 12863003 57837 153 0 0 0 0 0 0
+Dropped rx messages: 0
+Unforwarded rx messages: 0
+Dropped ACKs: 3
+Skipped ACKs: 32
+
+Port info:
+  Port id 02050003, pid 40972
+
+Session table:
+  Index 1, cpid 36872, fd 9, last ACK 11
+      rx 0, proc 11, drop 0
+  Index 2, cpid 77838, fd 13, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 3, cpid 77839, fd 15, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 4, cpid 77840, fd 16, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 5, cpid 77841, fd 17, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 6, cpid 77842, fd 21, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 7, cpid 77843, fd 23, last ACK 5
+      rx 0, proc 5, drop 0
+  Index 8, cpid 77844, fd 25, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 9, cpid 77845, fd 26, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 10, cpid 77846, fd 28, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 11, cpid 86039, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Total: 11 sessions, rx 0, proc 52, drop 0
+
+Pools: msgBuf 271, ipcMsg 256
+Queues: rx 0, tx 0
+Rx ack 0
+
+Retry statistics: 0 0 0 0 0 0 0 0 0
+localhost#
+
+______________________________________________________________________________________
+
+SLOT 7
+
+localhost#nicinfo
+MPC85XX TSEC Ethernet Controller
+
+  Physical Node ID ........................... 020000 000300
+  Current Physical Node ID ................... 020000 000700
+  Current Operation Rate ..................... 100.00 Mb/s half-duplex
+  Active Interface Type ...................... MII
+    Active PHY address ....................... 2
+  Maximum Transmittable data Unit ............ 1514
+  Maximum Receivable data Unit ............... 1514
+  Hardware Interrupt ......................... 0xf
+  Hardware Interrupt ......................... 0x10
+  Hardware Interrupt ......................... 0x11
+  Memory Aperture ............................ 0xe0026000 - 0xe0026fff
+  Promiscuous Mode ........................... Off
+  Multicast Support .......................... Enabled
+
+  Packets Transmitted OK ..................... 24689141
+  Bytes Transmitted OK ....................... 16617414675
+
+  Packets Received OK ........................ 238864464
+  Bytes Received OK .......................... 158360951268
+
+  Single Collisions on Transmit .............. 2146340
+  Multiple Collisions on Transmit ............ 2116502
+  Deferred Transmits ......................... 0
+  Late Collision on Transmit errors .......... 0
+  Transmits aborted (excessive collisions) ... 577
+  Transmits aborted (excessive deferrals) .... 0
+  Transmit Underruns ......................... 0
+  Jabber detected ............................ 0
+  Receive Alignment errors ................... 0
+  Received packets with CRC errors ........... 0
+  Packets Dropped on receive ................. 233484
+  Ethernet Header length field mismatches .... 0
+  Ethernet Headers out of range .............. 0
+  Oversized Packets received ................. 0
+  Short packets .............................. 0
+  Total Frames experiencing Collison(s) ...... 1667863
+localhost#cat /ipc/port/Seatmgr
+Port table:
+  [Seatmgr] id 02070003, spid 65548, flags: local, static
+  [Gateway] id 02070004, spid 65548, flags: remote, static
+  [IpcBootstrap] id 02070022, spid 61448, flags: local
+  [RFGW: control] id 0001001f, spid 65548, flags: remote
+  [RFGW: lc 7:control] id 02070023, spid 61448, flags: local, reg
+  [RFGW: lc 7:image upgrade] id 02070024, spid 102414, flags: local, reg
+  [RFGW: image upgrade] id 0001001b, spid 65548, flags: remote
+  [RFGW: lc 7:ping] id 02070025, spid 102415, flags: local, reg
+  [RFGW: lc 7:rfs] id 02070026, spid 102416, flags: local, reg
+  [RFGW: lc 7:info] id 02070027, spid 102417, flags: local, reg
+  [RFGW: lc 7:lcred] id 02070028, spid 102418, flags: local, reg
+  [RFGW: lc 7:mb hw control] id 02070029, spid 102419, flags: local, reg
+  [RFGW: lc 7:mb tsec control] id 0207002a, spid 102420, flags: local
+  [RFGW: lc 7:mb depi plane] id 0207002b, spid 102421, flags: local, reg
+  [RFGW: lc 7:mb video config] id 0207002c, spid 102422, flags: local, reg
+  [video_cli] id 0207002d, spid 102422, flags: local
+  [RFGW: config control] id 00010022, spid 65548, flags: remote
+
+Outgoing session table:
+  cln pid 61448, port 0001001f, index 3
+  cln pid 102421, port 00010022, index 0
+  cln pid 102422, port 00010022, index 1
+
+Incoming session table:
+  port 02070029, index 4, last heard 0, last ack 0
+  port 02070025, index 1, last heard 0, last ack 0
+
+Process table:
+  pid 65548, fd -1
+  pid 61448, fd 12
+  pid 102414, fd 14
+  pid 102415, fd 18
+  pid 102416, fd 19
+  pid 102417, fd 20
+  pid 102418, fd 22
+  pid 102419, fd 24
+  pid 102420, fd -1
+  pid 102421, fd 27
+  pid 102422, fd 29
+
+Out que: 0
+
+Control message retry statistics: 12227589 62460 167 1 0 0 0 0 0
+Dropped rx messages: 0
+Unforwarded rx messages: 0
+Dropped ACKs: 3
+Skipped ACKs: 19
+
+Port info:
+  Port id 02070003, pid 65548
+
+Session table:
+  Index 1, cpid 61448, fd 9, last ACK 10
+      rx 0, proc 10, drop 0
+  Index 2, cpid 102414, fd 13, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 3, cpid 102415, fd 15, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 4, cpid 102416, fd 16, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 5, cpid 102417, fd 17, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 6, cpid 102418, fd 21, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 7, cpid 102419, fd 23, last ACK 5
+      rx 0, proc 5, drop 0
+  Index 8, cpid 102420, fd 25, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 9, cpid 102421, fd 26, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 10, cpid 102422, fd 28, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 11, cpid 110615, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Total: 11 sessions, rx 0, proc 51, drop 0
+
+Pools: msgBuf 271, ipcMsg 256
+Queues: rx 0, tx 0
+Rx ack 0
+
+Retry statistics: 0 0 0 0 0 0 0 0 0
+localhost#
+
+__________________________________________________________________________
+
+SLOT 11
+
+localhost#nicinfo
+MPC85XX TSEC Ethernet Controller
+
+  Physical Node ID ........................... 020000 000300
+  Current Physical Node ID ................... 020000 000B00
+  Current Operation Rate ..................... 100.00 Mb/s half-duplex
+  Active Interface Type ...................... MII
+    Active PHY address ....................... 2
+  Maximum Transmittable data Unit ............ 1514
+  Maximum Receivable data Unit ............... 1514
+  Hardware Interrupt ......................... 0xf
+  Hardware Interrupt ......................... 0x10
+  Hardware Interrupt ......................... 0x11
+  Memory Aperture ............................ 0xe0026000 - 0xe0026fff
+  Promiscuous Mode ........................... Off
+  Multicast Support .......................... Enabled
+
+  Packets Transmitted OK ..................... 20203239
+  Bytes Transmitted OK ....................... 13606055634
+
+  Packets Received OK ........................ 242794541
+  Bytes Received OK .......................... 161034834557
+
+  Single Collisions on Transmit .............. 1660374
+  Multiple Collisions on Transmit ............ 1635202
+  Deferred Transmits ......................... 0
+  Late Collision on Transmit errors .......... 0
+  Transmits aborted (excessive collisions) ... 462
+  Transmits aborted (excessive deferrals) .... 0
+  Transmit Underruns ......................... 0
+  Jabber detected ............................ 0
+  Receive Alignment errors ................... 0
+  Received packets with CRC errors ........... 0
+  Packets Dropped on receive ................. 201922
+  Ethernet Header length field mismatches .... 0
+  Ethernet Headers out of range .............. 0
+  Oversized Packets received ................. 0
+  Short packets .............................. 0
+  Total Frames experiencing Collison(s) ...... 5476912
+localhost#cat /ipc/port/Seatmgr
+Port table:
+  [Seatmgr] id 020b0003, spid 40972, flags: local, static
+  [Gateway] id 020b0004, spid 40972, flags: remote, static
+  [IpcBootstrap] id 020b0022, spid 36872, flags: local
+  [RFGW: control] id 0001001f, spid 40972, flags: remote
+  [RFGW: lc 11:control] id 020b0023, spid 36872, flags: local, reg
+  [RFGW: lc 11:image upgrade] id 020b0024, spid 77838, flags: local, reg
+  [RFGW: image upgrade] id 0001001b, spid 40972, flags: remote
+  [RFGW: lc 11:ping] id 020b0025, spid 77839, flags: local, reg
+  [RFGW: lc 11:rfs] id 020b0026, spid 77840, flags: local, reg
+  [RFGW: lc 11:info] id 020b0027, spid 77841, flags: local, reg
+  [RFGW: lc 11:lcred] id 020b0028, spid 77842, flags: local, reg
+  [RFGW: lc 11:mb hw control] id 020b0029, spid 77843, flags: local, reg
+  [RFGW: lc 11:mb tsec control] id 020b002a, spid 77844, flags: local
+  [RFGW: lc 11:mb depi plane] id 020b002b, spid 77845, flags: local, reg
+  [RFGW: lc 11:mb video config] id 020b002c, spid 77846, flags: local, reg
+  [video_cli] id 020b002d, spid 77846, flags: local
+  [RFGW: config control] id 00010022, spid 40972, flags: remote, reg
+
+Outgoing session table:
+  cln pid 36872, port 0001001f, index 2
+  cln pid 77845, port 00010022, index 4
+  cln pid 77846, port 00010022, index 6
+
+Incoming session table:
+  port 020b0029, index 4, last heard 0, last ack 0
+  port 020b0025, index 1, last heard 0, last ack 0
+
+Process table:
+  pid 40972, fd -1
+  pid 36872, fd 12
+  pid 77838, fd 14
+  pid 77839, fd 16
+  pid 77840, fd 19
+  pid 77841, fd 20
+  pid 77842, fd 22
+  pid 77843, fd 24
+  pid 77844, fd -1
+  pid 77845, fd 27
+  pid 77846, fd 29
+
+Out que: 0
+
+Control message retry statistics: 9954641 82214 326 5 0 0 0 0 0
+Dropped rx messages: 0
+Unforwarded rx messages: 0
+Dropped ACKs: 4
+Skipped ACKs: 12
+
+Port info:
+  Port id 020b0003, pid 40972
+
+Session table:
+  Index 1, cpid 36872, fd 9, last ACK 10
+      rx 0, proc 10, drop 0
+  Index 2, cpid 77838, fd 13, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 3, cpid 77839, fd 15, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 4, cpid 77840, fd 17, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 5, cpid 77841, fd 18, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 6, cpid 77842, fd 21, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 7, cpid 77843, fd 23, last ACK 5
+      rx 0, proc 5, drop 0
+  Index 8, cpid 77844, fd 25, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 9, cpid 77845, fd 26, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 10, cpid 77846, fd 28, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 11, cpid 86039, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Total: 11 sessions, rx 0, proc 51, drop 0
+
+Pools: msgBuf 271, ipcMsg 256
+Queues: rx 0, tx 0
+Rx ack 0
+
+Retry statistics: 0 0 0 0 0 0 0 0 0
+localhost#
+
+_______________________________________________________________________________________--
+
+SLOT 12
+localhost#nicinfo
+MPC85XX TSEC Ethernet Controller
+
+  Physical Node ID ........................... 020000 000300
+  Current Physical Node ID ................... 020000 000C00
+  Current Operation Rate ..................... 100.00 Mb/s half-duplex
+  Active Interface Type ...................... MII
+    Active PHY address ....................... 2
+  Maximum Transmittable data Unit ............ 1514
+  Maximum Receivable data Unit ............... 1514
+  Hardware Interrupt ......................... 0xf
+  Hardware Interrupt ......................... 0x10
+  Hardware Interrupt ......................... 0x11
+  Memory Aperture ............................ 0xe0026000 - 0xe0026fff
+  Promiscuous Mode ........................... Off
+  Multicast Support .......................... Enabled
+
+  Packets Transmitted OK ..................... 25668788
+  Bytes Transmitted OK ....................... 17257947432
+
+  Packets Received OK ........................ 237733645
+  Bytes Received OK .......................... 157627702971
+
+  Single Collisions on Transmit .............. 2056382
+  Multiple Collisions on Transmit ............ 2041435
+  Deferred Transmits ......................... 0
+  Late Collision on Transmit errors .......... 0
+  Transmits aborted (excessive collisions) ... 229
+  Transmits aborted (excessive deferrals) .... 0
+  Transmit Underruns ......................... 0
+  Jabber detected ............................ 0
+  Receive Alignment errors ................... 0
+  Received packets with CRC errors ........... 0
+  Packets Dropped on receive ................. 230233
+  Ethernet Header length field mismatches .... 0
+  Ethernet Headers out of range .............. 0
+  Oversized Packets received ................. 0
+  Short packets .............................. 0
+  Total Frames experiencing Collison(s) ...... 3248887
+localhost#cat /ipc/port/Seatmgr
+Port table:
+  [Seatmgr] id 020c0003, spid 40972, flags: local, static
+  [Gateway] id 020c0004, spid 40972, flags: remote, static
+  [IpcBootstrap] id 020c0022, spid 36872, flags: local
+  [RFGW: control] id 0001001f, spid 40972, flags: remote
+  [RFGW: lc 12:control] id 020c0023, spid 36872, flags: local, reg
+  [RFGW: lc 12:image upgrade] id 020c0024, spid 77838, flags: local, reg
+  [RFGW: image upgrade] id 0001001b, spid 40972, flags: remote
+  [RFGW: lc 12:ping] id 020c0025, spid 77839, flags: local, reg
+  [RFGW: lc 12:rfs] id 020c0026, spid 77840, flags: local, reg
+  [RFGW: lc 12:info] id 020c0027, spid 77841, flags: local, reg
+  [RFGW: lc 12:lcred] id 020c0028, spid 77842, flags: local, reg
+  [RFGW: lc 12:mb hw control] id 020c0029, spid 77843, flags: local, reg
+  [RFGW: lc 12:mb tsec control] id 020c002a, spid 77844, flags: local
+  [RFGW: lc 12:mb depi plane] id 020c002b, spid 77845, flags: local, reg
+  [RFGW: lc 12:mb video config] id 020c002c, spid 77846, flags: local, reg
+  [video_cli] id 020c002d, spid 77846, flags: local
+  [RFGW: config control] id 00010022, spid 40972, flags: remote
+
+Outgoing session table:
+  cln pid 36872, port 0001001f, index 4
+  cln pid 77845, port 00010022, index 2
+  cln pid 77846, port 00010022, index 3
+
+Incoming session table:
+  port 020c0029, index 4, last heard 0, last ack 0
+  port 020c0025, index 1, last heard 0, last ack 0
+
+Process table:
+  pid 40972, fd -1
+  pid 36872, fd 12
+  pid 77838, fd 14
+  pid 77839, fd 18
+  pid 77840, fd 19
+  pid 77841, fd 20
+  pid 77842, fd 22
+  pid 77843, fd 24
+  pid 77844, fd -1
+  pid 77845, fd 27
+  pid 77846, fd 29
+
+Out que: 0
+
+Control message retry statistics: 12724264 57868 164 1 0 0 0 0 0
+Dropped rx messages: 0
+Unforwarded rx messages: 0
+Dropped ACKs: 5
+Skipped ACKs: 21
+
+Port info:
+  Port id 020c0003, pid 40972
+
+Session table:
+  Index 1, cpid 36872, fd 9, last ACK 10
+      rx 0, proc 10, drop 0
+  Index 2, cpid 77838, fd 13, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 3, cpid 77839, fd 15, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 4, cpid 77840, fd 16, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 5, cpid 77841, fd 17, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 6, cpid 77842, fd 21, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 7, cpid 77843, fd 23, last ACK 5
+      rx 0, proc 5, drop 0
+  Index 8, cpid 77844, fd 25, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 9, cpid 77845, fd 26, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 10, cpid 77846, fd 28, last ACK 7
+      rx 0, proc 7, drop 0
+  Index 11, cpid 86039, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Total: 11 sessions, rx 0, proc 51, drop 0
+
+Pools: msgBuf 271, ipcMsg 256
+Queues: rx 0, tx 0
+Rx ack 0
+
+Retry statistics: 0 0 0 0 0 0 0 0 0
+localhost#
+
+
+_____________________________________________________________________________________-
+
+TCC - SLOT 13
+localhost#nicinfo
+MPC85XX TSEC Ethernet Controller
+
+  Physical Node ID ........................... 000000 000000
+  Current Physical Node ID ................... 020000 000D00
+  Current Operation Rate ..................... 100.00 Mb/s half-duplex
+  Active Interface Type ...................... MII
+    Active PHY address ....................... 1
+  Maximum Transmittable data Unit ............ 1514
+  Maximum Receivable data Unit ............... 1514
+  Hardware Interrupt ......................... 0x23
+  Hardware Interrupt ......................... 0x24
+  Hardware Interrupt ......................... 0x25
+  Memory Aperture ............................ 0xe0025000 - 0xe0025fff
+  Promiscuous Mode ........................... Off
+  Multicast Support .......................... Enabled
+
+  Packets Transmitted OK ..................... 4306580
+  Bytes Transmitted OK ....................... 2783668485
+
+  Packets Received OK ........................ 259825315
+  Bytes Received OK .......................... 172282327173
+
+  Single Collisions on Transmit .............. 384368
+  Multiple Collisions on Transmit ............ 489242
+  Deferred Transmits ......................... 100535
+  Late Collision on Transmit errors .......... 0
+  Transmits aborted (excessive collisions) ... 0
+  Transmits aborted (excessive deferrals) .... 0
+  Transmit Underruns ......................... 0
+  Jabber detected ............................ 0
+  Receive Alignment errors ................... 0
+  Received packets with CRC errors ........... 0
+  Packets Dropped on receive ................. 0
+  Ethernet Header length field mismatches .... 0
+  Ethernet Headers out of range .............. 0
+  Oversized Packets received ................. 0
+  Short packets .............................. 0
+  Total Frames experiencing Collison(s) ...... 1827656
+localhost#cat /ipc/port/Seatmgr
+pid 049164 opened  trace region /trace-listPort table:
+  [Seatmgr] id 020d0003, spid 49164, flags: local, static
+  [Gateway] id 020d0004, spid 49164, flags: remote, static
+  [RFGW: control] id 0001001f, spid 49164, flags: remote
+  [RFGW: lc 13:control] id 020d0022, spid 45064, flags: local, reg
+  [RFGW: lc 13:rfs] id 020d0023, spid 86029, flags: local, reg
+  [RFGW: lc 13:ping] id 020d0024, spid 86030, flags: local, reg
+  [RFGW: lc 13:image upgrade] id 020d0025, spid 86032, flags: local, reg
+  [RFGW: image upgrade] id 0001001b, spid 49164, flags: remote
+  [RFGW: lc 13:lcred] id 020d0026, spid 86035, flags: local, reg
+  [RFGW: lc 13:tcc rfswitch] id 020d0027, spid 86036, flags: local, reg
+  [RFGW: lc 13:tcc lcd] id 020d0028, spid 86037, flags: local, reg
+  [RFGW: lc 13:tcc dti] id 020d0029, spid 86039, flags: local, reg
+  [RFGW: lc 13:info] id 020d002a, spid 86040, flags: local, reg
+
+Outgoing session table:
+  cln pid 45064, port 0001001f, index 5
+
+Incoming session table:
+  port 020d0029, index 1, last heard 0, last ack 0
+  port 020d0028, index 1, last heard 0, last ack 0
+  port 020d0024, index 1, last heard 0, last ack 0
+
+Process table:
+  pid 49164, fd -1
+  pid 45064, fd 11
+  pid 86029, fd 14
+  pid 86030, fd 16
+  pid 86032, fd 18
+  pid 86034, fd -1
+  pid 86035, fd 20
+  pid 86036, fd 22
+  pid 86037, fd 24
+  pid 86039, fd 26
+  pid 86040, fd 28
+
+Out que: 0
+
+Port info:
+  Port id 020d0003, pid 49164
+
+Session table:
+  Index 1, cpid 45064, fd 12, last ACK 4
+      rx 0, proc 4, drop 0
+  Index 2, cpid 86029, fd 13, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 3, cpid 86030, fd 15, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 4, cpid 86032, fd 17, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 5, cpid 86034, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Index 6, cpid 86035, fd 19, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 7, cpid 86036, fd 21, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 8, cpid 86037, fd 23, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 9, cpid 86039, fd 25, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 10, cpid 86040, fd 27, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 11, cpid 94233, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Total: 11 sessions, rx 0, proc 29, drop 0
+
+Pools: msgBuf 283, ipcMsg 256
+Queues: rx 0, tx 0
+Rx ack 0
+
+Retry periods: 0
+
+Retry statistics: 0 0 0 0 0 0 0 0 0 0
+localhost#
+
+
+_____________________________________________________________________________________
+
+TCC SLOT14
+
+
+localhost#nicinfo
+MPC85XX TSEC Ethernet Controller
+
+  Physical Node ID ........................... 000000 000000
+  Current Physical Node ID ................... 020000 000E00
+  Current Operation Rate ..................... 100.00 Mb/s half-duplex
+  Active Interface Type ...................... MII
+    Active PHY address ....................... 1
+  Maximum Transmittable data Unit ............ 1514
+  Maximum Receivable data Unit ............... 1514
+  Hardware Interrupt ......................... 0x23
+  Hardware Interrupt ......................... 0x24
+  Hardware Interrupt ......................... 0x25
+  Memory Aperture ............................ 0xe0025000 - 0xe0025fff
+  Promiscuous Mode ........................... Off
+  Multicast Support .......................... Enabled
+
+  Packets Transmitted OK ..................... 4734305
+  Bytes Transmitted OK ....................... 3068558979
+
+  Packets Received OK ........................ 259250787
+  Bytes Received OK .......................... 171938726655
+
+  Single Collisions on Transmit .............. 410927
+  Multiple Collisions on Transmit ............ 526544
+  Deferred Transmits ......................... 0
+  Late Collision on Transmit errors .......... 0
+  Transmits aborted (excessive collisions) ... 6
+  Transmits aborted (excessive deferrals) .... 73774
+  Transmit Underruns ......................... 0
+  Jabber detected ............................ 0
+  Receive Alignment errors ................... 0
+  Received packets with CRC errors ........... 0
+  Packets Dropped on receive ................. 271996
+  Ethernet Header length field mismatches .... 0
+  Ethernet Headers out of range .............. 0
+  Oversized Packets received ................. 0
+  Short packets .............................. 0
+  Total Frames experiencing Collison(s) ...... 1960475
+localhost#cat /ipc/port/Seatmgr
+Port table:
+  [Seatmgr] id 020e0003, spid 49164, flags: local, static
+  [Gateway] id 020e0004, spid 49164, flags: remote, static
+  [RFGW: control] id 0001001f, spid 49164, flags: remote
+  [RFGW: lc 14:control] id 020e0022, spid 45064, flags: local, reg
+  [RFGW: lc 14:rfs] id 020e0023, spid 86029, flags: local, reg
+  [RFGW: lc 14:ping] id 020e0024, spid 86030, flags: local, reg
+  [RFGW: lc 14:image upgrade] id 020e0025, spid 86032, flags: local, reg
+  [RFGW: image upgrade] id 0001001b, spid 49164, flags: remote, static, reg
+  [RFGW: lc 14:lcred] id 020e0026, spid 86035, flags: local, reg
+  [RFGW: lc 14:tcc rfswitch] id 020e0027, spid 86036, flags: local, reg
+  [RFGW: lc 14:tcc lcd] id 020e0028, spid 86037, flags: local, reg
+  [RFGW: lc 14:tcc dti] id 020e0029, spid 86039, flags: local, reg
+  [RFGW: lc 14:info] id 020e002a, spid 86040, flags: local, reg
+
+Outgoing session table:
+  cln pid 45064, port 0001001f, index 6
+
+Incoming session table:
+  port 020e0029, index 1, last heard 0, last ack 0
+  port 020e0024, index 1, last heard 0, last ack 0
+
+Process table:
+  pid 49164, fd -1
+  pid 45064, fd 11
+  pid 86029, fd 14
+  pid 86030, fd 16
+  pid 86032, fd 18
+  pid 86034, fd -1
+  pid 86035, fd 21
+  pid 86036, fd 23
+  pid 86037, fd 25
+  pid 86039, fd 27
+  pid 86040, fd 29
+
+Out que: 0
+
+Port info:
+  Port id 020e0003, pid 49164
+
+Session table:
+  Index 1, cpid 45064, fd 12, last ACK 4
+      rx 0, proc 4, drop 0
+  Index 2, cpid 86029, fd 13, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 3, cpid 86030, fd 15, last ACK 2
+      rx 0, proc 2, drop 0
+  Index 4, cpid 86032, fd 17, last ACK 6
+      rx 0, proc 6, drop 0
+  Index 5, cpid 86034, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Index 6, cpid 86035, fd 20, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 7, cpid 86036, fd 22, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 8, cpid 86037, fd 24, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 9, cpid 86039, fd 26, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 10, cpid 86040, fd 28, last ACK 3
+      rx 0, proc 3, drop 0
+  Index 12, cpid 110619, fd -1, last ACK 0
+      rx 0, proc 0, drop 0
+  Total: 11 sessions, rx 0, proc 29, drop 0
+
+Pools: msgBuf 283, ipcMsg 256
+Queues: rx 0, tx 0
+Rx ack 0
+
+Retry periods: 0
+
+Retry statistics: 0 0 0 0 0 0 0 0 0 0
+localhost#
+
+
+
+

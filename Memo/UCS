@@ -1,0 +1,168 @@
+My UCS server:
+  cabu-bld33 (172.22.10.113)
+  cabu-bld39 (172.22.10.119)
+  cabu-bld40 (172.22.10.120)
+  mcp-cab-lwr-006
+
+===============================================
+VIDMAN dependency:
+  cable/video
+  cable/cdman
+  cable/infra/sesum
+  infra/tdl
+
+===============================================
+# Latest VDMAN private branch:
+BINOS: mcp_dev_binos_vdman_dec2014
+IOS: mcp_dev_ios_vdman_dec2014
+
+# MCP main branch:
+BINOS: main
+IOS: mcp_dev
+
+# R3 throttle
+Binos: xe318_throttle
+IOS: v156_2_s_xe318_throttle
+
+# R4 branch
+Binos: xe318sp_throttle
+IOS: v156_2_sp_xe318sp_throttle
+
+===============================================
+# Private branch:
+BINOS (PCR debug): mcp_dev_binos_vidman_oct2014_pcr
+
+Based label: BLD_MCP_DEV_LATEST_20150401_023034
+BINOS (output reorg): mcp_dev_binos_ytse_apr2015
+IOS (output debug):   mcp_dev_ios_ytse_apr2015
+
+# For low latency development
+Based label: XE318SP_THROTTLE_NIGHTLY_201601101639
+IOS: xe318sp_lowlatency_ios
+BINOS: xe318sp_lowlatency_binos
+
+Base label: XE318SP_THROTTLE_NIGHTLY_201607050636
+IOS: xe318sp_160705_ios
+BINOS: xe318sp_160705_binos
+Labels: XE318SP_LOW_LATENCY
+
+===============================================
+# Pulling private branch
+
+acme project_create -proj xe318sp_160705_binos -base xe318sp_throttle%XE318SP_THROTTLE_NIGHTLY_201607050636 -comment "Branch for XE318SP extended work" -sb binos
+
+mkbrtype -v /vob/ios -b mcp_dev_ios_ytse_apr2015 -base_label BLD_MCP_DEV_LATEST_20150401_023034 -s FEA_INT -classification EXPERIMENTAL
+
+===============================================
+setenv BINOS_ROOT /nobackup/ytse/ACME/dec
+cd $BINOS_ROOT
+
+# Pull ACME view from a branch
+acme nw -sb binos -proj main%LATEST
+start_task -b mcp_dev -v /vob/ios -t jan -a -d /nobackup/ytse/CC
+
+# Pull view from XE318SP branch
+sp: BLD_V156_2_SP_XE318SP_THROTTLE_LATEST_20161012_153444
+
+setenv BINOS_ROOT /nobackup/ytse/318sp
+acme nw -sb binos -proj xe318sp_throttle%BLD_V156_2_SP_XE318SP_THROTTLE_LATEST_20180212_233510
+start_task -l BLD_V156_2_SP_XE318SP_THROTTLE_LATEST_20180212_233510 -v /vob/ios -t 318sp -a -d /nobackup/ytse/CC
+
+# Private branch work
+setenv BINOS_ROOT /nobackup/ytse/ACME/priv3
+acme nw -sb binos -proj xe318sp_160705_binos%LATEST
+start_task -b xe318sp_160705_ios -v /vob/ios -t priv3 -a -d /nobackup/ytse/CC
+
+
+acme nw -sb binos -proj xe318sp3_throttle%LATEST
+start_task -b v156_2_sp3_xe318sp3_throttle -v /vob/ios -t xe318sp3 -a -d /nobackup/ytse/CC
+
+===============================================
+# Building
+sv ytse-dec
+cd sys
+echo $BINOS_ROOT
+
+# Building full image
+mcp_ios_precommit - -j8 cbr_super
+
+# Buidling with IOS skipped
+mcp_ios_precommit -c - -j8 cbr_super
+
+# Building SUP BINOS code
+gmk -jmakej TARGET=i686 binos-all-ubr
+
+# To build mcp_dev on ADS:
+# First setview to the ios view
+# Then launch FBE (flexible build environment)
+/auto/FBE-repo/prod/client/launcher -n cel5.50-x86_64-1.3
+export BINOS_ROOT=/nobackup/ytse/bhn_318sp
+cd /view/<view_name>/vob/ios/sys
+# Finally do the build
+/auto/binos-tools/bin/mcp_ios_precommit -f cel5.50-x86_64-1.3 cbr_super
+
+===============================================
+# Static Analysis
+# Note: "-m cbr_super" is now mandatory!
+setenv BINOS_ROOT ...
+setenv BINOS_SA_FAMILY mcp uea ubr
+/auto/ses/bin/static_binos -diff_file <diff_file> -bugid <bug_id>
+/auto/ses/bin/static_binos -diff_file diff.log -m binos_SA_mips64_root -bugid CSCvb82360
+
+acme lc -short_mode > flist.txt
+/auto/ses/bin/static_binos -f flist.txt -bugid CSCuv60701
+
+===============================================
+# S2C
+/auto/binos-tools/bin/s2c submit -a auto <DDTS#>
+/auto/binos-tools/bin/s2c submit -p xe318sp_throttle -a auto CSCva22028
+/auto/binos-tools/bin/s2c submit -p xe318sp_throttle -a auto -y -c CSCva22028
+
+===============================================
+# Commit
+# (Use -comp cable/video if needed)
+acme copyright_fix
+acme precommit
+acme commit
+
+# If workspace needs to be update (for mcp_dev, use -devline main)
+acme update -workspace -devline <line>
+
+===============================================
+# Workspace update
+acme update -comp cable/video@xe318sp_throttle/latest
+
+===============================================
+# Branch management
+
+# Commit history on branch
+cd $BINOS_ROOT
+acme list -comp cable/video -from_ver mcp_dev_binos_ytse_apr2015/1 -to_ver ws
+
+# To list branch labels
+acme devline_browse -devline mcp_dev_binos_vdman_oct2014
+
+# To lay label
+acme devline_label -sb binos -label MCP_DEV_VDMAN_AUG2014_08132014 -devline mcp_dev_binos_vdman_aug2014
+
+===============================================
+# Verify bootflash version
+nm $BINOS_ROOT/linkfarm/x86_64/usr/binos/bin/x86_64bi_linux_iosd_ubr-adventerprisek9-ms.sun | grep ubr_csl_ifs
+
+===============================================
+# Copying packages
+scp * root@${IP}:/bootflash/ytse/
+
+/auto/cabu-binos-tools/scripts/cbr_scp_pkgs.sh root@${IP}:/bootflash/ytse/
+
+cp $BINOS_ROOT/linkfarm/mips64-ubr/usr/binos/bin/vidman /tftpboot/ytse
+cp $BINOS_ROOT/linkfarm/mips64-ubr/usr/binos/bin/ng_cli /tftpboot/ytse
+
+scp /tftpboot/ytse/vidman root@${IP}:/harddisk/tmp/mips
+scp /tftpboot/ytse/ng_cli root@${IP}:/harddisk/tmp/mips
+
+===========================
+# Priv branch history
+acme list -version xe318sp_160705_binos -comp cable/video -prev 10
+acme list -comp cable/video -from_ver xe318sp_160705_binos/1 -to_ver ws
+

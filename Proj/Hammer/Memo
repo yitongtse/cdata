@@ -1,0 +1,19 @@
+Here is the network config:
+
+My ineoquest port 1 -> My cat4k g5/1
+My cat4k g5/2 -> Golden Test bed g3/13
+
+------------------------------------------
+My Cat4k g5/3 -> My RFGW g3/13
+My Cat4k g5/4 -> My RFGW g3/14
+
+
+==========================================
+
+Commands to run:
+
+scvs all sum
+show proc cpu sort
+show proc cpu hist
+
+

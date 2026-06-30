@@ -1,0 +1,78 @@
+Input thread:
+  Input wakeup cnt
+  Input session cnt
+  IP pkt in, ucast pkt, mcast pkt, drop pkt
+  Total session IP/TP/error counts
+
+
+Input period max stat:
+  IP pkt in
+  Proc TP cnt
+  interval time
+  run time
+
+
+In Session:
+  dropped IP pkt (not enabled)
+  input TP cnt
+  null TP cnt (dropped)
+  unref TP cnt (dropped)
+  good TP cnt (x)
+    - psi TP cnt
+    - PCR TP cnt
+    - non-PCR TP cnt
+
+  disc cnt (signalled)
+  new PAT
+  new PMT
+
+  Source errors:
+    loss-sync TP cnt
+    cc err cnt
+    PCR jump cnt
+
+  Operation errors:
+    dejitter buffer overflow
+    dejitter buffer underflow
+    IP buffer overrun (x)
+
+  Stats:
+    bitrate: avg, min, max
+
+
+----------------------------------------------------------------------
+Output thread:
+  Output wakeup cnt
+  Output session cnt
+
+
+Output period max stat:
+  Proc TP cnt
+  outcmd cnt
+  interval time
+  run time
+
+
+QAM channel:
+
+
+Out session:
+  program cnt
+
+  dropped TP cnt
+  psi TP cnt
+  PCR TP cnt
+  non-PCR TP cnt
+
+  new PAT
+  new PMT
+
+  Operation errors:
+    invalid PCR rate cnt
+    tpinfo overrun
+    tpinfo err cnt
+
+  Stats:
+    stay time: avg, min, max
+    input/output gap: min, max
+

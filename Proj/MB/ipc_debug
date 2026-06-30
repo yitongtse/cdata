@@ -1,0 +1,35 @@
+# Clean irrelevant processes
+kill 49160
+slay mb_root
+slay mb_video
+slay depi_plane
+slay hw_control
+slay cnfg_msg_rcvr
+slay tsec_control
+slay mb_iu
+slay mv_lcinfo
+
+# Clean all processes
+slay ipc_test
+slay rfs
+slay ipc_ping_server
+slay errmsg_srv
+slay io-net
+rm /tmp/ipc.log
+
+# Restart IPC
+mb_ipc_launch
+ipc_ping_server &
+rfs &
+
+
+# Simulate IPC error
+ipc_test 1 &
+ipc_ctrl 1 errsim cipc-send 00000001
+
+# IPC ping test
+ipc_ping 9 2 100
+
+# View IPC log
+lclog /ipc.log show
+

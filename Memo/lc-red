@@ -1,0 +1,52 @@
+Line card redundancy transitions:
+
+Mode: NONE, PRI, SEC
+Role: ACT, STBY
+
+
+Nonredundant:
+      mode/role
+Boot -----------> NONE/ACT
+
+
+Primary active:
+      mode/role
+Boot -----------> PRI/ACT
+
+
+Primary standby:
+      mode/role             mode/role
+Boot -----------> PRI/STBY -----|-----> PRI/ACT
+
+
+Secondary Active (missing primary): ***
+      mode/role            go-hot
+Boot -----------> SEC/ACT --------> SEC/ACT
+
+
+Secondary standby (1:1):
+      mode/role              go-hot              mode/role
+Boot -----------> SEC/STDBY --------> SEC/STDBY -----|-----> SEC/ACT
+
+
+Secondary standby (1:N):
+      mode/role              go-hot              mode/role
+Boot -----------> SEC/STDBY ---|----> SEC/STDBY -----------> SEC/ACT
+
+
+=======
+Summary:
+Primary or Non-redundant LC: never get go-hot message
+Go-hot just set the context
+LC should expect traffic only when in ACT role
+
+
+=======
+Primary active => None active: mode/role
+Primary standby => None active: mode/role
+Secondary active => Primary active: mode/role (??)
+
+=======
+* Go-hot message contains the slot number to go hot for
+* Go-hot means a context is now assigned
+* active means start processing traffic (if it is also hot: not for missing pri)

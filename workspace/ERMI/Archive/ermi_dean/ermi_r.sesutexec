@@ -1,0 +1,292 @@
+! This file describes the IOS test environment. This is used to generate
+! a script that automates loading an IOS image or dynamic loading
+! of a SESUT test.
+! This file is devided into multiple sections.Each section begins 
+! with the name of the section. Section name begins with '%'. Should begin 
+! in column 1.
+! It is assumed that there is only one UUT.
+! Any line with '!' in column one is assumed to be a comment.
+! Blank lines are ignored.
+! Some of the options are only applicable to SESUT Loader(DLST).
+! These are clearly identified.
+! It is assumed that the rommon prompt is "rommon>". It is also assumed
+! that boot image is the default image. Else you will need to change 
+! the rommon variables. Prompt, Boot image and other rommon 
+! parameters are defined as rommon variables. At rommon prompt enter 
+! "?" or "help". Prompt can be set using the rommon variable PS1. You 
+! will need to ensure that the device under test has a route to TFTP 
+! server. Here 'host' or 'build host'  indicates the machine on which the 
+! IOS image is  built. 'uut' indicates the IOS device that is the subject 
+! of testing.
+! Please read the note at the end of this file about testing your
+! .sesutexec file.
+
+%testexecenv
+! Define various parameters for test execution in this section.
+! This is a required section.
+! Each entry is of the form 
+! <keyword> = <value>
+!tftpserver_fromuut = 128.30.1.254
+!enable_password = lab
+
+! tftpserver_fromuut indicates the name/address used on the 
+! UUT to access TFTP host. Ensure that this is pingable from the UUT.
+! This need not be pingable from the build machine.
+tftpserver_fromuut = 223.255.254.253
+enable_password = lab
+
+! Note that there is no tftpserver_fromhost. It is assumed that needed
+! TFTP server directories are directly reachable(mounted) from 
+! sys/obj-xx-yyy directory  in the IOS view.
+
+! Prompt on the uut.
+!uutname = train_7
+
+uutname = RFGW-10-1
+
+! Arguments for telnet <device address> <port>
+!ts_ipaddress = 172.19.183.121
+!ts_port = 6005
+
+ts_ipaddress = 172.22.10.165
+ts_port = 2007
+
+!***Following keywords are optional.
+
+! Line number on the terminal server
+! In many cases this is not needed. Line number is derived from ts_port
+! If the derived number is not correct then specify the line number.
+!ts_line = 38
+
+! If your platform requires boot using flash (like DSBU platforms)
+! uncomment the following. Image is copied to flash first and then the
+! image is loaded from flash.
+!boot_from_device = flash
+
+! Terminal server password (if it is different from the enable passwd on
+! the router prompt). This password is needed to reset the line if 
+! a connection already exists to console port.
+! Example:
+!tserver_passwd = cisco
+
+! Options for Tacacs login username and password (for access to your UUT)
+!tac_username = TacacsUsername
+!tac_password = TacacsPassword
+
+! As a default, current user's id is used in creating paths for files.
+! sometimes you may need to use other's files.
+!username = lakshman
+
+! Information about the image name: The image name is automatically derived
+! from the information provided to dpe-cli. But, if you want to overwrite 
+! that, you can do so by providing an image name here.
+! image = lakshman/c7200-p-mz.ut
+!image = 
+
+! If the environment variables TFTPDIR and TFTPHOST are defined they
+! are used. They take precendence over keywords defined in this
+! file. If you want SESUT to ignore these environment variables then
+! set "ignore_tftp_env_vars" to "yes".  User defined as well as those
+! defined by DPE are ignored. 
+!ignore_tftp_env_vars = yes
+
+! Information about sun file. Give the sun file name
+! Note: SESUT will try to infer sun file name from the image name
+! given in DPE config file. If it can't find it then the DLST load will
+! fail.
+!sunFile = c7200-p-mz.sun
+!sunfile = 
+
+! This option is for SESUT loader(DLST). DLST is copied to this
+! directory after it is built in sys/obj-xx-yyy directory. Default is
+! /auto/tftpboot-users/$user/ directory. In most cases default will
+! work smoothly. If you want to change it then define this
+! variable. For example: 
+!dlst_dir_fromhost = /users2/lakshman/
+ 
+! This option is for SESUT loader(DLST). On some UUT's the path to
+! TFTP directory that is used on a UUT (for booting an image, copying
+! files from TFTP server etc.) is different from the path used on the
+! build machine(dlst_dir_fromhost). In such a situation define the
+! following variable. It indicates the directory that is accessible
+! from the uut. If not specified, dlst_dir_fromhost is used. UUT
+! would use the following URL to access the DLST: 
+!  tftp://<tftpserver_fromuut>/<dlst_dir_fromuut>/<sesut name>.dlst
+! Example: 
+!dlst_dir_fromuut = /users3/lakshman
+
+! Note:
+! 1. The tftpserver name or tftpserver ip address can be mentioned
+!    in environment variable as well as in dpe.config file using TFTPHOST.
+!    The order of precedence for them is: 
+!	1. dpe.config file 2. Environment variable 3. sesutexec file
+!    Same is the case with the location where the intermediate dlst 
+!                 files are stored. 
+!    The environment variable used for that purpose is TFTPDIR. 
+!    If they are mentioned,
+!    dlst_dir_fromhost = $(TFTPDIR) is set.
+!
+! 2. Make sure your router can ping to the tftp server
+!    you can also add config commands (as described later) 
+!    Those config commands will be executed by this script
+!
+
+! This option is for SESUT loader. Information about where on
+! the router dynamically loadable SESUT file <sesut>.dlst needs to be
+! copied.  This is optional. By default sesut copies the DLST to UUT
+! memory. But on some UUT's(eg. line cards) the DLST must be
+! copied first to an intermediate location( flash, disk etc.). Define this
+! variable to provide the path to the intermediate location.
+! For example:
+!dlst_secondary_loc = disk0:
+!dlst_secondary_loc = slot0:/
+!dlst_secondary_loc = 
+
+! This option is for SESUT loader(DLST)
+! Information about any C files you want to add to your unit test
+! This is Optional.
+!cfile = /vob/ios/sys/ses_test.c
+!cfile = /vob/ios/sys/ses_test1.c
+!cfile =
+
+! This option is for SESUT loader(DLST). Information about
+! .o/.a files you want to add to your unit test. This is Optional. 
+! .o/.a files that are listed using 'link:' option in .sesut file need
+! not be repeated here.
+! Object modules in DLST need to be compiled with -mlong-calls if the
+! target is a MIPS processor.
+!lnlist = ses_test.o pkt_builder.o
+!lnlist =
+
+! SESUT loader needs to know the .sesut file.
+! dpe-cli reads it from the dpe config file. This info is needed only
+! in case if you are not using dpe-cli or you want to override the dpe config
+! file
+! Provide the full path to SESUT file and the file should have 
+! .sesut suffix
+!sesutFile = /vob/ios/sys/ip_test.sesut
+!sesutFile = 
+
+! Information for GDB. gdb is optional.
+! Enter gdb program to be used.
+!gdb = gdb.mips64
+
+! Notification
+! After loading an image a message is sent to these addresses
+! email is optional.
+!email = lakshman@cisco.com
+
+! Notification
+! After loading DLST a message is sent to these addresses
+! email_dlst is optional.
+!email_dlst = lakshman@cisco.com
+
+%initcmds
+! This section defines the commands to be executed on the UUT.
+! These commands are executed after the initial loading of the image.
+! Note that these commands are NOT executed after a SESUT test is dynamically loaded.
+! This section is optional.
+! Enter one command/line
+! Each sequence of commands must be preceeded by mode 
+! Begin mode in column one. Leave atleast one space before each
+! command. Examples:
+! config
+!      <config commands>
+! exec
+!      <exec commands>
+! gdb
+!      <GDB commands>
+! verbatim
+!      <These will be copied unchanged.>
+!      <You can include CSCCON commands>
+! You can include contents from other files. Use include function in
+! place of a command. Place the include function on a line by itself.
+! Example:
+!   include(junk)
+!Config commands
+!config
+!  ip route 192.1.1.0 255.255.255.0 eth1/0
+!  ip route a.b.c.0  255.255.255.0 eth2/0
+! Commands for gdb
+!gdb
+!  kjjjk m,fjjkk
+!  break hhhhhh
+! Commands for exec
+!exec
+!  show mem
+!verbatim
+!   This is an exact copy @###$$%*(((
+
+
+%DLST_initcmds
+! This section defines the commands to be executed on the UUT.  
+! These commands are executed after a SESUT test is dynamically loaded.
+! Note that these commands are NOT executed after the initial loading
+! of the image.
+! This section is optional.
+! Enter one command/line
+! Each sequence of commands must be preceeded by a mode. 
+! Begin mode in column one. Leave atleast one space before each
+! command. Examples:
+! config
+!      <config commands>
+! exec
+!      <exec commands>
+! gdb
+!      <GDB commands>
+! verbatim
+!      <These will be copied unchanged.>
+!      <You can include CSCCON commands>
+! You can include contents from other files. Use include function in
+! place of a command. Place the include function on a line by itself.
+! Example:
+!   include(junk)
+!Config commands
+!config
+!  ip route 192.1.1.0 255.255.255.0 eth1/0
+!  ip route a.b.c.0  255.255.255.0 eth2/0
+! Commands for gdb
+!gdb
+!  kjjjk m,fjjkk
+!  break hhhhhh
+! Commands for exec
+!exec
+!  show mem
+!verbatim
+!   This is an exact copy @###$$%*(((
+
+!Connections among the Build host, TFTPSERVER and the UUT
+!
+!In order for .sesutexec file to be effective you will need access to the 
+!TFTPSERVER from the build host and the access from the UUT(IOS device) to 
+!the TFTPSERVER.
+!There should be a route to TFTPSERVER from UUT.
+!The image and the DLST are copied from the build host to the TFTPSERVER.
+!The UUT fetches the image/dlst from the TFTPSERVER.
+!The UUT copies Cflow data to TFTPSERVER.
+!
+!   Build host  -----> Build Host TFTPSERVER <------ UUT(IOS Device)
+!
+!  You can test your .sesutexec using the following commands:
+!
+!  Load the image.
+!      /auto/ses/bin/dpe-cli -nobuild <dpe config file>
+!  After the image is loaded. Dynamically load a SESUT test.
+!              Your <dpe config file> should have a pointer to .sesut file.
+!      /auto/ses/bin/dpe-cli -dlst <dpe config file>
+!
+!In some environments the TFTPSERVER that is accessible from the build host is
+!different from the TFTPSERVER that is accessible bfrom the UUT. You will need
+!to create a symbolic link on your lab TFTPSERVER to TFTPSERVER that is accessible 
+!from the build host.
+!
+!   Build host  -----> Build Host TFTPSERVER
+!                         ^
+!                         |
+!                         | Need to create a symbolic link
+!                         | on the LAB TFTPSERVER to the
+!                         | TFTPSERVER connected to the Build host.
+!                         | On the LAB TFTPSERVER:
+!                         | ln -s /auto/tftpboot-users/<username>/ /tftpboot/<username>
+!                         |
+!                     LAB TFTPSERVER <------ UUT(IOS Device)

@@ -1,0 +1,234 @@
+Cavium SDK can be found in: $BINOS_ROOT/cable/infra/sesum/src
+
+# Linux commands
+ps -TF
+kill <pid>
+killall <proc_name>
+
+==================
+# Ajey's latest CDMAN code:
+/auto/caviumdev/apatil/OCTEON-SDK/examples/cdman
+
+==================
+# By default, a program runs in all cores.  To run in specific cores:
+schedtool -a <hex_mask> -e <prog>
+
+e.g.: schedtool -a 0x1 -e ./hello
+
+Sourav's cdman example can be found in /home/sdk/examples/cdman
+
+==================
+Quick commands:
+
+cp bb_test /tftpboot
+
+tftp -g -r tomorrow_3.85M_1000 223.255.254.254
+tftp -g -r bb_test.par 223.255.254.254
+tftp -g -r bb_test 223.255.254.254
+chmod +x bb_test
+schedtool -a 0x1 -e ./bb_test
+
+# Can compile code directly on Cavium target:
+cc file.c
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+4/30/2012
+
+# Directory
+/ws/ytse-sjc/ng-video
+
+# Target Eval Board
+telnet 172.22.11.151 2003
+login: root
+password: roZes123
+ssh -l root 172.22.11.152
+(console password: docsis)
+
+# Development Host
+ssh -l root docsis-linux-2
+login: root
+password: roZes
+ssh 172.22.9.157
+
+OCTEON_ROOT should be set to /home/testpete/sdk
+
+------------------------------------------
+# To bring up the CN6800 Eval board
+; Power cycle the board
+
+# Original kernel
+#fatload ide 0 0 vmlinux.64.konly.strip
+fatload ide 0 0 vmlinux.64
+bootoctlinux 0x20000000 coremask=0xFFFFFFFF mem=0 root=/dev/sda2
+
+# Latest kernel with CDMAN support
+fatload ide 0 0 vmlinux.stripforcdman
+bootoctlinux 0 coremask=0xFFFFFFFF root=/dev/sda2 console=ttyS0,115200
+
+ifconfig mgmt0 172.22.11.152/16 up
+route add default gw 172.22.11.129
+ulimit -c unlimited
+
+------------------------------------------
+# To boot linux kernel thru tftp
+tftpboot 0 ytse/vmlinux.68v20
+bootoctlinux 0 coremask=0xFFFFFFFF
+
+------------------------------------------
+# Environment setup on docsis-linux-2
+pushd /home/testpete/sdk
+source env-setup OCTEON_CN63XX
+popd
+
+------------------------------------------
+# Can compile code directly on Cavium target:
+cc file.c
+
+# To build executable to be run under Linux
+make OCTEON_TARGET=linux_64
+
+# To copy file btw Host and Target, first log into Target
+rcp ytse@172.22.9.157:/ws/ytse-sjc/ACME/ng/sim/video_sim/lc/ng/ng_video .
+rcp ytse@172.22.9.157:/ws/ytse-sjc/ACME/pi2/cable/vidman/hello .
+
+# To copy core file back to the host
+rcp ./core ytse@172.22.9.157:/ws/ytse-sjc/ng-video/NG/obj/core
+
+# To download code using tftp
+tftp -r /ytse/<file> -g 171.69.17.19
+tftp -r /ytse/ng_video2 -g 171.69.17.19
+tftp -r /ytse/cdman -g 171.69.17.19
+tftp -r /ytse/CVMXcdmantest -g 171.69.17.19
+
+------------------------------------------
+OCTEON_TARGET:
+  cvmx_64: SE
+  linux_64: Linux, or Linux SE-UM
+
+mipsisa64-octeon-elf-*: tools for Simple Executive Apps
+mip 
+s64-octeon-linux-gnu-*: tools for Linux kernel and Linux User-Mode Apps
+
+
+------------------------------------------
+schedtool -a 0x1 -e <file>
+------------------------------------------
+
+# Linux include directory
+cd /home/testpete/sdk/tools-gcc-4.3/mips64-octeon-linux-gnu/sys-root/usr/include
+
+==========================================
+# Use native gdb to debug
+
+/usr/local/Cavium_Networks/OCTEON-SDK/tools/usr/bin32/gdb ./ng_video
+
+==========================================
+# Use gdbserver to debug
+
+# On target:
+gdbserver 172.22.9.157:2345 ./ng_video
+
+# On host:
+/home/testpete/sdk/tools-gcc-4.3/bin/mips64-octeon-linux-gnu-gdb ./ng_video
+target octeon 172.22.11.152:2345
+
+===========================================
+Cavium SDK:
+
+cvmx_pow_work_request_async(src_addr, wait)
+cvmx_pow_work_request_async_nocheck(src_addr, wait)
+cvmx_pow_work_request_null_rd()
+cvmx_pow_work_request_sync()
+cvmx_pow_work_request_sync_nocheck()
+cvmx_pow_work_response_async()
+cvmx_pow_work_submit()
+
+===========================================
+# How to build CDMAN
+cd /ws/ytse-sjc/ACME/pi2/cable/cdman
+mk -f Octeon_makefile cdmobjdir
+mk -f Octeon_makefile
+
+# How to build CD-MAN test harness (CVMXcdmantest)
+cd /ws/ytse-sjc/ACME/pi2/cable/cdman/infra/test
+mk -f OcteonTest_makefile
+
+===========================================
+# Running CDMAN
+schedtool -a 0x1 -e ./cdman &
+schedtool -a 0x1 -e ./CVMXcdmantest
+
+# Test sequences for video loopback:
+7 9 y 5 5 7 4026531841 123 1500 y y
+c b 2 4 c 5 c
+
+# Error log:
+/tmp/ccsim.log
+/tmpcdminfra.log
+
+===========================================
+# CDMAN with Test harness
+
+tftp -r /ytse/cdman -g 171.69.17.19
+tftp -r /ytse/CVMXcdmantest -g 171.69.17.19
+tftp -r /apatil/CSCub24769/cdman -g 171.69.17.19
+tftp -r /apatil/CSCub24769/CVMXcdmantest -g 171.69.17.19
+
+chmod +x cdman CVMXcdmantest
+schedtool -a 0x1 -e ./cdman &
+schedtool -a 0x1 -e ./CVMXcdmantest
+
+------------------------------------------
+# Upload core file
+tftp -l core -r /ytse/core -p 171.69.17.19
+
+------------------------------------------
+# Cavium Eval Board has Linux iamge under /dev/sda1
+mkdir /test
+mount /dev/sda1 /test
+ls /test
+ 
+===========================================
+# Quick commands:
+# (ping dirt to find out the active tftp server IP)
+telnet 172.22.10.242
+
+fatload ide 0 0 vmlinux.stripforcdman
+bootoctlinux 0 coremask=0xFFFFFFFF
+
+ifconfig mgmt0 172.22.10.242/16 up
+route add default gw 172.22.10.129
+ulimit -c unlimited
+mkdir /test
+mount /dev/sda1 /test
+ping -c 35 172.22.70.157
+
+tftp -r /ytse/Battlestar/test.ts -g 171.70.42.150
+tftp -r /ytse/Battlestar/video_srv.par -g 171.70.42.150
+tftp -r /ytse/Battlestar/ng_vdman.par -g 171.70.42.150
+tftp -r /ytse/Battlestar/ng_vdman -g 171.70.42.150
+chmod +x ng_vdman
+schedtool -a 0x1 -e ./ng_vdman &
+
+----------------------------------------
+# LC log
+tftp -r /ytse/Battlestar/lclog -g 171.70.42.150
+chmod +x lclog
+./lclog /video.log show 10000
+
+----------------------------------------
+# Test harnest
+tftp -r /ytse/CVMXcdmantest -g 171.70.42.150
+chmod +x CVMXcdmantest
+./CVMXcdmantest
+
+----------------------------------------
+# Debugging coredump 
+# Simply run gdb on Cavium
+gdb <bin_file> <core_file>
+
+----------------------------------------
+tftp -r /ytse/Cavium/server -g 171.70.42.150
+tftp -r /ytse/Cavium/client -g 171.70.42.150
+chmod +x server client
+c

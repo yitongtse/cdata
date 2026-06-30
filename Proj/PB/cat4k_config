@@ -1,0 +1,239 @@
+Building configuration...
+
+Current configuration : 3316 bytes
+!
+version 12.1
+no service pad
+service timestamps debug uptime
+service timestamps log uptime
+no service password-encryption
+service compress-config
+!
+hostname ytse-cat4507
+!
+boot system bootflash:cat4000-is-mz.121-13.EW.bin
+logging queue-limit 100
+!
+ip subnet-zero
+!
+spanning-tree extend system-id
+!
+redundancy
+ mode rpr
+ main-cpu
+  auto-sync standard
+process-max-time 20
+!
+interface Loopback0
+ ip address 2.1.1.1 255.255.255.255
+!
+interface FastEthernet1
+ no ip address
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet1/1
+ switchport access vlan 111
+!
+interface GigabitEthernet1/2
+ no switchport
+ no ip address
+ load-interval 30
+ shutdown
+!
+interface QAM3/1
+ no ip address
+!
+ video udp 0xC003 prog 3
+ video udp 0xC010 prog 10
+!
+interface QAM3/1.2
+!
+interface QAM3/2
+ no ip address
+!
+interface QAM3/2.1
+!
+interface QAM3/2.2
+!
+interface QAM3/3
+ no ip address
+!
+interface QAM3/3.1
+!
+interface QAM3/3.2
+!
+interface QAM3/4
+ no ip address
+!
+interface QAM3/4.1
+!
+interface QAM3/4.2
+!
+interface QAM3/5
+ no ip address
+!
+interface QAM3/5.1
+!
+interface QAM3/5.2
+!
+interface QAM3/6
+ no ip address
+!
+interface QAM3/6.1
+!
+interface QAM3/6.2
+!
+interface QAM3/7
+ no ip address
+!
+interface QAM3/7.1
+!
+interface QAM3/7.2
+!
+interface QAM3/8
+ no ip address
+!
+interface QAM3/8.1
+!
+interface QAM3/8.2
+!
+interface QAM3/9
+ no ip address
+!
+interface QAM3/9.1
+!
+interface QAM3/9.2
+!
+interface QAM3/10
+ no ip address
+!
+interface QAM3/10.1
+!
+interface QAM3/10.2
+!
+interface QAM3/11
+ no ip address
+!
+interface QAM3/11.1
+!
+interface QAM3/11.2
+!
+interface QAM3/12
+ no ip address
+!
+interface QAM3/12.1
+!
+interface QAM3/12.2
+!
+interface GigabitEthernet3/13
+!
+interface GigabitEthernet3/14
+!
+interface ASI3/15
+ no ip address
+ video route qam 3/1.1
+!
+interface GigabitEthernet3/16
+switchport access vlan 202
+!
+interface GigabitEthernet3/17
+ switchport access vlan 111
+!
+interface FastEthernet6/1
+ switchport access vlan 202
+!
+interface FastEthernet6/2
+!
+interface FastEthernet6/3
+!
+interface FastEthernet6/4
+!
+interface FastEthernet6/5
+!
+interface FastEthernet6/6
+!
+interface FastEthernet6/7
+!
+interface FastEthernet6/8
+!
+interface FastEthernet6/9
+!
+interface FastEthernet6/10
+!
+interface FastEthernet6/11
+!
+interface FastEthernet6/12
+!
+interface FastEthernet6/13
+!
+interface FastEthernet6/14
+!
+interface FastEthernet6/15
+!
+interface FastEthernet6/16
+!
+interface FastEthernet6/17
+!
+interface FastEthernet6/18
+!
+interface FastEthernet6/19
+!
+interface FastEthernet6/20
+!
+interface FastEthernet6/21
+!
+interface FastEthernet6/22
+!
+interface FastEthernet6/23
+!
+interface FastEthernet6/24
+!
+interface FastEthernet6/25
+!
+interface FastEthernet6/26
+!
+interface FastEthernet6/27
+!
+interface FastEthernet6/28
+!
+interface FastEthernet6/29
+!
+interface FastEthernet6/30
+!
+interface FastEthernet6/31
+!
+interface FastEthernet6/32
+!
+interface Vlan1
+ no ip address
+!
+interface Vlan111
+ ip address 192.168.111.2 255.255.255.0
+ no ip redirects
+ ip local-proxy-arp
+!
+interface Vlan202
+ ip address 1.14.80.148 255.255.255.0
+!
+interface Vlan203
+ no ip address
+!
+ip classless
+ip route 223.255.254.254 255.255.255.255 Vlan202
+no ip http server
+!
+!
+ip access-list extended video-hidden-acl-ip
+ip access-list extended video-hidden-acl-udp
+!
+arp 192.168.111.6 0c12.3344.5576 ARPA
+!
+!
+line con 0
+ exec-timeout 0 0
+ stopbits 1
+line vty 0 4
+ login
+!
+end

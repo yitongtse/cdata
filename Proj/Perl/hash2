@@ -1,0 +1,17 @@
+#! /usr/bin/perl -w
+
+open(TEST, "test");
+
+%count = ();
+
+while ($word = <TEST>) {
+    chomp($word);
+    $count{$word}++;
+}
+
+@key = sort(keys(count));
+
+foreach (@key) {
+    print("$_: $count{$_}\n");
+}
+

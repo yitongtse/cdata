@@ -1,0 +1,15 @@
+Need to enable non-interactive SSH.
+
+Here is the only working approach accroding to Paul Huang:
+
+Use ssh-keygen to generate a private and public key pair.
+
+ssh-keygen -t dsa
+(or ssh-keygen -t rsa)
+
+The files will be placed in id_dsa and id_dsa.pub under ~/.ssh
+
+Then just append the file id_dsa.pub to the end of ~/.ssh/authorized_keys:
+cat id_dsa.pub >> authorized_keys
+
+

@@ -1,0 +1,6 @@
+This directory is used for the study of inband timestamps distribution
+for DOCSIS 3.0.
+
+
+The program tsgen.c is used to generate timestamp info.
+The program clkrec.c is used for clock recovery simulation.

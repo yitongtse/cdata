@@ -1,0 +1,84 @@
+Assumptions:
+  - Perform PSI snooping and generation in input thread
+    - pros: simplify synchronization problem
+    - cons: CPU cycle issue, misbehaved session affecting other sessions in LC
+    - will use this approach first, but keep the code modular so we can split
+      it into two thread in the future if needed.
+  - A session has a fixed process_type.  If the type change, need to teardown
+    and setup another session (even with same ucast/mcast input port).
+  - Ouput PID table is big enough to avoid a PID entry being reused before all
+    previous TP is still in dejitter buffer
+    -  With this we can avoid using multiple PID tables
+    -  Otherwise may need to use ping-pong buffer for input/output synchronization
+
+Support of MPTS remux:
+  There are two cases of MPTS remux:
+    - input based program filter
+      - each cloned output has same subset of MPTS programs
+      - input PID table contains PIDs only from selected input programs
+      - output PID tables of all cloned sessions are similar, but may have
+        different output PID values
+    - output based program filter
+      - may have different subsets of MPTS programs at each cloned output
+      - input PID table contains all PIDs from all input programs
+      - unwanted programs are filtered by setting the corresponding entries in
+        the output PID table with 0x1FFF as the output PID value
+
+Data structures:
+  - Each remux input session has one PMT table, and one input PID table
+  - One output session for each copy of an input session.
+  - Each output session has one output PID table.
+  - The PID table is sized differently for SPTS and MPTS.
+  - Each entry in PID table has PID value, PID index, prog number, and flags.
+    - PID value: input / output PID value
+    - PID index: only for input PID table, index of corresp. PID in output table
+    - flags: PSI, video, PCR, etc
+
+PAT version change:
+  - Clear all entries in PMT and input PID tables
+  - No need to change output PID table.
+
+Adding new PMT (for MPTS remux session):
+  - Add all new PIDs to input PID table, and all output PID tables.
+  - May need to reclaim unused PID entries from output PID table.
+
+PMT version change:
+  - remove PIDs in old PMT from the input/output PID tables.
+    - From old PMT, match all PIDs in the input table.  Mark them unused.
+    - From their pid_idx, mark corresponding entries in output PID table unused.
+  - add PIDs in new PMT to the input/output PID tables.
+    - From the first output session, find sufficient pid_idx's of unused
+      entries in output PID table in the least recently used manner.
+    - Add entries to input PMT and set their pid_idx correspondingly.
+    - For all affected pid_idx's of all output sessions, compute and assign
+      their output PID value.
+    - Reshuffle input PID table for lookup efficiency.
+
+
+Output PID table change considerations:
+  - the least recently used entry reuse is to avoid different output PIDs
+    begin used which some old PIDs are still in the dejittering buffer.
+  - IF there is no output PID value change, we can immediately reuse the output
+    PID entry
+  - Maybe this works better:
+    - For each new input PID, calculate new output PID
+    - Search for the output PID in the outpt PID table.
+    - If not found, just find a non-used entry and reuse it.
+    - If found, and the entry is not mark non-used, PID conflict!
+    - otherwise just reuse this entry
+
+I believe the above approach can be used for remuxed MPTS with different
+cloned outputs.  Just need to add another drop flag in the output PID entry.
+
+
+===========================================================================
+
+PAT snooping
+
+- only one PAT table in input session
+- when PAT version change, will clean up input PID table and in program list,
+  and restart snooping (same as session start).
+- Out session PID table will be cleaned up and repopulated when the TP info
+  with new_pat flag is processed.  Same to output PSI generation.
+
+

@@ -1,0 +1,105 @@
+# Need to boot up RPD by connecting to its console
+
+# For A8T testbed:
+# RPD1:
+telnet 10.90.153.35 2006
+# RPD2:
+telnet 10.90.153.35 2006
+
+
+# Reset RPD using: reset
+# Then hit ctrl-C to stop autoboot
+
+# Boot up RPD with the following commands:
+setenv ipaddr 7.7.7.104
+setenv gateway 7.7.7.1
+setenv serverip 1.8.0.2
+tftp a0000000 1.8.0.2:node_images/RPD_seres_rpd_20170829_010001.itb.sign && sboot mem
+
+
+# commands
+no cable rpd RPD01
+no cable rpd RPD02
+no cable rpd RPD03
+no cable rpd RPD04
+no cable rpd RPD05
+no cable rpd RPD06
+no cable rpd RPD07
+no cable rpd RPD08
+no cable rpd RPD09
+no cable rpd RPD10
+no cable rpd RPD11
+no cable rpd RPD12
+no cable rpd RPD13
+no cable rpd RPD14
+no cable rpd RPD15
+no cable rpd RPD16
+no cable rpd RPD17
+no cable rpd RPD18
+no cable rpd RPD19
+no cable rpd RPD20
+no cable rpd RPD21
+no cable rpd RPD22
+no cable rpd RPD23
+no cable rpd RPD24
+no cable rpd RPD25
+no cable rpd RPD26
+no cable rpd RPD27
+no cable rpd RPD28
+no cable rpd RPD29
+no cable rpd RPD30
+no cable rpd RPD31
+no cable rpd RPD32
+no cable rpd RPDX1041
+no cable rpd RPDX1042
+no cable rpd RPDX1043
+no cable rpd RPDX11
+no cable rpd RPDX12
+no cable rpd RPDX13
+no cable rpd RPDX14
+no cable rpd RPDX15
+no cable rpd RPDX16
+no cable rpd RPDX17
+no cable rpd RPDX204
+no cable rpd RPDX2041
+no cable rpd RPDX2042
+no cable rpd RPDX21
+no cable rpd RPDX22
+no cable rpd RPDX23
+no cable rpd RPDX24
+no cable rpd RPDX25
+no cable rpd RPDX26
+no cable rpd RPDX27
+no cable rpd RPDX304
+no cable rpd RPDX31
+no cable rpd RPDX32
+no cable rpd RPDX33
+no cable rpd RPDX34
+no cable rpd RPDX35
+no cable rpd RPDX36
+no cable rpd RPDX37
+no cable rpd RPDX603
+no cable rpd RPDX61
+no cable rpd RPDX62
+no cable rpd RPDX63
+no cable rpd RPDX64
+no cable rpd RPDX65
+no cable rpd RPDX66
+no cable rpd RPDX67
+no cable rpd RPDX702
+no cable rpd RPDX71
+no cable rpd RPDX72
+no cable rpd RPDX73
+no cable rpd RPDX74
+no cable rpd RPDX75
+no cable rpd RPDX76
+no cable rpd RPDX77
+no cable rpd RPDX801
+no cable rpd RPDX81
+no cable rpd RPDX82
+no cable rpd RPDX83
+no cable rpd RPDX84
+no cable rpd RPDX85
+no cable rpd RPDX86
+no cable rpd RPDX87
+

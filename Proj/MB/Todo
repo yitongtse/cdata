@@ -1,0 +1,68 @@
+Implementation of Carousel insertion
+
+
+
+mb> v d../../../../../../cisco.comp/rfgw/lc/mb/src/mb_video/mb_video_input.c:61 !(tsec_bd->flag & RXBD_E) -- assertion failed
+
+
+New CLI:
+  video show qam <qam_id> carousel - show all carousels a qam is inserting
+    CLI_VIDEO_SHOW_QAM_CRSL
+    exec_video_show_qam_crsl()
+    OK
+
+  video show qam <qam_id> psi
+    CLI_VIDEO_SHOW_QAM_PSI
+    exec_video_show_qam_psi()
+    OK
+
+  video show qam <qam_id> psi packet
+    CLI_VIDEO_SHOW_QAM_PSI_PKT
+    exec_video_show_qam_psi_pkt()
+    OK
+
+  video show qam <qam_id> program <prog_no>
+    CLI_VIDEO_SHOW_QAM_PROG
+    exec_video_show_qam_prog()
+    OK
+
+  video show qam <qam_id> program <prog_no> psi
+    CLI_VIDEO_SHOW_QAM_PROG_PSI
+    exec_video_show_qam_prog_psi()
+    --
+
+  video show qam <qam_id> program <prog_no> psi packet
+    CLI_VIDEO_SHOW_QAM_PROG_PSI_PKT
+    exec_video_show_qam_prog_psi_pkt()
+    OK
+
+
+  video show config <id> carousel
+    CLI_VIDEO_SHOW_CONFIG_CRSLS
+    exec_video_show_config_carousels()
+    OK
+
+  video show config <id> carousel <crsl_id>
+    CLI_VIDEO_SHOW_CONFIG_CRSL
+    exec_video_show_config_carousel()
+    OK
+
+  video show config <id> carousel <crsl_id> packet
+    CLI_VIDEO_SHOW_CONFIG_CRSL_PKT
+    exec_video_show_config_carousel_pkt()
+
+
+-----------------------------------
+
+Should try to combine some CLI handler:
+e.g. video show qam <id> psi
+     video show qam <id> psi packet
+
+Also some parameters checking may not be necessary, as they should be
+done by the CLI parser.
+
+
+The following two CLI gives about the same results:
+  video show qam 0 program 1
+  video show qam 0 program 1 psi
+

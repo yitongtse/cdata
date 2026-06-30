@@ -1,0 +1,29 @@
+Commits on the private branch:
+(* means committed to private branch.
+ Y/N indicates if it is on the polaris branch )
+
+*Y CSCva22028 NG_Cli session delete with ip 0.0.0.0 and unable to delete session
+*Y CSCva41261 Support changing source back to the same source
+*Y CSCva41299 Support of low latency video service in video data plane
+*Y CSCva46730 Add support for multicast session restart message
+*Y CSCva45040 Improve owner mask handling for input session
+*Y CSCva49290 Add CLI, TDL and GQI support for low latency (Meng)
+* LABEL: XE318SP_LOW_LATENCY
+*Y CSCva47299 Video data plane code cleanup
+
+---------------
+
+*Y CSCva62719 Enhance thread statistics collection to nanosecond precision
+*Y CSCva66591 Unified worker cores for vidman
+*Y CSCva70244 Reduce demux address buffer footprint
+*Y CSCva76663 Support for adding or deleting cores to VIDMAN thread groups
+*Y CSCva62719-2 Enhance thread statistics collection to nanosecond precision
+                (for adding timer statistics)
+
+NEW: Add support of change source command for ASM sessions
+
+---------------
+
+Workarounds in control plane that need to be addressed:
+- need new restart message instead of uinsg source switch with G = 0
+- switch to use ASM instead of SSM

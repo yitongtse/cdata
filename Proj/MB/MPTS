@@ -1,0 +1,67 @@
+How to define MPTS processing:
+
+
+- whether to regenerate PAT, or just change TSID field of PAT
+- whether to snoop PMT, and add it to regenerated PAT
+- whether to drop and regenerate PMT, or passthru untouched
+- whether to remap ES, and regenerate PMT
+- whether to drop or passthru ghost pids
+- whether we can ask user to specify a list of PIDs to passthru
+- how to support dropped pids
+
+
+---------------------
+
+PAT handling:
+  - regenerate, or restamp TSID
+
+PMT handling:
+  - snoop (must, to show CLI)
+  - change program number?
+  - remap PMT pid?
+  - regenerate (only if we remap ES pids)
+
+ES handling (ES are TP whose pid is in PMT):
+  - remap?
+  - ES filtering supported?
+
+Ghost pid handling:
+  - drop, or passthru
+  - need to check CC error?
+
+----------------------
+
+Session flags, and their impact:
+
+es_remap: whether to remap ES pids
+  - remap ES pids
+  - regenerate PMT tables
+
+pmt_remap: whether to remap PMT pids
+  - regenerate PAT table
+
+-----------------------
+
+Always regenerate PAT:
+  - avoid PAT tweaking (simplify code)
+  - precious PAT placement possible
+  - support passthru, or muxing
+
+Always snoop PAT?
+
+-----------------------
+
+PID filtering:
+- default is to include all PMT pids in PAT, and all ES pids in PMTs
+- provide a list of blocked pids, user need to specify the blocked pid list
+- to drop a program, add the PMT pid to the blocked pid list
+- to drop an ES, add the ES pid to the blocked pid list
+- blocked pid list will be added to pid table, with drop flag set
+
+PID insertion:
+- default is all pids not referenced in PAT/PMT will be dropped
+- dropped PIDs will not be CC checked
+- Provide a list of passthru pids, user need to specify the list
+- Passthru pids will be forwarded to all outputs without pid remapping
+
+

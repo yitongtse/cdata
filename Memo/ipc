@@ -1,0 +1,77 @@
+// Seat
+//
+ipc_error_code ipc_add_named_seat(uchar *seat_name, ipc_seat new_seat,
+                       ipc_transport_type transport_type,
+                       ipc_send_vector send_routine, uint transport_data);
+
+ipc_seat_data *ipc_get_seat(ipc_seat seat_address);
+
+void ipc_resync_seat(ipc_seat_data *seat);
+void ipc_reset_seat(ipc_seat_data *seat);
+
+
+// Port
+//
+ipc_error_code ipc_create_named_port(char *name, ipc_port_id *port,
+                       ulong port_flags, ipc_receive_method rx_method,
+                       void *context, void *ipc_rx_handler);
+
+ipc_error_code ipc_register_port(ipc_port_id port)
+
+ipc_error_code ipc_open_port(ipc_port_id port_id, ipc_port_info *port_info)
+
+ipc_error_code ipc_open_port_by_name(char *name, ipc_port_info *port_info)
+
+ipc_port_id ipc_locate_port(ipc_name *name)
+
+ipc_error_code ipc_close_port(ipc_port_info *port_info)
+
+ipc_error_code ipc_remove_port(ipc_port_id port)
+
+
+// Send messages
+//
+ipc_message *ipc_get_pak_message(ipc_size size, ipc_port_info dest_port_info,
+                       ipc_message_type type);
+
+ipc_message *ipc_get_message(ipc_size size, ipc_port_id dest_port_info,
+                       ipc_message_type type, void *ipc_data,
+                       void *ipc_data_buffer, ipc_free_func_t ipc_free_func)
+
+ipc_error_code ipc_send_message_blocked(ipc_message *message,
+                       ipc_port_info *dest_port_info)
+
+ipc_error_code ipc_send_message(ipc_message *message,
+                       ipc_port_info *dest_port_info)
+
+void ipc_process_raw_pak(paktype *pak)
+
+void ipc_return_message(ipc_message *message)
+
+
+
+
+IPC
+===
+
+3 types of services:
+
+Port: communication end-point
+IPC address (32b): 16b seat ID + 16b port ID
+
+Seat: processor
+Seat manager
+
+Port name: "seat:function"
+
+Zone: collection of IPC seats communicating to each other
+Zone manager (a.k.a IPC Master)
+
+
+===================================================
+
+IPC Testing
+
+test ipc port create 10 zone 0
+
+Default local zone ID is 0

@@ -1,0 +1,37 @@
+IPTV server
+
+The IPTV server we got is a combination of a Content Manager and Server.
+It is basically a PC with HD and the Content Manager software.
+
+Login: Administrator
+Password: (none)
+
+The PC monitor, keyboard and mouse ports are located in the rear of the box.
+The front has ports for the content manager.
+
+The console port of the IPTV server does not work.
+
+Instead, we use the Web page configuration throught Ethernet connection.
+
+Connect Laptop Ethernet port with the IPTV Ethernet 0 port.
+Configurate the Laptop Ethernet port with appropriate IP address
+and subnet mask.
+Go to web page (IP address).
+Login: admin
+Password: admin
+
+
+NOTE: Make sure the unused Ethernet interface is disabled to ensure the
+      content is streamed out from the correct interface!!
+
+Don't serve more than 1 channel at a time!
+I could not make live vide work if there is another schedule program going on!
+
+
+Current IP setting:
+Ethernet 0:
+Ethernet 1:
+
+
+After recording a file, you may need to reboot the box before the file
+shows up the list.

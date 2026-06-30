@@ -1,0 +1,15 @@
+#! /usr/bin/perl -w
+
+%count = ();
+
+while (<>) {
+    chomp;
+    $count{$_}++;
+}
+
+@key = sort(keys(%count));
+
+foreach (@key) {
+    print("$_: $count{$_}\n");
+}
+

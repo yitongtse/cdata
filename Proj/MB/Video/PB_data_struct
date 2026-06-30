@@ -1,0 +1,175 @@
+typedef struct tp_info_ {
+    uint8 flags;                // bit 0-2: reserved,
+                                // bit 3: PCR jump detected
+                                // bit 4: PCR flag
+                                // bit 5: drop flag
+                                // bit 6: force discontinuity
+                                // bit 7: discontinuity indicator
+
+    uint8 pid_idx;              // PID index (for remapping)
+
+    uint16 tbo_ext;             // time base offset (ext part in 27 MHz)
+    uint32 tbo_base;            // time base offset (base part in 45 kHz)
+
+    union {
+        uint32 out_time;        // TP index, or delivery time (in 45kHz)
+        uint32 tp_idx;          // index of TP in transport stream
+    } shr;
+
+    uint8 *addr_ptr;            // points to actual TP
+} tp_info_t;
+
+
+typedef struct group_info_ {
+    uint8 num_pid;
+    uint8 pat_ver;              // PAT version number
+    uint8 pmt_ver;              // PMT version number
+    uint16 session_id;
+    uint16 pmt_pid;             // PMT PID
+    uint16 master_pcr_pid;      // master PCR PID (passthru session only)
+    uint32 last_master_pcr;     // last time master PCR seen
+    uint32 tp_info_buffer_address;
+    uint32 tp_info_buffer_end;
+    uint32 tp_info_buffer_size;
+    uint32 tp_info_wptr;
+    clkrec_info_t clkrec_info;
+    uint16 pid[MAX_PID_PER_GROUP];
+    uint8 pid_type[MAX_PID_PER_GROUP];
+    uint8 cc_cnt[MAX_PID_PER_GROUP];
+    uint32 pat_crc;
+    uint32 pmt_crc;
+} group_info_t;
+
+
+typedef struct psi_pid_info_ {
+    uint16 session_id;
+    uint16 pid;
+    uint32 address;
+} psi_pid_info_t;
+
+
+typedef struct session_info_ {
+    uint8 session_type;         // PROCESS, PASSTHRU
+    uint8 session_state;        // OFF, PARSING, VALID, INVALID
+    uint8 session_sync;         // PENDING, SYNC
+    uint8 invalid_psi;          // an INVALID_PSI has been sent to IOS
+    uint8 timeout_flag;         // session has timed out
+    uint8 pmt_known;            // whether PMT PIDs are known
+    uint8 check_rate_flag;      /* CHECK_RATE_STOP, CHECK_RATE_START */
+    uint16 session_id;          // session ID of this session
+    uint16 group_id;            // group ID
+    uint16 snooped_pid;         // PID to be snooped
+    uint16 next_session_id;     // links to next free session if this session
+                                // is free.  Otherwise value is not managed.
+    uint16 udp_dst;
+    uint16 udp_src;
+    uint32 dst_ip;
+    uint32 src_ip;
+    uint32 last_accessed;
+    uint32 last_snooped;
+    uint32 tp_cnt;
+    uint32 last_tp_cnt;         // for bit rate calculation
+    uint32 last_tp_cnt_input;   // for bit rate calculation
+
+    uint16 num_snoop_pids;      // number of pids to snoop (#PMTs + 2)
+    uint16 snoop_pids[MAX_NUM_SNOOP_PIDS];
+    uint32 check_rate_time_strt; /* the time when start calc bitrate */
+    uint32 check_rate_tp_cntr; /* the tp cntr when start calc bitrate */
+    int32 check_rate_bitrate;
+} session_info_t;
+
+
+typedef struct udp_port_map_ {
+    uint16  udp_port;     /*0xcxxx*/
+    uint16  session_id;   /* 0 - 600 */
+    uint16  qam_id;       /* 0-23 */
+    uint16  out_prog_num; /* specified by customer */
+    void    *qam;         /* matching qam_id */
+} udp_port_map;
+
+
+typedef struct in_session_ {
+    uint16 session_id;          /* 0-600 */
+    uint16 state;           /* active, inactive, psi_mismatch */
+    uint16 src_udp;
+    uint16 dest_udp;         /* 0xcxxx */
+    uint16 max_jitter;       /* possible maximum jitter */
+    uint16 mode;             /* 0:normal 1:trick */
+    uint16 cc_error_count;   /* how many cc errors happened since last time */
+    uint16 num_sync_loss;    /* number of bad IP pkts recved for the session */
+    uint16 peek_pcr_jitter;  /* in ms */
+    uint16 avg_pcr_jitter;   /* in ms */
+    uint16 pre_encrypted;    /* yes/no */
+    uint16 src_rate;         /* bps */
+    uint16 cloned;           /* 1: clone it to all qams */
+    ipaddrtype src_ip;      /* where is it from */
+    ipaddrtype dest_ip;     /* pb lc GE ip */
+    uint32 start_time;      /* when did the session start */
+    char name[SESSION_NAME_LEN]; /* we may want to name it */
+    struct in_psi_ *in_ts;   /* input psi */
+    struct udp_port_map_ *port_map; /* what the dest QAM and out_prog_num */
+    list_header filter_pid_list; /* which pid needs to be filtered */
+} in_session;
+
+
+typedef struct in_psi_ {
+    uint16 ts_id;            /* transport id */
+    uint16 nit_pid;          /* obvious */
+    uint8  spts_flag;        /* spts or mpts */
+    uint8  pat_ver;          /* pat version */
+    uint8  cat_ver;          /* cat version */
+    uint8  num_emms;         /* simulcript complexity, 2 for now */
+    uint8  num_elems;
+    uint8  num_progs;
+    in_session *session;
+    struct in_es_  *emm_elem[MAX_NUM_CAS]; /* the emm streams */
+    struct in_es_  *in_elems[MAX_NUM_ES_PER_SESSION]; /* all prog elems */
+    struct in_prog_  *in_progs[MAX_NUM_PROGS_PER_SESSION]; /* all progs */
+} in_psi;
+
+
+typedef struct in_es_ {
+    uint16 pid;              /* in pid */
+    uint16 pid_type;         /* video, audio, ecm etc */
+    uint16 flag;             /* is this pid shared, filtered */
+    uint16 group_id;         /* in group id assigned by embedded side */
+    uint16 cas_id;           /* only valid for ecm, emm */
+    uint16 descr_len;        /* descriptor */
+    in_session *session;     /* from which session */
+    uint8  *descriptor;      /* es descriptor */
+} in_es;
+
+
+typedef struct in_prog_ {
+     uint16 in_prog_num;
+     uint16 pmt_pid;
+     uint16 pcr_pid;
+     uint16 descr_len;         /* descriptor */
+     uint16 clone_prog_num;    /* the cloned prog number */
+     uint8  pmt_ver;
+     uint8  num_es;            /* num of es, not including ecms */
+     uint8  num_ecm;           /* num of ecms */
+     uint8  flag;              /* special flags for this program */
+     in_es  *ecm[MAX_NUM_CAS]; /* ecm streams */
+     in_es  *in_es[MAX_NUM_ES_PER_PROG]; /* other elementary streams */
+     in_session *session;       /* from which session */
+     list_header out_prog_list; /* mapped to which qams */
+     uint8      *descriptor;    /* program descriptor */
+} in_prog;
+
+
+typedef struct mux_pid_info_ {
+    uint16 org_pid; /* original PID */
+    uint16 out_pid; /* re-mapped output PID */
+    uint32 cntl_word[2]; /* control word */
+} mux_pid_info_t;
+
+
+/* output command format */
+typedef struct output_cmnd_ {
+    uint32 cmnd_0;
+    uint32 cmnd_1;
+    uint32 cw_0;
+    uint32 cw_1;
+} output_cmnd_t;
+

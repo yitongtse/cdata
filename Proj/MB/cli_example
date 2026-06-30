@@ -1,0 +1,29 @@
+config t
+
+int q3/1.1
+cable video
+video udp 50000 program 1
+video udp 50002 program 2
+video udp 50004 program 3
+video udp 50006 program 4
+
+video udp 60000 program 10
+video udp 60000 pid drop 32
+video udp 60000 pid remap 40 100
+video udp 60000 jitter 100
+video udp 60000 pmt-interval 100
+
+video pat-interval 100
+
+
+int q3/1.2
+cable video
+video ssm 1.1.1.1 223.2.2.1 program 1
+video ssm 1.1.1.1 223.2.2.2 program 2 rtp bitrate 4000000
+
+video ssm 1.1.1.1 223.2.2.10 program 10
+video ssm 1.1.1.1 223.2.2.10 pid drop 32
+video ssm 1.1.1.1 223.2.2.10 pid remap 40 100
+video ssm 1.1.1.1 223.2.2.10 jitter 100
+video ssm 1.1.1.1 223.2.2.10 pmt-interval 100
+

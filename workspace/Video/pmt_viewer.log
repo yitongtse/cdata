@@ -1,0 +1,46 @@
+* Bitstream file (string) * /ws/ytse-sjc/Content/mpts_3prog_35000000.ts
+
+
+PAT:
+Table ID          : 0
+Sector syntax     : 1
+Private           : 0
+Sector length     : 21
+TSID              : 1
+Version           : 8
+Current/Next      : 1
+Sector number     : 0
+Last sector number: 0
+
+Program number: 4
+PMT PID       : 34
+
+PAT parse result: 1
+
+
+PMT:
+Table ID          : 2
+Sector syntax     : 1
+Private           : 0
+Sector length     : 55
+Program number    : 4
+Version           : 22
+Current/Next      : 1
+Sector number     : 0
+Last sector number: 0
+PCR PID           : 7680
+Program info size : 6
+
+PID number  : 593
+ES type     : 129
+ES info size: 0
+
+PID number  : 7680
+ES type     : 2
+ES info size: 15
+
+PID number  : 8001
+ES type     : 129
+ES info size: 6
+
+PMT parse result: 0

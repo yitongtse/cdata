@@ -1,0 +1,11 @@
+Steelhead:
+- Pad 4 bytes at end of each TP
+- Adjust IP/UDP header for the padding
+- Align 1st TP at 64-byte boundary
+- Extract TP headers into prepend
+
+- Need to identify the encapsulation format:
+    IP/L2TP/DEPI
+    IP/UDP/VIDEO
+    IP/UDP/RTP/VIDEO
+

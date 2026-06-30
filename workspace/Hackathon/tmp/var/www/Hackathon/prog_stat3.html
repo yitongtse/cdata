@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <title>Program statistics</title>
+
+    <script src="https://www.google.com/jsapi"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script>
+        google.load("visualization", "1", {packages:["corechart"]});
+    </script>
+  </head>
+
+  <body>
+    <h1> HACKalizer: Program Bitrates </h1>
+    <div id="chart" style="width: 900px; height: 500px;"></div>
+
+    <script>
+        var chart;
+        var options;
+
+        function draw(data) {
+            var prog_stat = JSON.parse(data);
+            var prog_stat_chart = new Array();
+            prog_stat_chart[0] = new Array();
+            prog_stat_chart[0][0] = "Bitrate";
+            for (i = 0; i < prog_stat.length; i++) {
+                prog_stat_chart[0][i+1]
+                        = "Program " + prog_stat[i].program;
+            }
+
+            max_time_id = 60;
+            for (i = 0; i < max_time_id; i++) {
+                prog_stat_chart[i+1] = new Array();
+                prog_stat_chart[i+1][0] = "";
+                for (j = 0; j < prog_stat.length; j++) {
+                    prog_stat_chart[i+1][j+1] = prog_stat[j].tp_cnt[i]
+                                                * 1504. / 1000000;
+                }
+            }
+
+            chartData = google.visualization.arrayToDataTable(
+                                prog_stat_chart);
+            chart.draw(chartData, options);
+        }
+
+        function update() {
+            $.ajax({url: "prog_stat.txt", success: draw});
+        }
+
+        $(document).ready(function() {
+            chart = new google.visualization.AreaChart(
+                                  document.getElementById('chart'));
+            options = { hAxis: {title: 'Time'},
+                        vAxis: {title: 'Bitrate (Mbps)', minValue: 0}
+                      };
+
+            update();
+
+            setInterval(update, 1200);
+        });
+    </script>
+
+    <h1 id="test"></h1>
+    <div id="piechart" style="width: 900px; height: 500px;"></div>
+
+  </body>
+</html>

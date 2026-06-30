@@ -1,0 +1,49 @@
+int out_session_psi_init (out_session_t *ses)
+{
+    int err;
+    out_prog_t *prog;
+
+    assert(ses->in_ses);
+
+    VIDEO_PSI_DEBUG("\nout_session_psi_init: ses %d, qam %d",
+                    ses->id, ses->qam_id);
+
+    // Initial PAT processing
+    if (ses->in_ses->pat_snooped) {
+        // Update the QAM's PAT
+        err = out_session_update_pat(ses);
+        if (err != EOK) {
+            ses->state = SESSION_STATE_BLOCKED;
+            return err;
+        }
+    }
+
+    // Initial PMT processing
+    if ((ses->flags & SESSION_FLAG_PID_REMAP)) {
+        // For PID remap session
+        FOR_ALL_ELEMENTS_IN_QUE(&ses->prog_list, (que_elem_t*)prog) {
+            if (prog->in_prog->pmt_snooped) {
+                err = regenerate_pmt(ses, prog->pmt_pid);
+                if (err != EOK) {
+                    ses->state = SESSION_STATE_BLOCKED;
+                    return err;
+                }
+            }
+        }
+
+    } else {
+        // For passthru session
+        FOR_ALL_ELEMENTS_IN_QUE(&ses->prog_list, (que_elem_t*)prog) {
+            if (prog->in_prog->pmt_snooped) {
+                err = passthru_pmt(ses, prog->pmt_pid);
+                if (err != EOK) {
+                    ses->state = SESSION_STATE_BLOCKED;
+                    return err;
+                }
+            }
+        }
+    }
+
+    return EOK;
+}
+

@@ -1,0 +1,26 @@
+* MPEG-2 Video Encoder Simulation:
+* 
+* Input sequence name (string) * /export/home/yitong/Data2/short1/short1_%04d%s.pix
+* First frame (int) * 0
+* Last frame (int) * 3
+* Frame width (int) * 704
+* Frame height (int) * 480
+* Reconstructed seuqence name (string) * 
+* Bitstream filename (string) * test.mpg2
+* Transport bitstream? (int) * 0
+* [TS?] Video PID (int) @ 0
+* [TS?] System syntax verbose level (int) @ 0
+* [TS?] System syntax output file (string) @ syn.sys
+* Verbose level (0:OFF 1:SEQ 2:GOP 3:PIC 4:SLC 5:MB 6:ALL) (int) * 6
+* Syntax output file (string) * syn.enc
+* 
+* Encoding parameters:
+* Fixed quantiser code (int) * 8
+* I-picture interval (int) * 15
+* Anchor picture interval (int) * 3
+* Top field first? (int) * 1
+* Use frame prediction and DCT? (int) * 0
+* 
+* Debugging parameters:
+* Frame number (int) * -1
+* Macroblock number (int) * -1

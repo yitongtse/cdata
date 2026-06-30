@@ -1,0 +1,8 @@
+* Clock Recovery Simulation
+* Input file (string) * time_capture/long.tc
+* Output file (string) * out
+* Dejitter size (ms) (int) * 200
+* Number of TPs to process (-1 for all) (int) * -1
+* Lowpass filter parameter (int) * 168
+* Loop gain (int) * 1678
+* Arrival time adjustment (int) * 0

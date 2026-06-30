@@ -1,0 +1,11 @@
+* Transport stream filename (string) * /users/ytse/Bitstream/cp_short.tsp
+* Packet size type (1-188 2-204) (int) * 2
+* Bitrate (bps) (int) * 12000000
+* Video PID (int) * 128
+* Measure VBV level? (int) * 0
+* [VBV?] Output file for VBV level (string) @ cp.vbv
+* Measure bitrate? (int) * 0
+* [bitrate?] Output file for bitrate (string) @ cp.rate
+* [bitrate?] Measurement window (ms) (int) @ 1000
+* Measure picture size? (int) * 1
+* [Picture size?] Output file for picture size (string) * cp_short.picInfo

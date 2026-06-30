@@ -1,0 +1,11 @@
+ssh bvt-lnx-1
+source /ATS/ats5.3.0/cbr8-video-regression/.cshrc
+
+# DE Sanity test (assume on D7)
+cd /ATS/ats5.3.0/cbr8-video-regression/DE_SANITY
+autoeasy -mailto ytse@cisco.com complete_sanity.D7.job
+
+# REMEMBER to quit all console before launching the test!!
+
+# Kalpana's script
+/ws/kavetriv-sjc/CBR8/SREG/MPTS.job

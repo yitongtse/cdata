@@ -1,0 +1,31 @@
+In Cat4k switch, a interface can be configured as L2 or L3.
+
+For L2 interfaces, the HW mac address will be used.
+For L3 interfaces, the chassis's mac address will be used.
+  This is so that when interface failover occurs, we don't need to re-arp.
+
+The chassis also has a list of IP addresses that were configured in some
+interfaces, or as loopback addresses.  You don't need to set up static routes
+between these addresses.  Static routes are for subnet that are conected to,
+but outside the routers.
+
+
+For L2 interfaces: 
+- All incoming packets are forwarded based on the mac address. 
+- For video routine, we set the dest mac address to be the router's.
+  As a result, the packet will be forwarded to the CPU port, at which point
+  the ACK will take action.
+
+For L3 interfaces:
+- If the dest IP of an incoming packet is in the same subnet, then the mac
+  address should be that of the connected interface
+- If the dest IP of an incoming packet belongs to a different subnet,
+  the dest IP address will be examined.
+  - if it is one of the IP address of the router, it will be forwarded
+    directly by the K2.
+  - if not, the routing table will be looked.
+  - if not routing rule can be used, the packet will be dropped
+    (usually there is no default gateway for a router).
+
+
+Router requirement: RFC 1812.

@@ -1,0 +1,54 @@
+Notation: Fm.n: means the variable has m integer bits and n fraction bits
+          F24.12: 24 integer bits, 12 fractional bits, total 36 bits in width
+          F-4.12: 12 fractional bits, with first 4 being 0, so total 8 bits
+
+pcr_time, prev_pcr_time		// F42.(16)  fractional bits are zeros!
+arvl_time       		// F42.(16)
+
+tp_itvl
+freq_adj			// F-?.40
+
+pcr_inc				// F42.(16)
+tbo_in                          // F42.(16)
+tbo_est                         // F42.16
+tbo_err                         // F42.16
+tbo_err_norm                    // F24.40
+tbo_err_lpf                     // F24.40
+
+
+Clock recovery algorithm:
+
+    tbo_in = pcr_time - arvl_time;			// F42.(16)
+                                                        // frac bits all 0's
+
+    if (1st PCR) {
+        tbo_est = tbo_in;
+        delay = DEFAULT_DELAY;
+        pcr_out_time = arvl_time + delay;
+
+    } else {
+        // Scheduling
+        pcr_inc = pcr_time - prev_pcr_time;		// F24.(16)
+                                                        // assuming inc < 500 ms
+*       tbo_drift = pcr_inc * freq_adj;			// F24.40
+        pcr_out_time_inc = pcr_inc - tbo_drift;		// F24.16
+        pcr_out_time += pcr_out_time_inc;		// F48.16
+        tp_itvl = pcr_out_time_inc / pcr_tp_idx_inc;	// F24.40
+
+        // PLL update
+        tbo_est += tbo_drift;				// F48.16
+        tbo_err = (tbo_in - tbo_est) / pcr_inc;		// F24.24
+        tbo_err_norm = tbo_err / pcr_inc;               // F?.40
+        tbo_err_lpf = LPF(tbo_err);			// F?.40
+        freq_adj = tbo_err_lpf * loop_gain;		// F0.40
+    }
+
+
+LPF() {
+    tbo_err_diff = tbo_err - tbo_err_lpf;		// F24.16
+    tbo_err_lpf += tbo_err_diff * lpf_par;		// F24.16
+}
+
+
+Note: lpf_par, loop_gain, freq_adj are in F0.24
+

@@ -1,0 +1,2 @@
+#gqi -i 1.43.19.10 -L 031 -v 1 -M 0 -P -1 -F 1 -f script.new
+gqi_rsp -i 1.43.19.10 -M 0 -O 1 -P 5

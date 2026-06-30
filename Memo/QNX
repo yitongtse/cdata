@@ -1,0 +1,233 @@
+The QNX_CONFIGURATION environment variable should point to the
+QNX configuration directory, which should contain the license
+and the qconfig directories.
+
+The license directory is where the license is to be found.
+
+The qconfig directory should contain an xml file for the particular GUI.
+The xml file should contain the location of the IDE (base),
+the host and target for the IDE.
+
+The host and target for command line is defined in the
+QNX_HOST and QNX_TARGET environment variables.
+
+--------------------------------------------------------------
+To build QNX image:
+  Install BSP (Board Support Package) for PPC BE (big endian)
+    The package can be found in
+        //ventura/shared/dechen/palmbeach/qnx_atlantis_disco2_bsp.
+  Make sure you have the working license file
+    To update, copy the new license file to c:\QNXsdk
+    Then on the window command prompt, do:
+        set LM_LICENSE_FILE=c:\QNXsdk\<license_file>
+        run c:\QNXsdk\host\win32\x86\usr\qnxlm\lmgrd -z
+    Make sure the lmgrd process is not already running,
+    otherwise kill it in task manager.
+  After BSP installation:
+    cd c:\QNXsdk\target\qnx6\usr\src\bsp-6.2.0\ppc\atlantis
+    do a make to create the build file.
+    cd image
+    modify the build file
+    do a make to build the QNX image file
+
+
+To download QNX image:
+  copy QNX image to /auto/tftpboot/<userid>
+  telnet to eval board (using eval_con alias) set up in the lab
+  set up following environment variables:
+      TFTP_VERBOSE=2
+      TFTP_CHECKSUM=0
+      IP_SUBNET_MASK=255.255.0.0
+      TFTP_SERVER=223.255.254.254
+      DEFAULT_GATEWAY=1.11.0.1
+      IP_ADDRESS= <board specific>
+      MAC_ADDRESS= <board specific>
+      TFTP_FILE= <filename>
+  do a tftpdnld
+  <QNX session>
+  To quit QNX, type exit.
+  To quit telnet session, press ctrl-], then type quit.
+
+
+To compile a C file:
+  qcc -V	: shows a list of object code format
+  qcc -Vgcc_ntoppcbe -o prog prog.c
+
+To reset an eval board:
+  vi /vws/peg/mv64360_eval/boards/boards_in_use
+  find the line with your login name
+  take note of the console server IP and port number
+  delete that line
+  telnet into the console server (172.22.86.22), pw rHoz
+  go to priveleged mode (enable)
+  clear line # (# is determined by port number.  Eg. port 2004 => line 4)
+  ctrl-], quit the telnet session
+
+Alternatively, you can use the eval_con options.  Do a
+  eval_con -h
+to list all the options.
+
+
+How to restart QNX license server:
+    Log onto dechen-ultra5, run
+        /opt/QNXsdk/host/solaris/sparc/usr/qnxlm/lmgrd -c 
+        /opt/QNXsdk/host/solaris/sparc/usr/qnxlm/permlic.lic &
+    It only needs to be run once. 
+
+    To check if that suceeded, run
+        qcc -V
+    to see if it returns an error about the license server.
+
+
+How to measure system idle time?
+Do "sin" on QNX console.  The rightmost number tells you the number of ms
+a task spends since boot up.  The procnto is the idle task.
+
+
+-------------------------------------------------------------------
+
+To locate where a segmentation fault occurs:
+
+E.g:
+Process 12299 (ipc_test) terminated SIGSEGV code=1 fltno=11 ip=fe36d094 mapaddr=
+00005094. ref=00000064
+
+From the error message, get the ip.  Then use gdb-qnx to locate the problem
+from the executable:
+
+gdb-qnx <prog>
+l *0x<ip>
+
+If the ip is actually in one of the shared objects, then we need to first
+locate which shared object the ip is within:
+
+pidin -p<prog> mem
+
+E.g.:
+# pidin -pipc_test mem
+     pid tid name               prio STATE           code  data         stack
+   57352   1 proc/boot/ipc_test  10r JOIN             8192  452K  8192(516K)*
+   57352   2 proc/boot/ipc_test  10f RECEIVE          8192  452K  4096(132K) 
+   57352   3 proc/boot/ipc_test   9f CONDVAR          8192  452K  4096(132K) 
+   57352   4 proc/boot/ipc_test   8f RECEIVE          8192  452K  4096(132K) 
+            ldqnx.so.2         @fe300000             376K   40K
+            ipc_lib.so         @fe368000              32K   12K
+
+From the memory map, identify the shared object.
+Then use the gdb with the shared object, and use the mapaddr
+to locate the error.
+
+gdb-qnx <lib.so>
+l *0x<mapaddr>
+
+
+----------------------------------
+
+Here is how you get the stack address:
+
+#include <sys/syspage.h>
+
+    uint32 stackaddr;
+    extern struct cpupage_entry *_cpupage_ptr;
+                                     // Note: a hidden object known by linker
+
+    stackaddr = (uint32)_cpupage_ptr->tls->stackaddr;
+
+----------------------------------------
+
+To show process run time:
+  pidin times
+
+To show thread run times:
+  pidin ttimes
+
+----------------------------------------
+
+System Analysis Tool (SAT)
+
+tracelogger -d -n 32
+traceprinter -v
+
+----------------------------------------
+
+Free memory size:
+
+pidin info
+
+
+To find memory usage of a process:
+
+pidin -p{process_name} pmem
+
+----------------------------------------
+To check environment variables:
+set
+
+To set environment variables:
+export TERM=xterm
+
+----------------------------------------
+Application Profiling
+
+- add "-finstrument-functions" option to compile command line
+- add "-lprofilingS" option to link command line after the objects (.o files)
+
+On QNX prompt, start the program like this:
+- QPROF_START=1 QPROF_FILE=/tmp/my_prog.ptrace my_prog &
+
+Can embedded profiling info to the kev file (system profiling):
+- QPROF_KERNEL_TRACE=1 my_prog &
+- tracelogger -d -n 32
+
+----------------------------------------
+To show symbol table of an executable file:
+
+/auto/vwsnmq/qnx650/host/linux/x86/usr/bin/ntoppc-nm <program>
+/auto/vwsnmq/qnx650/host/linux/x86/usr/bin/ntoppc-nm <program> | sort
+
+----------------------------------------
+# To compile BSP:
+type make at top-level directory
+
+# To compile debuggable version:
+/usr/bin/make CCOPTS=-O0 DEBUG=-g
+
+----------------------------------------
+# To debug program with .so using gdb
+ntoppc-gdb <prog> <core>
+set solib-search-path <path>
+
+----------------------------------------
+# To force a core dump of a running process
+slay -s SIGABRT <process_name>
+
+----------------------------------------
+# To restart QNX License Manager
+
+Login "friday" as root and run:
+/opt/flexlm/bin/lmgrd -c /opt/flexlm/license/license
+
+----------------------------------------
+# To run Momentics on LDS
+
+$QNX_HOST/usr/bin/qde &
+
+# (or just qde if it is in $PATH)
+
+# Other stuffs (not sure if really needed):
+QNX_CONFIGURATION=/auto/vwsnmq/qnxlicenses
+QNX_JAVAHOME=/auto/vwsnmq/qnx650/_jvm
+QNX_ROOT=/auto/vwsnmq/qnx650
+QNX_TARGET=/auto/vwsnmq/qnx650/target/qnx6
+QNX_HOST=/auto/vwsnmq/qnx650/host/linux/x86
+QNXLM_LICENSE_FILE=27000@friday.cisco.com:@dechen-ultra5.cisco.com
+MAKEFLAGS=-I/auto/vwsnmq/qnx650/target/qnx6/usr/include
+
+----------------------------------------
+# To use the Momentic System Profiler
+- create a dummy C project
+- import the .kev file to the project
+  - file type is generic
+- Double click the imported file
+
+# To get the IPC line, toggle the corresponding button in the tool bar

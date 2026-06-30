@@ -1,0 +1,5 @@
+root password: roZes
+
+/sbin/ifconfig eth1 inet 1.43.27.240 netmask 255.255.0.0
+/sbin/route add -net 1.9.0.0 netmask 255.255.0.0 gw 1.43.0.1
+

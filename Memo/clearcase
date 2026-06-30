@@ -1,0 +1,267 @@
+View storage on spyderman: /vws/nip
+View storage on honeycomb: /vws/noa
+View storage on wireless-view1: /vws/ngu
+View storage on video-view1: /vws/nmg to /vws/nmq (nmg is reserved for me)
+                                                  (nmq too)
+** Also can use /ws/ytse-sjc for view storage.
+
+
+ct lsvob			; list VOBs
+ct pwv				; print working view
+ct catcs			; list config spec
+
+ct ls				; list all file with rule
+ct lsprivate			; list view-private object
+ct lsh <filename>		; list history of a file
+ct lsvtree <filename>		; list version tree of an element
+xlsvtree <filename>		; graphic version of "ct lsvtree"
+
+ct lsco				; list files that have been checked out
+ct lsco -me -cview
+
+
+ct mount <vob_name>		; mount a vob
+ct setview <view_name>		; set current view
+				; Note: usually followed by "cd vob_name",
+				;       same as cd /view/view_name/vob_name
+// Do not use this any more!
+// ct rmview <storage_name>/<view_name>	; remove a view (must be in view server)
+//					; e.g. ct rmview /vws/noa/ytse-dpi
+cc_rmview <view_name>		; remove a view (must be in view server)
+				; e.g. cc_rmview -view ytse-dpi
+
+ct co {-nc} <filenames>		; check out (nc: no comment)
+ct unco <filename>		; uncheck out
+
+ct mkelem <filename>		; create new element
+ct mv				; rename existing element
+ct rm 				; delete files
+#ct rmname			; delete files
+ct mkdir			; add subdirectories
+ct ln				; add or remove links
+
+exit				; exit current view
+
+mkview -i <branch> -v <vob_tag> -s <view_tag> { -t <optional_tag_name> }
+
+start_task -b <branch> -l <base_label> -v <vob>
+           -t <task_name> -d <storage_dir>
+
+ct man [-g] <sub_command>	; see man page.  -g for graphic
+man ct+<sub_command>		; equivant to above
+
+ct help <sub_command>		; display syntax
+ct <sub_command> -help
+
+ct apropos <sub_command>	; find command
+
+ct reserve
+ct unreserve
+
+ct lstype -kind lbtype		; list all labels
+ct lstype -kind brtype		; list all branch types
+
+ct catcs			; list config spec
+ct edcs				; edit config spec
+ct setcs			; change config spec
+
+
+ct diff -pred <filename>	; compare file with its immediate ancestor
+ct xdiff
+
+freezeview
+thawview
+
+
+Cisco wrappers:
+
+updbranch			; show/update view info
+
+prepare
+commit				; can only check in using commit!
+abort
+
+mkbrtype
+
+cc_diff
+cc_diff -uo			; files checked out but not modified
+
+cc_patch			; to carry over changes from one view to another
+
+cc_update			; sync with parent branch
+prepare -c			; create checkpoint in task branch
+commit				; commit change set
+
+reuse_task			; need to do this after commit if you want
+				; to reuse the task branch
+
+cc_branch_labels		; list all labels on a branch
+  [-b <branch>] [-v <vob>]
+
+
+Examples:
+ct lsco -cview -avobs -me	; list all checkouts by me in current view
+                                ; in all vobs
+
+
+
+
+HOW TO
+======
+
+Prepare for commit
+
+prepare -m LATEST -r
+Use -r for RCS style merge
+
+
+To make view from an existing branch:
+
+mkview -i <branch> -v <vob_tag> -s <storage> { -t <optional_tag_name> }
+
+
+
+To make label:
+
+Note: label can only be applied to the main or integration branch.
+      You cannot make label on a task branch.
+
+- mklabel -l LABEL_NAME(ALL CAPITAL)
+          [-co "comment"]
+
+
+
+To create integration branch:
+
+- make a view from the parent branch, if needed
+- set view to this view
+- create a base label on the parent branch, if needed
+- mkbrtype -v <vob>
+           -b <new_branch_name>
+           -base_label <label>
+           -s FEA_INT
+
+
+To print out history of a file in current directory make in a branch:
+  ct lsh -branch <branch_name> <filename>
+Omit filename if for all files in current directory
+
+
+To move a view to another machine:
+  cc_mv_view -t <viewname> -p <new_storage> -m <new_hostname> -v <vob_name>
+  After verifying the view on the same machine, need to manually remove
+  the old storage at <old_storage>/OLD.<viewname>
+  If you get error message (Access denied),
+  try "/usres/groeck/bin/cc_mv_view.local" instead.
+
+
+To sync an integration branch with its parent:
+  - assumptions:
+    vob: /vob/rmx
+    child branch: child_integ
+    parent branch: parent_integ
+  - make sure CLEARCASW_AVOBS environment include the vob.
+
+
+To remove identical files during a prepare:
+  cc_rm_identical
+In case this does not work, make sure those files are really identical and
+edit the ViewAudit file to remove those entries.  The ViewAudit file can be
+found under /vws/noa/<view name>/cisco/audit/.  It contains the change set
+of the view.
+
+
+To pull a throttle branch:
+  mkbrtype -base_label <label>
+           -b <throttle branch name>
+           -v <vob>
+           -s THROTTLE
+           -p <parent branch name>
+
+
+To check into a throttle branch:
+  First create a DDTS entry if you do not already one
+  Add the DDTS id to the following two files:
+    /vbs/bfb/rmx/cisco/audit/<throttle branch name>/RestrictedToBugs-<throttle branch name>
+    /vbs/bfb/rmx/cisco/xaudit/<throttle branch name>/RestrictedToBugs-<throttle branch name>
+    (You may need to create the directory with your throttle branch name under
+     audit and xaudit, if they are not already there!)
+  Then check in as normal.
+
+
+To find all labels in the RMX vob, visit the directory
+  /auto/vbsbfb/rmx/cisco/audit/labels
+
+
+The audit directory for VNBU IOS code is:
+  /auto/scmlog/ios/<branch_name>
+The audit directory for VNBU QNX code is:
+  /auto/scmlog/qnx/<branch_name>
+
+The list of committed patches of a branch can be found in CommitPatches under
+the audit directory.  Ex: /auto/scmlog/qnx/<branch>/CommitPatches
+
+Clearcase help page:
+  wwwin-swtools.cisco.com/swtools/clearcase/howto
+
+
+Graphically diff two files:
+  ct diff -g file1 file2
+
+
+To find out what files have been checked out in a view:
+  ct lsp -co
+
+
+To sync the vob:
+  fix_audit
+  cc_update -m LATEST
+
+
+To create a new component:
+cc_create_comp -pseudo -component rfgw/sim/video -vob /vob/ios.comp
+
+
+To do static analysis (SA):
+prep-commit <DDTS>
+
+
+---------------------------
+
+/ws/ytse mount point on windows: \\sjc-bixby-a\workspace\local10\ws32g1\ytse
+
+
+To own a file:
+  cc_interest -set -interest rfgw-sw <files>
+
+To find out who owns a file:
+  cc_interest <file>
+
+To auto patch a diff to a different branch:
+  auto_patch -bugid <CSCxxnnnnnn> -branch <branch_name>
+             -stop_after <patch_diffs | task | commit | remove_view>
+
+----------------------------
+Instrution to sync a branch:
+    http://wwwin-swtools.cisco.com/swtools/sync/sync_docs/howto-sync.html
+
+=============================
+Clearcase issue:
+
+cleartool: Error: Operation "view_ws_is_ws_view" failed: view storage directory or control files unavailable --
+
+Solution:
+  - end the view first: clearcase endview -server <view_name>
+  - go to view directory: cd /ws/ytse-sjc/ytse-<view_name>
+    Can also find view server access path using: clearcase lsview -l <view_name>
+  - remove the file ".pid"
+
+=============================
+# To find out what region the view server is in:
+ct hostinfo -l
+
+# My registry region is sjc-itech-unix
+
+++++++++++++++++++++++++
+# Reverse patch
+cc_patch -vob /vob/ios -view <view> -p_opts -R <diff_file>

@@ -1,0 +1,10 @@
+Dejitter buffer size: 300 ms (required by PRD)
+
+Min processing latency: 15 (demux wakeup) + 30 (sched wakeup) = 45
+                        Reserve 50 ms
+
+Clock drift buffer: 25 ms on both sides
+
+Additional buffer for release: 30 ms
+
+This gives a buffer of 430 ms

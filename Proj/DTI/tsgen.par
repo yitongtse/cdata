@@ -1,0 +1,6 @@
+* Number of timestamps to generate (int) * 100000
+* Reference clock frequency (Hz) (float) * 10240000
+* Source clock frequency (Hz) (float) * 10240051
+* Timestamp rate (Hz) (float) * 100
+* Initial timestamp value (int) * 0
+* Output filename (string) * in.ts

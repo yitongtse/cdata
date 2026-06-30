@@ -1,0 +1,63 @@
+#!/bin/csh
+
+set OUTFILE = Script.OUT
+touch $OUTFILE
+
+set ITERS = 1048576
+set TTS = 0.1
+
+set FLEN = 80
+set G = 0.01
+echo " " >> $OUTFILE
+echo $FLEN >> $OUTFILE
+echo $G >> $OUTFILE
+acq -cin << EOF >>& $OUTFILE
+* 	acq template
+*
+* Iterations (-n) (int) (1024) * 	$ITERS
+* Filter length (-f) (int) (64) * 	$FLEN
+* Loop gain (-g) (float) (0.0001) * 	$G
+* Clk sample period (-t) (float) (0.1) * 	$TTS
+EOF
+
+set FLEN = 96
+set G = 0.01
+echo " " >> $OUTFILE
+echo $FLEN >> $OUTFILE
+echo $G >> $OUTFILE
+acq -cin << EOF >>& $OUTFILE
+* 	acq template
+*
+* Iterations (-n) (int) (1024) * 	$ITERS
+* Filter length (-f) (int) (64) * 	$FLEN
+* Loop gain (-g) (float) (0.0001) * 	$G
+* Clk sample period (-t) (float) (0.1) * 	$TTS
+EOF
+
+set FLEN = 112
+set G = 0.01
+echo " " >> $OUTFILE
+echo $FLEN >> $OUTFILE
+echo $G >> $OUTFILE
+acq -cin << EOF >>& $OUTFILE
+* 	acq template
+*
+* Iterations (-n) (int) (1024) * 	$ITERS
+* Filter length (-f) (int) (64) * 	$FLEN
+* Loop gain (-g) (float) (0.0001) * 	$G
+* Clk sample period (-t) (float) (0.1) * 	$TTS
+EOF
+
+set FLEN = 128
+set G = 0.01
+echo " " >> $OUTFILE
+echo $FLEN >> $OUTFILE
+echo $G >> $OUTFILE
+acq -cin << EOF >>& $OUTFILE
+* 	acq template
+*
+* Iterations (-n) (int) (1024) * 	$ITERS
+* Filter length (-f) (int) (64) * 	$FLEN
+* Loop gain (-g) (float) (0.0001) * 	$G
+* Clk sample period (-t) (float) (0.1) * 	$TTS
+EOF

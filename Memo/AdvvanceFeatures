@@ -1,0 +1,16 @@
+Filtering on passthru sessions
+- Max number of filtered out sessions: 2 * NUM_QAM per LC
+- Max filtered PIDs: 32 per filtered out session
+- Max filtered programs: 32 per filtered out session
+
+
+Remux sessions:
+- Max number of remuxed out sessions: 2 * NUM_QAM per LC
+- Max selected programs: 32 per remux out session
+- Max customed remapped PIDs: 32 per remux out session
+
+
+Reserved PID range:
+- Contiguous PID range: 1 per QAM
+
+

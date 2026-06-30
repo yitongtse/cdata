@@ -1,0 +1,25 @@
+VBR MPTS Clock Recovery Enhancement:
+
+- Pick master PCR pid as in CBR case
+
+- Input thread:
+  - builds linkage between adjacent PCRs (regardless of program)
+  - use adjacent master PCR pairs for average bitrate calculation.
+
+- Output thread: 2 round approach
+  - round 1
+    - visit all PCRs thru the linkage built by input thread
+    - on 1st slave PCR for each program, assign delivery time using the CBR
+      model, using the bitrate calculated from master PCR pair
+    - on other slave PCRs, use the preceeding PCR in the same program with
+      drift adjustment, to determine its delivery time
+    - perform necessary error handling if needed
+
+  - round 2
+    - visit all TPs again
+    - determine non-PCR delivery time, using the PCR delivery times
+      with piecewise CBR model
+
+Error handling cases:
+  - slave PCR < previous anchor PCR
+  - slave PCR > future master PCR

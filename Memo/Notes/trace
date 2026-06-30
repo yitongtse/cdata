@@ -1,0 +1,7 @@
+main()
+  Allocate and init CFIFO for input/output buffers
+  Initialize DMA 0, 1, 2
+  Global init
+  Create tasks: demux and bitshape
+
+

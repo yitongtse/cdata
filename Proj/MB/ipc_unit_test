@@ -1,0 +1,357 @@
+SUP log
+-------
+ytse-rfgw#test ipc port create TestSUP 1
+% Success : Created port TestSUP[10022]
+
+ytse-rfgw## Unreliable send
+ytse-rfgw#test ipc port open name "TestLC" 2
+% Success : Opened port TestLC session 1
+
+ytse-rfgw#test ipc port send 02050010 1 10000 1200
+% Success: 10000 msgs sent
+
+ytse-rfgw#test ipc port close 02050010 1
+% Success: session 1 with port 2050010 closed
+
+ytse-rfgw## Reliable
+ytse-rfgw#test ipc port open name TestLC 1
+% Success : Opened port TestLC session 2
+
+ytse-rfgw#
+ytse-rfgw## Non-blocking
+ytse-rfgw#test ipc port send 02050010 2 1000 1200
+% Success: 1000 msgs sent
+
+ytse-rfgw#
+ytse-rfgw#
+00:41:33:  IPC Flowcontrol: Received IPC_STOP_SENDING
+00:41:34:  IPC Flowcontrol: Received IPC_START_SENDING
+ytse-rfgw## Blocking
+ytse-rfgw#test ipc port send 02050010 2 10000 1200 blocked
+% Success: 10000 msgs sent
+
+ytse-rfgw#
+ytse-rfgw## RPC
+ytse-rfgw#test ipc port send 02050010 2 rpc 10000 1200 blocked
+% Success: 10000 msgs sent
+
+ytse-rfgw#
+ytse-rfgw#test ipc port close 02050010 2
+% Success: session 2 with port 2050010 closed
+
+
+
+
+MossBeach log
+_____________
+
+# 
+# # QNX setup
+# ipc_test 1 &
+[1] 49175
+# ipc_ctrl 1 create TestLC 2 0 0x02050010
+IPC test 1: CMD: create port [TestLC], rx_method 2, static port id 02050010
+IPC test 1: create port OK: id 02050010
+# ipc_ctrl 1 register TestLC
+IPC test 1: CMD: register port 02050010
+IPC test 1: OK: register port OK
+# 
+# ipc_test 2 &
+[2] 69656
+# # ------------------------------------------------
+# # Control plane operations
+# # ------------------------------------------------
+# 
+# # Port creation
+# ipc_ctrl 1 create TestPort 2 1000
+IPC test 1: CMD: create port [TestPort], rx_method 2
+IPC test 1: create port OK: id 02050031
+# 
+# # (Unregistered) port removal
+# ipc_ctrl 1 remove TestPort
+IPC test 1: CMD: remove portid 02050031
+IPC test 1: remove port OK
+# 
+# 
+# # Port creation
+# ipc_ctrl 1 create TestPort 2 1000
+IPC test 1: CMD: create port [TestPort], rx_method 2
+IPC test 1: create port OK: id 02050032
+# 
+# # Port registration
+# ipc_ctrl 1 register TestPort
+IPC test 1: CMD: register port 02050032
+IPC test 1: OK: register port OK
+# 
+# # Local session setup
+# ipc_ctrl 2 open TestPort 2
+IPC test 2: CMD: open port [TestPort], mode 2
+IPC test 2: open port [TestPort] OK: id 02050032, index 1
+# 
+# # Local session teardown
+# ipc_ctrl 2 close
+IPC test 2: CMD: close port
+IPC test 2: close port OK
+# 
+# # Remote session setup
+# ipc_ctrl 2 open TestSUP 2
+IPC test 2: CMD: open port [TestSUP], mode 2
+IPC test 2: open port [TestSUP] OK: id 00010022, index 0
+# 
+# # Remote session teardown
+# ipc_ctrl 2 close
+IPC test 2: CMD: close port
+IPC test 2: close port OK
+# 
+# # (Registered) port removal
+# ipc_ctrl 1 remove TestPort
+IPC test 1: CMD: remove portid 02050032
+IPC test 1: remove port OK
+# 
+# 
+# # ------------------------------------------------
+# # Normal operation
+# # ------------------------------------------------
+# 
+# # ------------------------------------------------
+# # Intra IPC tests
+# #
+# 
+# # Unreliable mode
+# #
+# ipc_ctrl 1 open TestLC 1
+IPC test 1: CMD: open port [TestLC], mode 1
+IPC test 1: open port [TestLC] OK: id 02050010, index 1
+# 
+# ipc_ctrl 1 send 10000 1200 1 10
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 1
+10000 message received
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 1
+Time: 0.62 s total, 61.70 us per message
+# ipc_ctrl 1 close
+IPC test 1: CMD: close port
+IPC test 1: close port OK
+# 
+# 
+# # Reliable mode
+# #
+# ipc_ctrl 1 open TestLC 2
+IPC test 1: CMD: open port [TestLC], mode 2
+IPC test 1: open port [TestLC] OK: id 02050010, index 2
+# 
+# # Non-blocking
+# ipc_ctrl 1 send 10000 1200 1 10
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 1
+20000 message received
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 1
+Time: 0.64 s total, 64.10 us per message
+# 
+# # Blocking
+# ipc_ctrl 1 send 10000 1200 2 10
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 2
+30000 message received
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 2
+Time: 0.64 s total, 64.40 us per message
+# 
+# # RPC
+# ipc_ctrl 1 send 10000 1200 3 10
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 3
+40000 message received
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 3
+Time: 1.25 s total, 125.10 us per message
+# 
+# ipc_ctrl 1 close
+IPC test 1: CMD: close port
+IPC test 1: close port OK
+# 
+# 
+# # Parallel sessions
+# ipc_ctrl 1 session TestLC 2 10000 1200 1 10 &
+[3] 213017
+IPC test 1: CMD: session: port [TestLC], o-mode 2,
+                           cnt 10000, size 1200, s-mode 1
+# ipc_ctrl 1 session TestLC 2 10000 1200 2 10 &
+[4] 217114
+IPC test 1: CMD: session: port [TestLC], o-mode 2,
+                           cnt 10000, size 1200, s-mode 2
+# ipc_ctrl 1 session TestLC 2 10000 1200 3 10 &
+[5] 221211
+IPC test 1: CMD: session: port [TestLC], o-mode 2,
+                           cnt 10000, size 1200, s-mode 3
+# 50000 message received
+60000 message received
+IPC test 1: session test OK
+IPC test 1: session test OK
+70000 message received
+IPC test 1: session test OK
+
+[5] + Done                 ipc_ctrl 1 session TestLC
+[4] - Done                 ipc_ctrl 1 session TestLC
+[3]   Done                 ipc_ctrl 1 session TestLC
+# 
+# 
+# # ------------------------------------------------
+# # Inter IPC tests
+# #
+# 
+# # Unreliable mode
+# #
+# ipc_ctrl 2 open TestLC 1
+IPC test 2: CMD: open port [TestLC], mode 1
+IPC test 2: open port [TestLC] OK: id 02050010, index 6
+# ipc_ctrl 2 send 10000 1200 1 10
+IPC test 2: CMD: send msg: cnt 10000, size 1200, mode 1
+80000 message received
+IPC test 2: send msg OK: cnt 10000, size 1200, mode 1
+Time: 1.00 s total, 100.10 us per message
+# ipc_ctrl 2 close
+IPC test 2: CMD: close port
+IPC test 2: close port OK
+# 
+# 
+# # Reliable
+# #
+# ipc_ctrl 2 open TestLC 2
+IPC test 2: CMD: open port [TestLC], mode 2
+IPC test 2: open port [TestLC] OK: id 02050010, index 7
+# 
+# # Non-blocking
+# ipc_ctrl 2 send 10000 1200 1 10
+IPC test 2: CMD: send msg: cnt 10000, size 1200, mode 1
+90000 message received
+IPC test 2: send msg OK: cnt 10000, size 1200, mode 1
+Time: 1.00 s total, 100.10 us per message
+# 
+# # Blocking
+# ipc_ctrl 2 send 10000 1200 2 10
+IPC test 2: CMD: send msg: cnt 10000, size 1200, mode 2
+100000 message received
+IPC test 2: send msg OK: cnt 10000, size 1200, mode 2
+Time: 1.00 s total, 100.10 us per message
+# 
+# # RPC
+# ipc_ctrl 2 send 10000 1200 3 10
+IPC test 2: CMD: send msg: cnt 10000, size 1200, mode 3
+110000 message received
+IPC test 2: send msg OK: cnt 10000, size 1200, mode 3
+Time: 2.00 s total, 200.10 us per message
+# 
+# ipc_ctrl 2 close
+IPC test 2: CMD: close port
+IPC test 2: close port OK
+# 
+# 
+# # Parallel sessions
+# ipc_ctrl 2 session TestLC 2 10000 1200 1 10 &
+[3] 303129
+IPC test 2: CMD: session: port [TestLC], o-mode 2,
+                           cnt 10000, size 1200, s-mode 1
+# ipc_ctrl 2 session TestLC 2 10000 1200 2 10 &
+[4] 307226
+IPC test 2: CMD: session: port [TestLC], o-mode 2,
+                           cnt 10000, size 1200, s-mode 2
+# ipc_ctrl 2 session TestLC 2 10000 1200 3 10 &
+[5] 311323
+IPC test 2: CMD: session: port [TestLC], o-mode 2,
+                           cnt 10000, size 1200, s-mode 3
+# 
+# 
+# 120000 message received
+130000 message received
+IPC test 2: session test OK
+IPC test 2: session test OK
+140000 message received
+IPC test 2: session test OK
+
+[5] + Done                 ipc_ctrl 2 session TestLC
+[4] - Done                 ipc_ctrl 2 session TestLC
+[3]   Done                 ipc_ctrl 2 session TestLC
+# 
+# 
+# # ------------------------------------------------
+# # LC -> SUP IPC tests
+# #
+# 
+# # Unreliable send
+# ipc_ctrl 1 open TestSUP 1
+IPC test 1: CMD: open port [TestSUP], mode 1
+IPC test 1: open port [TestSUP] OK: id 00010022, index 0
+# ipc_ctrl 1 send 10000 1200 1
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 1
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 1
+Time: 0.90 s total, 90.30 us per message
+# ipc_ctrl 1 close
+IPC test 1: CMD: close port
+IPC test 1: close port OK
+# 
+# # Reliable non-blocking send
+# ipc_ctrl 1 open TestSUP 2
+IPC test 1: CMD: open port [TestSUP], mode 2
+IPC test 1: open port [TestSUP] OK: id 00010022, index 0
+# 
+# # Non-blocking
+# ipc_ctrl 1 send 10000 1200 1 60 1
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 1
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 1
+Time: 30.00 s total, 3000.00 us per message
+# 
+# # Blocking
+# ipc_ctrl 1 send 10000 1200 2 60
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 2
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 2
+Time: 3.92 s total, 392.20 us per message
+# 
+# # RPC
+# ipc_ctrl 1 send 10000 1200 3 60
+IPC test 1: CMD: send msg: cnt 10000, size 1200, mode 3
+IPC test 1: send msg OK: cnt 10000, size 1200, mode 3
+Time: 7.19 s total, 719.10 us per message
+# 
+# ipc_ctrl 1 close
+IPC test 1: CMD: close port
+IPC test 1: close port OK
+# 
+# 
+# # Parallel sessions
+# ipc_ctrl 1 session TestSUP 2 10000 1200 1 60 1 &
+[3] 393241
+IPC test 1: CMD: session: port [TestSUP], o-mode 2,
+                           cnt 10000, size 1200, s-mode 1
+# ipc_ctrl 1 session TestSUP 2 10000 1200 2 60 &
+[4] 397338
+IPC test 1: CMD: session: port [TestSUP], o-mode 2,
+                           cnt 10000, size 1200, s-mode 2
+# ipc_ctrl 1 session TestSUP 2 10000 1200 3 60 &
+[5] 401435
+IPC test 1: CMD: session: port [TestSUP], o-mode 2,
+                           cnt 10000, size 1200, s-mode 3
+# 
+# 
+# IPC test 1: session test OK
+IPC test 1: session test OK
+IPC test 1: session test OK
+#
+[5] + Done                 ipc_ctrl 1 session TestSU
+[4] - Done                 ipc_ctrl 1 session TestSU
+[3] + Done                 ipc_ctrl 1 session TestSU
+# 
+# 
+# 
+# # ------------------------------------------------
+# # SUP -> LC IPC tests
+# # NOTE: may need to change session id (2nd arg after send) below to match
+# #       the value assigned by LC!
+# 
+# ipc_ctrl 1 remove TestLC
+IPC test 1: CMD: remove portid 02050010
+IPC test 1: remove port OK
+# ipc_ctrl 1 create TestLC 2 0 0x02050010
+IPC test 1: CMD: create port [TestLC], rx_method 2, static port id 02050010
+IPC test 1: create port OK: id 02050010
+# ipc_ctrl 1 register TestLC
+IPC test 1: CMD: register port 02050010
+IPC test 1: OK: register port OK
+# 
+# 150000 message received
+160000 message received
+

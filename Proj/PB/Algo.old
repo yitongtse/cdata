@@ -1,0 +1,21 @@
+PCR processing:
+
+    dejittering()
+    djTbo = pcr - djAt
+
+    tboDrift = pcrInc * freqAdj
+    estTbo += tboDrift
+
+    errTbo = djTbo - estTbo
+    normErrTbo = errTbo / pcrInc
+    filtErrTbo = loop_filter(normErrTbo)
+
+    freqAdj = loopGain * filtErrTbo
+    clamping()
+
+    // Delivery time calculation
+    outInc = pcrInc - tboDrift
+    outTime = prevPcrOutTime + outInc
+
+    outTpi = outInc / pcrTpIdxInc
+

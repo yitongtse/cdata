@@ -1,0 +1,3 @@
+.MAKE_VERSION:	VERSION-1.0
+sim.c:
+	sccs  get -s sim.c -Gsim.c

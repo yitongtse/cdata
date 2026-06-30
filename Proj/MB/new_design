@@ -1,0 +1,175 @@
+This document specify the new data plane design in video session processing.
+The new design attempts to unify all existing stream processing modes
+(SPTS muxing, passthru, MPTS remuxing) into a unified scheme.
+
+A video stream data structure has the following facilities:
+  - flags: PID_REMAP, PROCESS_TIME, PROCESS_PSI, PASSTHRU
+    - PID_REMAP
+      - whether to remap pids
+      - whether to include ES pids in pid_table
+    - PROCESS_TIME
+      - whether to perform dejittering and clock recovery
+    - PROCESS_PSI
+      - whether to snoop for PAT/PMT
+    - PASSTHRU
+      - whether to passthru any PIDs not in pid table
+      - PIDs passthru here will not be covered by pid collision / cc error
+        detection
+  - number of programs allocated (SPTS/MPTS support)
+  - blocked pid list (post FCS)
+  - passthru pid list (post FCS)
+  - pid table:
+    - flags (used, PAT, PMT, video, drop, passthru)
+    - pid_idx (for remapping purpose)
+    - prev CC (for CC error checking)
+    - contains PAT, PMTs, and pids on blocked pid and passthru pid lists
+      (with flags appropriately set)
+    - contains ESs in PMTs for PID_REMAP sessions
+    - CC error detection apply only to pids in pid table
+  - program list (to hold PSI sections, for PSI processing)
+
+
+On each QAM:
+  - pid usage map (for pid allocation, and collision detection)
+  - prognum usage map (for program number allocation, and collision detection)
+  - pid/program number collision applies on pids in PAT/PMT,
+    and pids in passthru pid list.
+
+----------------------------
+
+VOD/SDV sessions:
+  - PID_REMAP, PROCESS_TIME, PROCESS_PSI
+  - number of programs = 1
+  - pid_table contains PAT, PMT and ES pids
+
+Passthru sessions:
+  - PROCESS_TIME, PROCESS_PSI, PASSTHRU
+  - number of progams = max programs expected
+  - pid_table contains PAT and PMT PIDs only
+  - CC error detection supported on PAT/PMT pids only.
+  - program number collision detection supported
+  - pid collision applies on PIDs in PAT/PMTs.
+  - ghost pid passthru supported (without pid collision / CC error detection)
+
+Data injection sessions:
+  - PASSTHRU
+  - number of programs = 0
+  - pid_table not used
+  - all pids are passthru (except for PAT and NULL)
+  - no pid collision / CC error detection
+
+----------------------------
+
+PID/program filtering support:
+  - default is to forward all PMT pids (and corresponding program) in PAT,
+    and all ES pids in PMTs
+  - to drop a program, add the PMT pid to the blocked pid list
+    (Note: ALL programs on the PMT pid will be dropped!)
+  - to drop an ES, add the ES pid to the blocked pid list
+    (Note: PMT regeneration will need to consider this!)
+  - PID dropping is supported using the pid table,
+    with corresponding drop flag set
+
+PID insertion support:
+  - default is to drop all pids not referenced in PAT/PMT
+  - dropped pids will not be CC checked
+  - to forward an unreferenced pid, add it to the passthru pid list
+  - pids on passthru pid list will be forwarded to ALL output sessions
+    without remapping
+
+Basic operation:
+  - will always snoop PAT for PMT pids
+  - will always regenerate PAT
+
+PID remapping:
+  - when on:
+    - the program numbers, PMT pids, and ES pids will be remapped
+    - PMT will be regenerated
+    - only pids in pid table with drop_flag not set is forwarded to output
+      (includes PMT & ES pids, and user specified passthru pids)
+  - when off:
+    - all program numbers, PMT pids, and ES pids will be preserved
+    - PMT will be passthru
+    - at session start or during PSI change, will detect program number/pid
+      collision and block the session if necessary
+
+CLI:
+  - SPTS muxing: video udp <dst_udp> program <prog_num>
+  - MPTS passthru: video udp <dst_udp> passthru
+  - MPTS remuxing: video udp <dst_udp> program <start_prog_num> <last_prog_num>
+
+
+========================================================================
+
+Try another flag scheme:
+
+PROCESS_PSI:
+  - first place PAT in pid_table to snoop PAT
+  - snoop PAT to discover PMTs, put them in pid_table for lookup
+  - output PAT will include PMTs found in this session
+  - input PAT will always be dropped, regardless of this setting
+
+PROCESS_PMT:
+  - snoop PMT to discover ESs, put them in pid_table for lookup
+
+REMAP:
+  - will remap program number, PMT pids, and ES pids
+
+PASSTHRU:
+  - for input PIDs not found in pid table, this indicates whether
+    to passthru or drop
+
+--------------------------------------
+
+For VOD/SDV:
+  PROCESS_PAT, PROCESS_PMT, REMAP, PROCESS_TIME
+
+For dirty MPTS passthru:
+  PROCESS_PAT, PROCESS_PMT
+
+For MPTS passthru with CC checking:
+  PROCESS_PAT, PROCESS_PMT, PROCESS_TIME
+
+For data injection:
+  PASSTHRU (will drop input PAT)
+
+
+========================================================================
+
+Operation:
+
+If PROCESS_PSI set:
+- put PAT in pid_table
+- snoop PAT:
+  - check for prog_num and pid collision
+  - update qam usage map for prog_num and PMT pids
+  - generate in_prog for each input program
+  - put PMT pids in pid_table
+- snoop PMT:
+  - check for ES pid collision
+  - update qam usage map for ES pids
+  - update in_prog for PMT
+  - if PID_REMAP, put ES pids in pid_table
+
+
+Input TP processing:
+- if NULL PID, drop it
+- PID lookup
+- if not found, passthru or drop it based on PASSTHRU
+- if PAT, process PAT
+- if PMT, process PMT
+- other ES processing
+
+
+Output TP processing:
+- if PAT, update PAT
+- if PMT, update PMT
+- if drop_flag, drop TP
+- other ES processing
+
+
+Output PAT processing:
+- if new PAT:
+  - remove prog list, clean up usage map
+  - clean up pid_table
+  -

@@ -1,0 +1,50 @@
+New CLIs:
+  sw(config)# [no] video <slot> udp <dest_udp> <qam_int> pass-through
+  sw(config)# [no] video <slot> multicast source-address <src_ip>
+                         dest-address <dest_ip> <qam_int> pass-through
+
+New test CLIs:
+  sw# test video <slot> qam <qam_id>
+  sw# test video <slot> port udp <dest_udp>
+  sw# test video <slot> port multicast <src_ip> <dest_ip>
+
+
+Changes in major data structures:
+  vn_qam:
+    Add boolean passthru_flag;
+
+  udp_port_map:
+    Use mask PORT_PASSTHRU (0x10) to flags
+
+
+New defines:
+  #define PASSTHRU_PROG_NUM    0
+
+
+Notes:
+  - Passthru session can be either UDP or MCAST, and can be either SPTS or MPTS.
+  - For passthru port map, the flag will have PORT_PASSTHRU set,
+    the program number will be PASSTHRU_PROG_NUM.
+  - For QAM used for passthru, the passthru_flag flag is set in vn_qam.
+    The out_prog_list will contain all the out_prog, one for each program.
+
+
+New subroutines:
+  cc_map_passthru()
+    Add SPTS/MPTS passthru program for each qam in the port_map's qam_prog_list.
+
+  cc_unmap_passthru()
+    Delete SPTS/MPTS passthru program for each qam in the port_map's
+    qam_prog_list.
+
+  cc_add_mpts_program()
+    Create outprog, one for each program in MPTS, and link them to
+    inprog and qam.  Send output_config message and update PAT in LC.
+
+  cc_delete_mpts_program()
+    Remove all outprog in qam's out_prog_list, unlink them to the inprog.
+    Destroy out_prog_list.  Update PAT in LC.
+
+  cc_provision_passthru()
+    Send output_config message to LC, with outputprogram number set to
+    PASSTHRU_PROG_NUM.

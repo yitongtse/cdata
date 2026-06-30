@@ -1,0 +1,55 @@
+#
+# Copyright 2001, QNX Software Systems Ltd. All Rights Reserved
+# 
+# This source code has been published by QNX Software Systems Ltd. (QSSL).
+# However, any use, reproduction, modification, distribution or transfer of
+# this software, or any software which includes or is based upon any of this
+# code, is only permitted under the terms of the QNX Open Community License
+# version 1.0 (see licensing.qnx.com for details) or as otherwise expressly
+# authorized by a written license agreement from QSSL. For more information,
+# please email licensing@qnx.com.
+#
+#
+# Sample of filter rules
+
+block in on en1 all head 100
+block return-icmp(host-unr) in proto tcp from any to 10.9.0.1 port = 25 group 100
+block return-rst in proto tcp from any to 10.9.0.1 port = 23 group 100
+
+# First line create a "group" head. If a packet matched a group head rule,
+# the packet will *only* go through that group. (and skip other groups).
+# we set a group say we are interesting any packets comming in on en1 interface
+#
+# The second line, is saying, if there is a TCP packet comming in (through en1),
+# try to reach 10.9.0.1 port 25 (smtp), we block the packet, and send a ICMP
+# error "HOST UNREACHABLE" back.
+#
+# The third line, is almost the same as seconde, except we are interesting in
+# port 23 (telnet), and we will send a "TCP RESET" packet back.
+
+block in on en0 all head 200
+pass in quick proto tcp from any to 10.9.0.1 port = 8823 group 100 keep state group 200
+block in log proto tcp/udp from any to 10.9.0.1/32 port 20000 <> 40000 group 200
+block in log body proto tcp from any to 10.9.0.1/32 flags S/SA group 200
+
+# This is another set of rules (rule group 200). Any packet comming in from en0
+# (our "external" interface), will fall in this group
+#
+# The "pass" line, is opened a "secret port", 8823, let who ever try to contact
+# this port pass through. So you could run a "telnetd" on that port and just let
+# your trust people know that port. The keyword "quick" make any packet matched
+# this rule being procced (pass) as of test against further rules.
+#
+# The third line is to block any tcp/udp packet who have a port not in range
+# 20000 - 40000 (our port mapping range). That means we don't have any services
+# on the gateway, except using these port to do NAT (and except the service 
+# we run on "secret" 8823. 
+# Also, we "log" any blocked packet info into our internal log buffer, so 
+# you could use "ipmon -oI" to check it later. This rule blocks most port scanning
+# utils.
+# 
+# The forth line, is saying, if a TCP packet comming in, and it have SYN flag
+# set, but ACK not set, this is a regular TCP "handshake" packet. We block it,
+# and "log body" means log the "whole" packet, so we could use ipmon to examine
+# it later.
+

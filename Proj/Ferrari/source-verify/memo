@@ -1,0 +1,92 @@
+I am using Frank's Ferrari setup to do the test.
+UBR10K: 172.22.89.73 2001
+
+I have added two CMs to Cable6/0/4/U0.
+  Motorola 1: (mac 0012.2544.3e96) (-> Pagent int eth1/2)
+  Motorola 2: (mac 000e.5ce5.5b88) (-> Cisco CM serving as CPE)
+  (Motorola 2 CM is borrowed from Scott P.)
+
+I am using the Pagent (7200 VXR) as CPEs for both CMs.
+PAGENT: 172.22.89.24 2015  (pw: poPPee)
+Cisco CM: 172.22.89.24 2009
+
+--------------------------------------------------------
+CLIs:
+
+debug cable source-verify
+config t
+int bundle 1
+cable source verify
+
+
+
+--------------------------------------------------------
+
+Static IP:
+  CPE-A: 60.1.1.101/24
+
+In all the test cases below, CPE-A's IP address is first set, then
+CPE-B is set to have the same (static) IP address.
+
+Note: all WB CM are only simulated by NB CB!
+
+
+
+Case	Intf	DHCP	CPE-A	CPE-B	Result
+A	same	off	NB, S	NB	A: ping ok, B: srcvrf invalid src
+B	same	off	NB, D	NB	A: ping ok, B: srcvrf invalid src
+C	same	on	NB, S	NB	A,B: ping fail, srcvrf verify dhcp fail
+D	same	on	NB, D	NB	A: ping ok, B: srcvrf invalid src
+
+E	same	off	WB, S	WB	A: ping fail, IP reg,
+					B: srcvrf invalid src
+F	same	off	WB, D	WB	A: ping fail, B: srcvrf invalid src
+G	same	on	WB, S	WB	A,B: ping fail, srcvrf verif dhcp fail
+H	same	on	WB, D	WB	A: ping fail, B: srcvrf invalid src
+
+I	same	off	WB, S	NB	A: ping fail, IP reg,
+					B: srcvrf invalid src
+J	same	off	WB, D	NB	A: ping fail, B: srcvrf invalid src
+K	same	on	WB, S	NB	A,B: ping fail, srcvrf verify dhcp fail
+L	same	on	WB, D	NB	A: ping fail, B: srcvrf invalid src
+
+
+
+
+Note: with source-verify dhcp on, only CPE IP address assigned by DHCP
+      can ping, and only from the CPE the IP is assigned to!
+
+Note: with NB faking as WB, DS will not work.  So ping will fail, no matter
+      the CPE's IP is assigned statically or thru dhcp.  But CMTS will
+      register CPE's IE address if US works.
+
+E: Ping failed even form CPE-A.  But source verify will still detect duplicated IP.
+
+======================================================
+
+Second part of testing
+
+  CM1 (0012.2544.3e96) : C6/0/3/U0 : Pagent eth1/2
+  CM2 (000e.5ce5.5b88) : C6/0/4/U0 : Cisco CM (as CPE) eth 0
+
+Case	Intf	DHCP	CPE-A	CPE-B	Result
+A	diff	off	NB, S	NB	A: ping ok, B: srcvrf invalid src
+B	diff	off	NB, D	NB	A: ping ok, B: srcvrf invalid src
+C	diff	on	NB, S	NB	A,B: ping fail, srcvrf verify dhcp fail
+D	diff	on	NB, D	NB	A: ping ok, B: srcvrf invalid src
+
+E	diff	off	WB, S	WB	A: ping fail, IP reg,
+					B: srcvrf invalid src
+F	diff	off	WB, D	WB	A: ping fail, IP shown,
+					B: srcvrf invalid src
+G	diff	on	WB, S	WB	A, B: ping fail, srcvrf verify dhcp fail
+H	diff	on	WB, D	WB	A: ping fail, B: srcvrf invalid src
+
+I	diff	off	WB, S	NB	A: ping fail, IP reg,
+					B: srcvrf invalid src
+J	diff	off	WB, D	NB	A: ping fail, IP shown,
+					B: srcvrf invalid src
+K	diff	on	WB, S	NB	A,B: ping fail, srcvrf verify dhcp fail
+L	diff	on	WB, D	NB	A: ping fail, B: srcvrf invalid src
+
+

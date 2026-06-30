@@ -1,0 +1,550 @@
+Before the test is started:
+
+Golden#show ver
+Cisco IOS Software, Catalyst 4500 L3 Switch Software (rfgw-ENTSERVICESK9-M), Version 12.2(RFGW_NIGHTLY_20090908)SQ EARLY DEPLOYMENT DEVELOPMENT BUILD, synced to 122_50_SG_THROTTLE_BASE_LABEL
+Copyright (c) 1986-2009 by Cisco Systems, Inc.
+Compiled Wed 09-Sep-09 00:17 by margly
+Image text-base: 0x10000000, data-base: 0x121D7808
+
+
+Golden#scvs all sum
+Video Session Summary for Chassis:
+
+Active    : 4800     Init      : 0        Idle      : 0        
+Off       : 0        Blocked   : 0        PSI-Ready : 4480     
+UDP       : 0        ASM       : 0        SSM       : 4800     
+Remap     : 4800     Data      : 0        Passthru  : 0        
+Shell     : 0        Bound     : 0        
+Total Sessions: 4800
+Total Measured Bitrate : 1439800075 bps
+
+Golden#show proc cpu sort
+CPU utilization for five seconds: 13%/0%; one minute: 16%; five minutes: 16%
+ PID Runtime(ms)   Invoked      uSecs   5Sec   1Min   5Min TTY Process 
+  65      863572    411750       2097  8.95% 12.13% 11.76%   0 Cat4k Mgmt LoPri 
+  64       96544    719236        134  2.47%  2.65%  2.66%   0 Cat4k Mgmt HiPri 
+ 347       22920      9909       2313  0.63%  0.65%  0.63%   0 IGMP Input       
+ 348        6196     91817         67  0.23%  0.28%  0.29%   0 PIM Process      
+ 201        4060     47134         86  0.15%  0.21%  0.19%   0 RFGW GQI Helper  
+ 367       21056    964389         21  0.15%  0.01%  0.00%   0 Exec             
+ 349         544     87883          6  0.07%  0.04%  0.05%   0 Mwheel Process   
+  39         264      8970         29  0.07%  0.04%  0.05%   0 Per-Second Jobs  
+ 164        3744     64504         58  0.07%  0.05%  0.07%   0 IP Input         
+ 267         372     13583         27  0.07%  0.02%  0.02%   0 CEF: IPv4 proces 
+ 202         924     19872         46  0.07%  0.05%  0.06%   0 RFGW GQI Helper  
+ 108        7288      1931       3774  0.07%  0.08%  0.07%   0 Compute load avg 
+  27       98176    104898        935  0.07%  0.02%  0.00%   0 IPC Seat Manager 
+ 344         256    533707          0  0.07%  0.04%  0.05%   0 HSRP Common      
+ 298          40     38602          1  0.07%  0.00%  0.00%   0 PM Callback      
+  36         808      8784         91  0.07%  0.07%  0.07%   0 IDB Work         
+  16           0         1          0  0.00%  0.00%  0.00%   0 AAA_SERVER_DEADT 
+  18           0         1          0  0.00%  0.00%  0.00%   0 Policy Manager   
+  17           0         2          0  0.00%  0.00%  0.00%   0 AAA high-capacit 
+  15           0         1          0  0.00%  0.00%  0.00%   0 CEF MIB API      
+  21           0         1          0  0.00%  0.00%  0.00%   0 IFS Agent Manage 
+          
+Golden#show proc cpu hist
+                                                              
+    1111111111111111111111111111111111111111555552222211111111
+    4444433333333337777722222333334444433333888886666633333333
+100                                                           
+ 90                                                           
+ 80                                                           
+ 70                                                           
+ 60                                         *****             
+ 50                                         *****             
+ 40                                         *****             
+ 30                                         **********        
+ 20                *****                    **********        
+ 10 **********************************************************
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per second (last 60 seconds)
+                                                              
+    5151515151516151515151515151515161555151515162525161615251
+    8978868989860777877787878986777727868787778801867607078496
+100                                                           
+ 90                                                           
+ 80                                                           
+ 70                                                           
+ 60 * * * * * * * * * * * * * * * * * *** * * * * * * * * * * 
+ 50 * * * * * * * * * * * * * * * * * *** * * * * * * * * * * 
+ 40 * * * * * * * * * * * * * * * * * *** * * * * * * * * * * 
+ 30 * * * * * * * * * * * * * * * * * *** * * * * *** * * * * 
+ 20 #*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*###*#*#*#*#*#*#*#*#*#*#*
+ 10 ##########################################################
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per minute (last 60 minutes)
+              * = maximum CPU%   # = average CPU%
+
+==========================================================================
+
+1 script: 48.8 trans/sec, 36%
+
+Iteration 1: 98 sec, total 100 sec
+Iteration 2: 98 sec, total 198 sec
+Iteration 3: 98 sec, total 296 sec
+Iteration 4: 98 sec, total 394 sec
+Iteration 5: 99 sec, total 493 sec
+Iteration 6: 98 sec, total 591 sec
+Iteration 7: 98 sec, total 689 sec
+Iteration 8: 98 sec, total 787 sec
+Iteration 9: 98 sec, total 885 sec
+
+transaction_rate = 4800 x 9 / 885 = 48.8
+
+Golden#show proc cpu sort
+CPU utilization for five seconds: 34%/0%; one minute: 38%; five minutes: 36%
+ PID Runtime(ms)   Invoked      uSecs   5Sec   1Min   5Min TTY Process 
+ 353      190700    156671       1217 11.03% 10.85% 10.49%   0 RFGW Req GQI Emu 
+  65     7126344   3783706       1883  9.67% 13.81% 12.20%   0 Cat4k Mgmt LoPri 
+  64      741052   6305979        117  4.95%  4.95%  4.85%   0 Cat4k Mgmt HiPri 
+ 201       75484    506478        149  3.67%  3.69%  3.53%   0 RFGW GQI Helper  
+ 164       35580    504345         70  1.19%  1.20%  1.17%   0 IP Input         
+ 304       10776    106320        101  0.79%  0.68%  0.66%   0 RFGW SNMP SESESS 
+ 347      308856     85375       3617  0.71%  0.67%  0.66%   0 IGMP Input       
+ 348      109696   1381467         79  0.31%  0.46%  0.46%   0 PIM Process      
+ 108       58916     15871       3712  0.15%  0.08%  0.08%   0 Compute load avg 
+ 344        2076   4466091          0  0.07%  0.07%  0.07%   0 HSRP Common      
+ 117         228    141472          1  0.07%  0.11%  0.09%   0 Transport Port A 
+ 349        6424    733562          8  0.07%  0.07%  0.07%   0 Mwheel Process   
+ 360        2596    212103         12  0.07%  0.02%  0.00%   0 RFGW TCC DTI Mgm 
+  36        6896     73196         94  0.07%  0.07%  0.07%   0 IDB Work         
+ 191        1668     84875         19  0.07%  0.09%  0.07%   0 L2MM             
+  20        2980    217744         13  0.07%  0.11%  0.10%   0 EEM ED Syslog    
+ 147        1312     10256        127  0.07%  0.07%  0.07%   0 RFGW Video State 
+ 118        1056     21954         48  0.07%  0.01%  0.00%   0 HC Counter Timer 
+  39        6520     74960         86  0.07%  0.04%  0.05%   0 Per-Second Jobs  
+  16           0         1          0  0.00%  0.00%  0.00%   0 AAA_SERVER_DEADT 
+  19          64        37       1729  0.00%  0.00%  0.00%   0 Entity MIB API   
+          
+Golden#show proc cpu hist
+                                                              
+    1111111111333333333333333333333333333333333333333333333333
+    4444422222333337777733333333334444466666444448888844444444
+100                                                           
+ 90                                                           
+ 80                                                           
+ 70                                                           
+ 60                                                           
+ 50                                                           
+ 40                *****               *****     *****        
+ 30           ************************************************
+ 20           ************************************************
+ 10 **********************************************************
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per second (last 60 seconds)
+                                                              
+    3737473737373737361616161616161616161616161616161616161616
+    8081019180817171128182827181828181818181917171817171818070
+100                                                           
+ 90                                                           
+ 80                                                           
+ 70  * * * * * * * *                                          
+ 60  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ 50  * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ 40 *#*#*#*#*#*#*#*# * * * * * * * * * * * * * * * * * * * * *
+ 30 ################** * * * * * * * * * * * * * * * * * * * *
+ 20 ##################*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#
+ 10 ##########################################################
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per minute (last 60 minutes)
+              * = maximum CPU%   # = average CPU%
+
+------------------------------------------------------------------
+
+2 scripts: 97.0 trans/sec, 51%
+
+Iteration 1: 99 sec, total 100 sec
+Iteration 1: 100 sec, total 101 sec
+Iteration 2: 98 sec, total 198 sec
+Iteration 2: 99 sec, total 200 sec
+Iteration 3: 98 sec, total 296 sec
+Iteration 3: 99 sec, total 299 sec
+Iteration 4: 98 sec, total 394 sec
+Iteration 4: 99 sec, total 398 sec
+Iteration 5: 99 sec, total 493 sec
+Iteration 5: 99 sec, total 497 sec
+Iteration 6: 98 sec, total 591 sec
+Iteration 6: 100 sec, total 597 sec
+Iteration 7: 99 sec, total 690 sec
+Iteration 7: 99 sec, total 696 sec
+Iteration 8: 98 sec, total 788 sec
+Iteration 8: 100 sec, total 796 sec
+Iteration 9: 98 sec, total 886 sec
+Iteration 9: 99 sec, total 895 sec
+
+transaction_rate = 4800 x 9 x 2 / 890.5 = 97.0
+
+Golden#show proc cpu sort
+CPU utilization for five seconds: 54%/0%; one minute: 51%; five minutes: 51%
+ PID Runtime(ms)   Invoked      uSecs   5Sec   1Min   5Min TTY Process 
+ 353      395912    268318       1475 20.55% 20.51% 20.01%   0 RFGW Req GQI Emu 
+  65     7250856   3870900       1873 12.79% 10.54% 11.50%   0 Cat4k Mgmt LoPri 
+  64      794580   6979232        113  6.23%  6.36%  6.25%   0 Cat4k Mgmt HiPri 
+ 201      119776    690535        173  4.07%  4.31%  4.18%   0 RFGW GQI Helper  
+ 202       35020    350209         99  2.63%  2.53%  2.46%   0 RFGW GQI Helper  
+ 164       56560    746389         75  2.00%  2.04%  2.00%   0 IP Input         
+ 304       26068    197456        132  1.27%  1.17%  1.30%   0 RFGW SNMP SESESS 
+  40       55100      1910      28848  0.87%  0.10%  0.06%   0 Per-minute Jobs  
+ 347      315244     87722       3593  0.63%  0.66%  0.66%   0 IGMP Input       
+ 348      114952   1444633         79  0.55%  0.59%  0.59%   0 PIM Process      
+  20        5112    311567         16  0.23%  0.20%  0.19%   0 EEM ED Syslog    
+ 117         484    198953          2  0.15%  0.15%  0.15%   0 Transport Port A 
+ 147        2996     24102        124  0.15%  0.15%  0.15%   0 RFGW Video State 
+  37        3432    157943         21  0.15%  0.13%  0.14%   0 Logger           
+ 191        3392    157673         21  0.15%  0.15%  0.15%   0 L2MM             
+ 204       10364     83971        123  0.07%  0.02%  0.00%   0 RFGW GQI Helper  
+ 108       59896     16312       3671  0.07%  0.07%  0.07%   0 Compute load avg 
+ 344        2356   4537545          0  0.07%  0.07%  0.07%   0 HSRP Common      
+ 349        6640    747381          8  0.07%  0.07%  0.07%   0 Mwheel Process   
+  36        7184     74384         96  0.07%  0.07%  0.07%   0 IDB Work         
+ 203       10096    132961         75  0.07%  0.06%  0.07%   0 RFGW GQI Helper  
+          
+Golden#show proc cpu hist
+                                                              
+    7777775555555555444444444444444444445555555555555555555555
+    3999994444411111777777777799999777774444422222000001111100
+100                                                           
+ 90                                                           
+ 80  *****                                                    
+ 70 ******                                                    
+ 60 ******                                                    
+ 50 **********************************************************
+ 40 **********************************************************
+ 30 **********************************************************
+ 20 **********************************************************
+ 10 **********************************************************
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per second (last 60 seconds)
+                                                              
+    5757575757575756163737473737373737361616161616161616161616
+    4559494948695952838081019180817171128182827181828181818181
+100                                                           
+ 90                                                           
+ 80  * * * * * * *                                            
+ 70  * * * * * * *     * * * * * * * *                        
+ 60  **# # * ****#** * * * * * * * * * * * * * * * * * * * * *
+ 50 ##############** * * * * * * * * * * * * * * * * * * * * *
+ 40 ##############** **#*#*#*#*#*#*#*# * * * * * * * * * * * *
+ 30 ###############* *################** * * * * * * * * * * *
+ 20 ################*###################*#*#*#*#*#*#*#*#*#*#*#
+ 10 ##########################################################
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per minute (last 60 minutes)
+              * = maximum CPU%   # = average CPU%
+
+------------------------------------------------------------------
+
+3 scripts: 142.9 trans/sec, 67%
+
+Iteration 1: 99 sec, total 100 sec
+Iteration 1: 100 sec, total 101 sec
+Iteration 1: 102 sec, total 106 sec
+Iteration 2: 99 sec, total 199 sec
+Iteration 2: 100 sec, total 201 sec
+Iteration 2: 102 sec, total 208 sec
+Iteration 3: 99 sec, total 298 sec
+Iteration 3: 100 sec, total 301 sec
+Iteration 3: 102 sec, total 310 sec
+Iteration 4: 99 sec, total 397 sec
+Iteration 4: 100 sec, total 401 sec
+Iteration 4: 102 sec, total 412 sec
+Iteration 5: 99 sec, total 496 sec
+Iteration 5: 101 sec, total 502 sec
+Iteration 5: 102 sec, total 514 sec
+Iteration 6: 100 sec, total 596 sec
+Iteration 6: 100 sec, total 602 sec
+Iteration 6: 103 sec, total 617 sec
+Iteration 7: 99 sec, total 695 sec
+Iteration 7: 101 sec, total 703 sec
+Iteration 7: 102 sec, total 719 sec
+Iteration 8: 99 sec, total 794 sec
+Iteration 8: 100 sec, total 803 sec
+Iteration 8: 103 sec, total 822 sec
+Iteration 9: 99 sec, total 893 sec
+Iteration 9: 100 sec, total 903 sec
+Iteration 9: 102 sec, total 924 sec
+
+transaction_rate = 4800 x 9 x 3 / 906.7 = 142.9
+
+Golden#show proc cpu sort
+CPU utilization for five seconds: 67%/1%; one minute: 69%; five minutes: 67%
+ PID Runtime(ms)   Invoked      uSecs   5Sec   1Min   5Min TTY Process 
+ 353      699392    405290       1725 30.79% 29.47% 29.06%   0 RFGW Req GQI Emu 
+  65     7373540   3948020       1867  9.19% 13.20% 12.14%   0 Cat4k Mgmt LoPri 
+  64      865412   7858731        110  7.67%  7.69%  7.63%   0 Cat4k Mgmt HiPri 
+ 201      172960    908408        190  4.95%  4.99%  4.97%   0 RFGW GQI Helper  
+ 202       66220    529521        125  2.95%  2.94%  2.90%   0 RFGW GQI Helper  
+ 164       86344   1040777         82  2.71%  2.74%  2.72%   0 IP Input         
+ 203       29872    228184        130  2.15%  1.99%  1.86%   0 RFGW GQI Helper  
+ 304       47088    313996        149  1.67%  1.70%  1.92%   0 RFGW SNMP SESESS 
+ 348      121688   1521880         79  0.87%  0.70%  0.69%   0 PIM Process      
+ 347      321556     90659       3546  0.71%  0.69%  0.69%   0 IGMP Input       
+  20        8664    441849         19  0.31%  0.29%  0.29%   0 EEM ED Syslog    
+ 147        5344     46838        114  0.23%  0.23%  0.23%   0 RFGW Video State 
+ 117        1164    270549          4  0.23%  0.21%  0.21%   0 Transport Port A 
+ 191        5608    249141         22  0.23%  0.21%  0.22%   0 L2MM             
+  37        5472    214568         25  0.23%  0.17%  0.16%   0 Logger           
+ 367       21220    965011         21  0.15%  0.01%  0.00%   0 Exec             
+ 349        6968    760968          9  0.07%  0.07%  0.07%   0 Mwheel Process   
+ 360        2924    218735         13  0.07%  0.02%  0.01%   0 RFGW TCC DTI Mgm 
+ 204       10772     86444        124  0.07%  0.05%  0.05%   0 RFGW GQI Helper  
+  33          40     75423          0  0.07%  0.00%  0.00%   0 GraphIt          
+ 113          48     75519          0  0.07%  0.00%  0.00%   0 RedStateMonitor  
+          
+Golden#show proc cpu hist
+                                                              
+    6666666666666666666999998888866666666666666666666666666666
+    8888777772222255555222227777766666333336666622222666666666
+100                                                           
+ 90                    **********                             
+ 80                    **********                             
+ 70 *********     ********************     *****     *********
+ 60 **********************************************************
+ 50 **********************************************************
+ 40 **********************************************************
+ 30 **********************************************************
+ 20 **********************************************************
+ 10 **********************************************************
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per second (last 60 seconds)
+                                                              
+    9796969797979796657575757575757575616373747373737373736161
+    2208583140201149459455949494869595283808101918081717112818
+100     *                                                     
+ 90 * * * * * * * *                                           
+ 80 * * * * * * * *   * * * * * * * *                         
+ 70 ###############*  * * * * * * * *     * * * * * * * *     
+ 60 ###############**** **# # * ****#** * * * * * * * * * * * 
+ 50 ###############**################** * * * * * * * * * * * 
+ 40 ################*################** **#*#*#*#*#*#*#*# * * 
+ 30 ################*#################* *################** * 
+ 20 ###################################*###################*#*
+ 10 ##########################################################
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per minute (last 60 minutes)
+              * = maximum CPU%   # = average CPU%
+
+------------------------------------------------------------------
+
+4 scripts: 185.3 trans/sec, 81%
+
+Iteration 1: 101 sec, total 102 sec
+Iteration 1: 102 sec, total 103 sec
+Iteration 1: 105 sec, total 109 sec
+Iteration 1: 106 sec, total 110 sec
+Iteration 2: 100 sec, total 202 sec
+Iteration 2: 102 sec, total 205 sec
+Iteration 2: 103 sec, total 212 sec
+Iteration 2: 105 sec, total 215 sec
+Iteration 3: 100 sec, total 302 sec
+Iteration 3: 102 sec, total 307 sec
+Iteration 3: 104 sec, total 316 sec
+Iteration 3: 106 sec, total 321 sec
+Iteration 4: 101 sec, total 403 sec
+Iteration 4: 103 sec, total 410 sec
+Iteration 4: 105 sec, total 421 sec
+Iteration 4: 107 sec, total 428 sec
+Iteration 5: 101 sec, total 504 sec
+Iteration 5: 102 sec, total 512 sec
+Iteration 5: 105 sec, total 526 sec
+Iteration 5: 106 sec, total 534 sec
+Iteration 6: 101 sec, total 605 sec
+Iteration 6: 103 sec, total 615 sec
+Iteration 6: 104 sec, total 630 sec
+Iteration 6: 106 sec, total 640 sec
+Iteration 7: 100 sec, total 705 sec
+Iteration 7: 103 sec, total 718 sec
+Iteration 7: 105 sec, total 735 sec
+Iteration 7: 106 sec, total 746 sec
+Iteration 8: 101 sec, total 806 sec
+Iteration 8: 102 sec, total 820 sec
+Iteration 8: 104 sec, total 839 sec
+Iteration 8: 106 sec, total 852 sec
+Iteration 9: 101 sec, total 907 sec
+Iteration 9: 102 sec, total 922 sec
+Iteration 9: 104 sec, total 943 sec
+Iteration 9: 106 sec, total 958 sec
+
+transaction_rate = 4800 x 9 x 4 / 932.5 = 185.3
+
+Golden#show proc cpu sort
+CPU utilization for five seconds: 82%/1%; one minute: 82%; five minutes: 81%
+ PID Runtime(ms)   Invoked      uSecs   5Sec   1Min   5Min TTY Process 
+ 353     1083220    559141       1937 38.04% 38.04% 37.02%   0 RFGW Req GQI Emu 
+  65     7502356   4018442       1866  8.95% 10.34% 11.39%   0 Cat4k Mgmt LoPri 
+  64      950144   8912113        106  8.87%  9.04%  8.91%   0 Cat4k Mgmt HiPri 
+ 201      230760   1136844        202  5.35%  5.50%  5.33%   0 RFGW GQI Helper  
+ 304       76400    447997        170  5.27%  3.29%  2.70%   0 RFGW SNMP SESESS 
+ 202      102276    725976        140  3.43%  3.48%  3.35%   0 RFGW GQI Helper  
+ 164      121440   1368717         88  3.35%  3.43%  3.35%   0 IP Input         
+ 203       53320    351549        151  2.39%  2.32%  2.30%   0 RFGW GQI Helper  
+ 204       25152    159038        158  1.59%  1.47%  1.45%   0 RFGW GQI Helper  
+ 348      129728   1611395         80  0.79%  0.81%  0.80%   0 PIM Process      
+ 347      328804     94382       3483  0.71%  0.70%  0.71%   0 IGMP Input       
+  20       12836    594050         21  0.39%  0.36%  0.34%   0 EEM ED Syslog    
+ 147        8688     76642        113  0.31%  0.31%  0.31%   0 RFGW Video State 
+ 191        8164    355789         22  0.23%  0.26%  0.25%   0 L2MM             
+ 117        2260    351991          6  0.23%  0.25%  0.23%   0 Transport Port A 
+  37        7784    273698         28  0.23%  0.19%  0.18%   0 Logger           
+ 354         812     90323          8  0.07%  0.01%  0.00%   0 RFGW Res GQI Emu 
+ 349        7340    775887          9  0.07%  0.08%  0.07%   0 Mwheel Process   
+ 360        3140    222107         14  0.07%  0.02%  0.02%   0 RFGW TCC DTI Mgm 
+ 108       61784     17462       3538  0.07%  0.07%  0.07%   0 Compute load avg 
+ 205        8576     77001        111  0.07%  0.05%  0.06%   0 RFGW GQI Helper  
+          
+Golden#show proc cpu hist
+                                                              
+    8888888888888888888888888888888888888888888888888888888888
+    4444422222000004444411111000005555522222333332222244444222
+100                                                           
+ 90                               *****                       
+ 80 **********************************************************
+ 70 **********************************************************
+ 60 **********************************************************
+ 50 **********************************************************
+ 40 **********************************************************
+ 30 **********************************************************
+ 20 **********************************************************
+ 10 **********************************************************
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per second (last 60 seconds)
+                                                              
+    8989898989898986167979696979797979665757575757575757561637
+    4858483868685845760220858314020114945945594949486959528380
+100  * * * * * * *         *                                  
+ 90  *** * *******     * * * * * * * *                        
+ 80 ###############    * * * * * * * *   * * * * * * * *      
+ 70 ###############* *################*  * * * * * * * *     *
+ 60 ###############* *################**** **# # * ****#** * *
+ 50 ###############* *################**################** * *
+ 40 ###############* *#################*################** **#
+ 30 ###############* ##################*#################* *##
+ 20 ################*#####################################*###
+ 10 ##########################################################
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per minute (last 60 minutes)
+              * = maximum CPU%   # = average CPU%
+
+------------------------------------------------------------------
+
+5 scripts: 223.3 trans/sec, 92%
+
+Iteration 1: 103 sec, total 104 sec
+Iteration 1: 105 sec, total 106 sec
+Iteration 1: 108 sec, total 109 sec
+Iteration 1: 110 sec, total 111 sec
+Iteration 1: 113 sec, total 114 sec
+Iteration 2: 102 sec, total 206 sec
+Iteration 2: 105 sec, total 211 sec
+Iteration 2: 107 sec, total 216 sec
+Iteration 2: 110 sec, total 221 sec
+Iteration 2: 112 sec, total 226 sec
+Iteration 3: 103 sec, total 309 sec
+Iteration 3: 105 sec, total 316 sec
+Iteration 3: 108 sec, total 324 sec
+Iteration 3: 110 sec, total 331 sec
+Iteration 3: 111 sec, total 337 sec
+Iteration 4: 102 sec, total 411 sec
+Iteration 4: 105 sec, total 421 sec
+Iteration 4: 109 sec, total 433 sec
+Iteration 4: 110 sec, total 441 sec
+Iteration 4: 112 sec, total 449 sec
+Iteration 5: 102 sec, total 513 sec
+Iteration 5: 104 sec, total 525 sec
+Iteration 5: 107 sec, total 540 sec
+Iteration 5: 110 sec, total 551 sec
+Iteration 5: 112 sec, total 561 sec
+Iteration 6: 103 sec, total 616 sec
+Iteration 6: 105 sec, total 630 sec
+Iteration 6: 106 sec, total 646 sec
+Iteration 6: 110 sec, total 661 sec
+Iteration 6: 112 sec, total 673 sec
+Iteration 7: 103 sec, total 719 sec
+Iteration 7: 105 sec, total 735 sec
+Iteration 7: 108 sec, total 754 sec
+Iteration 7: 109 sec, total 770 sec
+Iteration 7: 113 sec, total 786 sec
+Iteration 8: 102 sec, total 821 sec
+Iteration 8: 105 sec, total 840 sec
+Iteration 8: 107 sec, total 861 sec
+Iteration 8: 109 sec, total 879 sec
+Iteration 8: 111 sec, total 897 sec
+Iteration 9: 103 sec, total 924 sec
+Iteration 9: 106 sec, total 946 sec
+Iteration 9: 109 sec, total 970 sec
+Iteration 9: 110 sec, total 989 sec
+Iteration 9: 111 sec, total 1008 sec
+
+transaction_rate = 4800 x 9 x 5 / 967.4 = 223.3
+
+Golden#show proc cpu sort
+CPU utilization for five seconds: 90%/1%; one minute: 93%; five minutes: 92%
+ PID Runtime(ms)   Invoked      uSecs   5Sec   1Min   5Min TTY Process 
+ 353     1559352    711678       2191 44.60% 44.59% 43.90%   0 RFGW Req GQI Emu 
+  64     1052420  10097179        104 10.15%  9.94%  9.84%   0 Cat4k Mgmt HiPri 
+  65     7636412   4065307       1878  8.47% 11.26% 11.53%   0 Cat4k Mgmt LoPri 
+ 201      284588   1342193        212  5.03%  4.77%  4.71%   0 RFGW GQI Helper  
+ 164      162816   1700825         95  3.91%  3.77%  3.73%   0 IP Input         
+ 202      141568    935288        151  3.75%  3.51%  3.45%   0 RFGW GQI Helper  
+ 203       83732    498838        167  2.87%  2.78%  2.74%   0 RFGW GQI Helper  
+ 304      110596    586095        188  2.07%  2.80%  2.99%   0 RFGW SNMP SESESS 
+ 204       46000    259867        177  1.91%  1.95%  1.96%   0 RFGW GQI Helper  
+ 205       25828    165372        156  1.75%  1.65%  1.63%   0 RFGW GQI Helper  
+ 348      139748   1707772         81  0.79%  0.88%  0.88%   0 PIM Process      
+ 347      336428     98506       3415  0.71%  0.71%  0.71%   0 IGMP Input       
+ 147       13140    114087        115  0.39%  0.39%  0.39%   0 RFGW Video State 
+  20       17616    756618         23  0.39%  0.40%  0.39%   0 EEM ED Syslog    
+ 191       11376    466763         24  0.31%  0.30%  0.31%   0 L2MM             
+ 117        3880    441126          8  0.23%  0.28%  0.27%   0 Transport Port A 
+  37        9904    319173         31  0.15%  0.18%  0.16%   0 Logger           
+ 157        1484     52221         28  0.15%  0.02%  0.00%   0 CDP Protocol     
+ 108       62756     18200       3448  0.07%  0.08%  0.07%   0 Compute load avg 
+  36        8620     77813        110  0.07%  0.07%  0.07%   0 IDB Work         
+ 148        1428    116584         12  0.07%  0.03%  0.02%   0 RFGW VSCM Transa 
+          
+Golden#show proc cpu hist
+                                                              
+    9999999999999999999999999999999999999999999999999999999999
+    3333000001111133333111111111100000000004444455555555555555
+100                                             **************
+ 90 **********************************************************
+ 80 **********************************************************
+ 70 **********************************************************
+ 60 **********************************************************
+ 50 **********************************************************
+ 40 **********************************************************
+ 30 **********************************************************
+ 20 **********************************************************
+ 10 **********************************************************
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per second (last 60 seconds)
+                                                              
+    9999999999999998789898989898989898616797969697979797966575
+    8685868685868585728485848386868584576022085831402011494594
+100 ***************   * * * * * * * *         *               
+ 90 ###############*  * *** * *******     * * * * * * * *     
+ 80 ###############**#################    * * * * * * * *   * 
+ 70 ###############**#################* *################*  * 
+ 60 ###############**#################* *################**** 
+ 50 ###############**#################* *################**###
+ 40 ###############*##################* *#################*###
+ 30 ###############*##################* ##################*###
+ 20 ###################################*######################
+ 10 ##########################################################
+   0....5....1....1....2....2....3....3....4....4....5....5....
+             0    5    0    5    0    5    0    5    0    5    
+               CPU% per minute (last 60 minutes)
+              * = maximum CPU%   # = average CPU%
+

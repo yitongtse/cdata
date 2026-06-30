@@ -1,0 +1,190 @@
+# Annex B, QAM-64
+
+mv_msg_test -qam -q_id 3 -mode v
+mv_msg_test -qam -q_id 2 -mode v
+mv_msg_test -qam -q_id 1 -mode v
+mv_msg_test -qam -q_id 0 -mode v -pwr 390 -freq 423000000
+
+mv_msg_test -qam -q_id 7 -mode v
+mv_msg_test -qam -q_id 6 -mode v
+mv_msg_test -qam -q_id 5 -mode v
+mv_msg_test -qam -q_id 4 -mode v -pwr 390 -freq 453000000
+
+mv_msg_test -qam -q_id 11 -mode v
+mv_msg_test -qam -q_id 10 -mode v
+mv_msg_test -qam -q_id 9 -mode v
+mv_msg_test -qam -q_id 8 -mode v -pwr 390 -freq 483000000
+
+mv_msg_test -qam -q_id 15 -mode v
+mv_msg_test -qam -q_id 14 -mode v
+mv_msg_test -qam -q_id 13 -mode v
+mv_msg_test -qam -q_id 12 -mode v -pwr 390 -freq 513000000
+
+mv_msg_test -qam -q_id 19 -mode v
+mv_msg_test -qam -q_id 18 -mode v
+mv_msg_test -qam -q_id 17 -mode v
+mv_msg_test -qam -q_id 16 -mode v -pwr 390 -freq 543000000
+
+mv_msg_test -qam -q_id 23 -mode v
+mv_msg_test -qam -q_id 22 -mode v
+mv_msg_test -qam -q_id 21 -mode v
+mv_msg_test -qam -q_id 20 -mode v -pwr 390 -freq 573000000
+
+mv_msg_test -qam -q_id 27 -mode v
+mv_msg_test -qam -q_id 26 -mode v
+mv_msg_test -qam -q_id 25 -mode v
+mv_msg_test -qam -q_id 24 -mode v -pwr 390 -freq 603000000
+
+mv_msg_test -qam -q_id 31 -mode v
+mv_msg_test -qam -q_id 30 -mode v
+mv_msg_test -qam -q_id 29 -mode v
+mv_msg_test -qam -q_id 28 -mode v -pwr 390 -freq 633000000
+
+mv_msg_test -qam -q_id 35 -mode v
+mv_msg_test -qam -q_id 34 -mode v
+mv_msg_test -qam -q_id 33 -mode v
+mv_msg_test -qam -q_id 32 -mode v -pwr 390 -freq 663000000
+
+mv_msg_test -qam -q_id 39 -mode v
+mv_msg_test -qam -q_id 38 -mode v
+mv_msg_test -qam -q_id 37 -mode v
+mv_msg_test -qam -q_id 36 -mode v -pwr 390 -freq 693000000
+
+mv_msg_test -qam -q_id 43 -mode v
+mv_msg_test -qam -q_id 42 -mode v
+mv_msg_test -qam -q_id 41 -mode v
+mv_msg_test -qam -q_id 40 -mode v -pwr 390 -freq 723000000
+
+mv_msg_test -qam -q_id 47 -mode v
+mv_msg_test -qam -q_id 46 -mode v
+mv_msg_test -qam -q_id 45 -mode v
+mv_msg_test -qam -q_id 44 -mode v -pwr 390 -freq 753000000
+
+--------------------------------------------
+
+# Annex B, QAM-256
+
+mv_msg_test -qam -q_id 3 -mode v -frmt 256
+mv_msg_test -qam -q_id 2 -mode v -frmt 256
+mv_msg_test -qam -q_id 1 -mode v -frmt 256
+mv_msg_test -qam -q_id 0 -mode v -pwr 390 -freq 723000000 -frmt 256
+
+mv_msg_test -qam -q_id 7 -mode v -frmt 256
+mv_msg_test -qam -q_id 6 -mode v -frmt 256
+mv_msg_test -qam -q_id 5 -mode v -frmt 256
+mv_msg_test -qam -q_id 4 -mode v -pwr 390 -freq 753000000 -frmt 256
+
+mv_msg_test -qam -q_id 11 -mode v -frmt 256
+mv_msg_test -qam -q_id 10 -mode v -frmt 256
+mv_msg_test -qam -q_id 9 -mode v -frmt 256
+mv_msg_test -qam -q_id 8 -mode v -pwr 390 -freq 783000000 -frmt 256
+
+mv_msg_test -qam -q_id 15 -mode v -frmt 256
+mv_msg_test -qam -q_id 14 -mode v -frmt 256
+mv_msg_test -qam -q_id 13 -mode v -frmt 256
+mv_msg_test -qam -q_id 12 -mode v -pwr 390 -freq 813000000 -frmt 256
+
+mv_msg_test -qam -q_id 19 -mode v -frmt 256
+mv_msg_test -qam -q_id 18 -mode v -frmt 256
+mv_msg_test -qam -q_id 17 -mode v -frmt 256
+mv_msg_test -qam -q_id 16 -mode v -pwr 390 -freq 843000000 -frmt 256
+
+mv_msg_test -qam -q_id 23 -mode v -frmt 256
+mv_msg_test -qam -q_id 22 -mode v -frmt 256
+mv_msg_test -qam -q_id 21 -mode v -frmt 256
+mv_msg_test -qam -q_id 20 -mode v -pwr 390 -freq 873000000 -frmt 256
+
+mv_msg_test -qam -q_id 27 -mode v -frmt 256
+mv_msg_test -qam -q_id 26 -mode v -frmt 256
+mv_msg_test -qam -q_id 25 -mode v -frmt 256
+mv_msg_test -qam -q_id 24 -mode v -pwr 390 -freq 723000000 -frmt 256
+
+mv_msg_test -qam -q_id 31 -mode v -frmt 256
+mv_msg_test -qam -q_id 30 -mode v -frmt 256
+mv_msg_test -qam -q_id 29 -mode v -frmt 256
+mv_msg_test -qam -q_id 28 -mode v -pwr 390 -freq 753000000 -frmt 256
+
+mv_msg_test -qam -q_id 35 -mode v -frmt 256
+mv_msg_test -qam -q_id 34 -mode v -frmt 256
+mv_msg_test -qam -q_id 33 -mode v -frmt 256
+mv_msg_test -qam -q_id 32 -mode v -pwr 390 -freq 783000000 -frmt 256
+
+mv_msg_test -qam -q_id 39 -mode v -frmt 256
+mv_msg_test -qam -q_id 38 -mode v -frmt 256
+mv_msg_test -qam -q_id 37 -mode v -frmt 256
+mv_msg_test -qam -q_id 36 -mode v -pwr 390 -freq 813000000 -frmt 256
+
+mv_msg_test -qam -q_id 43 -mode v -frmt 256
+mv_msg_test -qam -q_id 42 -mode v -frmt 256
+mv_msg_test -qam -q_id 41 -mode v -frmt 256
+mv_msg_test -qam -q_id 40 -mode v -pwr 390 -freq 843000000 -frmt 256
+
+mv_msg_test -qam -q_id 47 -mode v -frmt 256
+mv_msg_test -qam -q_id 46 -mode v -frmt 256
+mv_msg_test -qam -q_id 45 -mode v -frmt 256
+mv_msg_test -qam -q_id 44 -mode v -pwr 390 -freq 873000000 -frmt 256
+
+--------------------------------------------
+
+# Annex A, QAM-256
+
+mv_msg_test -qam -q_id 3 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 2 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 1 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 0 -mode v -pwr 390 -freq 723000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 7 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 6 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 5 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 4 -mode v -pwr 390 -freq 753000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 11 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 10 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 9 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 8 -mode v -pwr 390 -freq 783000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 15 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 14 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 13 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 12 -mode v -pwr 390 -freq 813000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 19 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 18 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 17 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 16 -mode v -pwr 390 -freq 843000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 23 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 22 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 21 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 20 -mode v -pwr 390 -freq 873000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 27 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 26 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 25 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 24 -mode v -pwr 390 -freq 723000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 31 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 30 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 29 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 28 -mode v -pwr 390 -freq 753000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 35 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 34 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 33 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 32 -mode v -pwr 390 -freq 783000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 39 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 38 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 37 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 36 -mode v -pwr 390 -freq 813000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 43 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 42 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 41 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 40 -mode v -pwr 390 -freq 843000000 -frmt 256 -annex a -sym_rate 6952000
+
+mv_msg_test -qam -q_id 47 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 46 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 45 -mode v -frmt 256 -annex a -sym_rate 6952000
+mv_msg_test -qam -q_id 44 -mode v -pwr 390 -freq 873000000 -frmt 256 -annex a -sym_rate 6952000
+

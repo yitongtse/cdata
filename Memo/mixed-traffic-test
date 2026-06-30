@@ -1,0 +1,38 @@
+video add session 0    ip 14.1.1.1 udp 1000-1279 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 20-47   remap 1-10
+video add session 280  ip 14.1.1.1 udp 1280-1559 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 68-95   remap 1-10
+video add session 560  ip 14.1.1.1 udp 1560-1839 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 116-143 remap 1-10
+video add session 840  ip 14.1.1.1 udp 1840-2119 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 164-191 remap 1-10
+video add session 1120 ip 14.1.1.1 udp 2120-2399 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 212-239 remap 1-10
+video add session 1400 ip 14.1.1.1 udp 2400-2679 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 260-287 remap 1-10
+video add session 1680 ip 14.1.1.1 udp 2680-2959 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 308-335 remap 1-10
+video add session 1960 ip 14.1.1.1 udp 2960-3239 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 356-383 remap 1-10
+
+video add session 2240 ip 14.2.2.1 udp 1000-1279 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 404-431 remap 1-10
+video add session 2520 ip 14.2.2.1 udp 1280-1559 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 452-479 remap 1-10
+video add session 2800 ip 14.2.2.1 udp 1560-1839 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 500-527 remap 1-10
+video add session 3080 ip 14.2.2.1 udp 1840-2119 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 548-575 remap 1-10
+video add session 3360 ip 14.2.2.1 udp 2120-2399 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 596-623 remap 1-10
+video add session 3640 ip 14.2.2.1 udp 2400-2679 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 644-671 remap 1-10
+video add session 3920 ip 14.2.2.1 udp 2680-2959 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 692-719 remap 1-10
+video add session 4200 ip 14.2.2.1 udp 2960-3239 cbr 0 bitrate 38500000 jitter 100 delay 50 qam 740-767 remap 1-10
+
+video set qam 20-47   enable on
+video set qam 68-95   enable on
+video set qam 116-143 enable on
+video set qam 164-191 enable on
+video set qam 212-239 enable on
+video set qam 260-287 enable on
+video set qam 308-335 enable on
+video set qam 356-383 enable on
+
+video set qam 404-431 enable on
+video set qam 452-479 enable on
+video set qam 500-527 enable on
+video set qam 548-575 enable on
+video set qam 596-623 enable on
+video set qam 644-671 enable on
+video set qam 692-719 enable on
+video set qam 740-767 enable on
+
+
+

@@ -1,0 +1,13 @@
+I had frequent VPN drop out problem before.
+The following email was from HelpDesk.
+I tried the TCP method and it works!
+
+
+Try both UDP (default) and TCP method.
+        - Click Options -> Properties in the VPN dialer.
+        - If "Enable Transparent Tunneling" is unticked, tick it.
+        - Try selecting "Use IPSec over TCP" and put in TCP port of 443. (if not, try 80 later)
+        - Click OK and try connecting.
+        - (TCP method "should" allow VPN through MOST firewalls in hotels, other company networks)
+        - If this does not work still, try selecting the "Allow IPSec over UDP" instead and try again.
+        - FYI - VPN uses UDP port 10000 by default.

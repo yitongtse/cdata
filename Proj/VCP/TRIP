@@ -1,0 +1,22 @@
+TRIP is defined in RFC 3219.  It was originally used by telephone gateway
+to announce the telephone numbers it serves.
+A TRIP speaker makes announcements and a TRIP listener receives announcements.
+
+TRIP has an external part (ETRIP) and an internal part (ITRIP).
+For VOD, we only need the latter.
+
+TRIP has 4 messages:
+OPEN: to initiate a T RIP session
+UPDATE: for HFC topology change updage
+NOTIFICATION: for error notification
+KEEPALIVE: for resource manager failure detection
+
+VREP (Video Registration Protocol)
+  used between:
+    - data plane devices and resource managers,
+    - resource managers and redirectors
+
+VRIP (Video Routing over IP)
+  used between redirectors in different streaming zones
+
+

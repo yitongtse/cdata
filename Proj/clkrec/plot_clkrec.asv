@@ -1,0 +1,60 @@
+% Copyright (c) 2007 by Cisco Systems, Inc.
+% All rights reserved.
+
+function plot_cr(file)
+
+    a = load(file);
+
+    tp_idx      = a(:,1);
+    arvl_time   = a(:,2);
+    pcr         = a(:,3);
+    out_time    = a(:,4);
+    stay_time   = a(:,5) / 45;
+    bitrate     = a(:,6);
+    tbo_in      = a(:,7);
+    tbo_est     = a(:,8);
+    tbo_err_lpf = a(:,9);
+    freq_adj    = a(:,10);
+
+    BASE_FREQ = 45000;
+    time = (out_time - out_t(1)) / BASE_FREQ;
+
+    figure
+    hold
+
+    subplot(3, 2, 1)
+    plot(time, pcr, 'r')
+    xlabel('TP index')
+    ylabel('PCR value')
+    grid
+
+    subplot(3, 2, 2)
+    plot(time, freq_adj, 'r')
+    xlabel('TP index')
+    ylabel('Freq adj (ppm)')
+    grid
+
+    subplot(3, 2, 3)
+    plot(tp_idx, stay_time, 'r')
+    xlabel('TP index')
+    ylabel('Stay time (ms)')
+    grid
+
+    subplot(3, 2, 4)
+    plot(tp_idx, bitrate, 'r')
+    xlabel('TP index')
+    ylabel('Bitrate (bps)')
+    grid
+
+    subplot(3, 2, 5)
+    plot(tp_idx, tbo_est, 'r')
+    xlabel('TP index')
+    ylabel('Est. TBO')
+    grid
+
+    subplot(3, 2, 6)
+    plot(tp_idx, tbo_err_lpf, 'r')
+    xlabel('TP index')
+    ylabel('LPF TBO ERR')
+    grid
+

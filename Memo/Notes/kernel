@@ -1,0 +1,86 @@
+Type definitions
+================
+Int8, Int16, Int32, Int40
+Uint8, Uint16, Uint32, Uint40
+
+
+DMA
+===
+Total of 4 DMA channels.
+
+dmaInit(chanId)
+dmaWordCopy(...)
+dmaByteCopy(...)
+
+
+INT
+===
+Total 14 interrupts: RESET, NMI, and INT4-15.
+Provide interrupt related function and atomic operations.
+
+
+MEM
+===
+Memory management with block based allocation.
+MEM_BLOCK_SIZE
+Memory allocation and free, or setting to a constant value.
+
+
+QUE
+===
+#include "que.h"
+Structures: Que, QueElem
+
+  Boolean queEmpty(Que): whether the queue is empty
+  void queInit(Que): initialize an empty queue
+  void queRemove(QueElem*): remove an element from its queue
+  QueElem queGet(Que): get front element from queue (atomic)
+  void quePut(Que, QueElem): add element to end of queue (atomic)
+  void QueiPut(Que, QueElem): add element to end of queue (inatomic)
+
+Note:
+  - Que is actually pointer to QueElem
+  - The actual content of a queue element can be retrieve from QueElem
+    since the relative position of QueElem within the content structure
+    is known. 
+
+
+SEMA
+====
+#include "sema.h"
+Structures: SemaObj, SemaLink, SemaMan
+Constant: WAIT_FOREVER
+
+void semaInit(): to initialize SEMA module
+
+Binary semaphore:
+  SemaMan semaBCreate(SemaBinary)
+  void semaBGive(SemaMan)
+  Boolean semaBTake(SemaMan, Uint32)
+
+Counting semaphore:
+  SemaMan semaCreate(Int32): create semaphore and initialize count
+  void semaGive(SemaMan): signal sempahore
+  Boolean semaTake(SemaMan, Uint32): wait for semaphore with timeout
+  void semaDelete(SemaMan): delete a semaphore
+
+Note:
+  - SemaMan is actually pointer to SemaObj
+  - SemaObj is used both for binary and counting semaphore
+
+
+TASK
+====
+priorities: 0 (idle), 1-30
+3 modes: RUNNING, READY, BLOCKED
+
+Structures: TaskObj, TaskLink, TaskMan
+
+
+TGT
+===
+
+tgtPrintf: print to trace buffer
+tgtSprintf: print to string instead of trace buffer
+tgtPutChar: print char to trace buffer
+

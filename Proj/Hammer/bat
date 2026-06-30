@@ -1,0 +1,28 @@
+gqi -i 1.43.24.61 -L 031 -v 0 -M 0 -P -1 -F 1 -f script.c1
+gqi -i 1.43.24.62 -L 032 -v 0 -M 0 -P -1 -F 1 -f script.c2
+gqi -i 1.43.24.63 -L 041 -v 0 -M 0 -P -1 -F 1 -f script.c3
+gqi -i 1.43.24.64 -L 042 -v 0 -M 0 -P -1 -F 1 -f script.c4
+gqi -i 1.43.24.65 -L 051 -v 0 -M 0 -P -1 -F 1 -f script.c5
+gqi -i 1.43.24.66 -L 052 -v 0 -M 0 -P -1 -F 1 -f script.c6
+gqi -i 1.43.24.67 -L 061 -v 0 -M 0 -P -1 -F 1 -f script.c7
+gqi -i 1.43.24.68 -L 062 -v 0 -M 0 -P -1 -F 1 -f script.c8
+gqi -i 1.43.24.69 -L 071 -v 0 -M 0 -P -1 -F 1 -f script.c1
+gqi -i 1.43.24.70 -L 072 -v 0 -M 0 -P -1 -F 1 -f script.c2
+gqi -i 1.43.24.71 -L 081 -v 0 -M 0 -P -1 -F 1 -f script.c3
+gqi -i 1.43.24.72 -L 082 -v 0 -M 0 -P -1 -F 1 -f script.c4
+gqi -i 1.43.24.73 -L 091 -v 0 -M 0 -P -1 -F 1 -f script.c5
+gqi -i 1.43.24.74 -L 092 -v 0 -M 0 -P -1 -F 1 -f script.c6
+gqi -i 1.43.24.75 -L 101 -v 0 -M 0 -P -1 -F 1 -f script.c7
+gqi -i 1.43.24.76 -L 102 -v 0 -M 0 -P -1 -F 1 -f script.c8
+gqi -i 1.43.24.77 -L 111 -v 0 -M 0 -P -1 -F 1 -f script.c1
+gqi -i 1.43.24.78 -L 112 -v 0 -M 0 -P -1 -F 1 -f script.c2
+gqi -i 1.43.24.79 -L 121 -v 0 -M 0 -P -1 -F 1 -f script.c3
+gqi -i 1.43.24.80 -L 122 -v 0 -M 0 -P -1 -F 1 -f script.c4
+
+
+#gqi -i 1.43.24.61 -L 031 -d 5000 -v 0 -M 0 -P -1 -F 10 -f script.dc1 &
+#gqi -i 1.43.24.62 -L 032 -d 5000 -v 0 -M 0 -P -1 -F 10 -f script.dc2 &
+#gqi -i 1.43.24.63 -L 041 -d 5000 -v 0 -M 0 -P -1 -F 10 -f script.dc3 &
+#gqi -i 1.43.24.64 -L 042 -d 5000 -v 0 -M 0 -P -1 -F 10 -f script.dc4 &
+#gqi -i 1.43.24.65 -L 051 -d 5000 -v 0 -M 0 -P -1 -F 10 -f script.dc5 &
+#gqi -i 1.43.24.66 -L 052 -d 5000 -v 0 -M 0 -P -1 -F 10 -f script.dc6 &

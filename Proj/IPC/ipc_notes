@@ -1,0 +1,207 @@
+How many CLN_MSG_TYPEs do we need?
+The old scheme use one for each type:
+    rel vs unrel, block vs non-block, msg vs rpc
+But the msg_type is only used in the API.  It is not used by the receiver!
+
+message->error_code: used in old method to control sleepon.
+May not needed in the new scheme.
+
+
+Need to work on a unified client_msg_t and server_msg_t => ipc_message
+
+----------------------------------------------------------------------------
+
+Unreliable non-blocking message send ()
+{
+    if (fd is not open) {
+        reopen fd
+    }
+    if (fd is open) {
+        devctl ();
+    }
+    return IPC_OK
+}
+
+
+NOTE: For local IPC, we allow only one outstanding message
+      But for remote IPC, we allow to have more than one outstanding messages!
+
+Local IPC requires two variables to keep track of sequence number:
+    last_send: seq number used in last outgoing message
+    last_ack: seq number last ack'ed
+
+Remote IPC requires one more:
+    last_fwd: seq number last forwarded by SM
+
+To have a general scheme that works in both cases:
+    ipc_send_message() increments last_send
+    For local IPC: MsgReply() increments last_fwd and last_ack
+    For remote IPC: MsgReply() from SM increments last_fwd
+                    ACK forwarded by SM increments last_ack
+    API should send the message if seq_no == last_fwd + 1
+    Otherwise queue the message on tx_que
+          
+
+Reliable non-blocking message send ()
+{
+    if seq_no is the next expected {
+        if (fd is not open) {
+            reopen fd
+        }
+        if (fd is open) {
+            err = devctl(...,  &status);
+            if (err == EOK) {
+                if (status == IPC_REPLY_ACK) {
+                    return IPC_OK;
+                }
+            }
+        }
+    }
+
+    put message on tx_que
+    if (timer not armed) {
+        arm timer
+    }
+    retrun IPC_OK;
+}
+
+
+Reliable blocking message send ()
+{
+    for (i=0; i<retry_cnt; i++) {
+        if (fd is not open) {
+            reopen fd
+        }
+        if (fd is open) {
+            err = devctl(..., &status);
+            if (err == EOK) {
+                if (status == IPC_REPLY_ACK) {
+                    return IPC_OK;
+                }
+            }
+        }
+        sleep (retry_period);
+    }
+    return IPC_TIMEOUT;
+}
+
+
+-----------------------------------------------------------------------------
+
+Benchmark result:
+
+						16	500	1000	1400
+Unreliable non-blocking, regular callback    17.51    19.32    22.84   27.19
+Unreliable non-blocking, fast callback       13.82    15.35    18.94   23.25
+Reliable non-blocking, regular callback      17.70    19.44    22.90   27.44
+Reliable non-blocking, fast callback         13.94    15.52    19.11   23.34
+Reliable blocking, regular callback          17.68    19.30    23.03   27.37
+Reliable blocking, fast callback             14.03    15.53    19.20   23.39
+
+If we take away the sprintf() in ipc_create.c, the numbers will be even lower!
+
+----------------------------------------------------------
+Sending side:
+
+
+ipc_send_message()
+  - if return other than IPC_OK, user needs to free the buffer.
+  - Calls *dest_port_info->port_send_vector(out_msg, dest_port_info);
+  - port_send_vector points to either ipc_send_reliable_message(),
+    ipc_send_unreliable message() or ipc_send_unrel_not_message().
+
+ipc_send_message_blocked()
+  - if return other than IPC_OK or IPC_TIMEOUT, user needs to free the buffer.
+  - call ipc_send_message() to deliver the message.
+  - will NOT free message buffer if initial sanity checks are passed.
+
+
+ipc_send_unreliable_message()
+  - ipc_output()
+  - ipc_return_message()
+
+ipc_send_reliable_message()
+  - check flow control
+  - msg_id_hi seems to be incremented for every message sent
+  - msg_id_lo points to the payload address
+  - after a timeout, will sync the sequence number. This is done by
+    flagging the first message after a timeout with IPC_FLAG_SEQ_SYNC.
+    (Client detect timeout, and flag the first message after timeout)
+  - call ipc_assign_sequence_and_send()
+
+  - queue message on ipc_message_table if it is ready to send.
+    Otherwise queue it in dest_port_info->msgQ.
+
+  - Seems ipc_message_table is for ACK lookup.
+
+
+
+Receiving side:
+
+ACK is processed by ipc_process_ack_message().
+NACK is processed by ipc_process_nack_message().
+
+ipc_process_ack_message()
+  - will always ack with the last heard sequence
+  - if a future ACK is received, all older message will be freed or notified.
+
+
+---------------------------------------------------------
+
+If the sequence number jump ahead, SUP will not response (no ACK or NACK).
+But when the sequence number is correct, SUP will resume to ACK.
+
+If the sequence number jumps backward, SUP will response with
+repeated ACK for the last message with correct sequence number
+(in sequence number and msg_id).
+
+
+---------------------------------------------------------
+
+Working on detailed IPC test.
+
+
+Handling of message/ACK lost:
+
+Terminologies:
+  Expected ACK: ACK with sequence numebr == last ACK heard + 1
+  Past ACK: ACK with sequence number <= last ACK heard
+  Future ACK: ACK with sequence number > last ACK heard + 1
+
+
+Sender side
+-----------
+
+For blocked send:
+  If past (duplicated) ACK is received, just drop it.
+  It should be impossible to receive future ACK.
+
+For unblocked send:
+  If past ACK is received, just drop it.
+  If future ACK is received, handle all past message and ACKed message.
+
+If message send is timeout, flag this session to be timeout.
+  Next message should be sent with the IPC_FLAG_SEQ_SYNC flag set.
+
+Receiver side
+-------------
+  If past message is received, ACK with the last ACK heard.
+    Need to store the msg_id of last message then.
+  If future message is received, just drop it.
+
+
+
+Add handling of future ACK.
+  - in ipc_message_done_handler(), if there is a forward jump
+    in the sequence number of the ACK, instead of handling the
+    ACKed message right away, it will just update the session
+    status so next time TX runs ipc_resend_messages(), all the
+    old message will be handled in send sequence.
+
+-------------------------------------------------------------------------
+
+For local IPC, there is no way to send future ACK since sequence number is
+not sent in the ACK!  However, this should not be a problem assuming QNX
+is reliable!  We will not support this in local IPC, unless such a need arise
+in the future.
+

@@ -1,0 +1,29 @@
+To set a variable
+
+VARIABLE=setting
+(make sure no space in between!)
+
+Use "sync" to save monitor variables to the NVRAM
+
+
+
+PS1=rommon ! > 
+FPGADNLD=1
+TFTP_SERVER=223.255.254.254
+IP_SUBNET_MASK=255.255.0.0
+DEFAULT_GATEWAY=1.14.0.1
+IP_ADDRESS=1.14.0.118
+?=0
+TFTP_FILE=ytse/ifs-palmbeach.bin
+
+
+
+
+r=repeat
+h=history
+?=help
+b=boot
+ls=dir
+i=reset
+go=tftpdnld
+

@@ -1,0 +1,118 @@
+Clock Recovery High Level Algorithm (Infinite precision):
+
+  For master PCR:
+    The following processings are done in the input thread:
+      - delivery time computation
+      - bitrate calculation
+      - Output TBO computation
+      - PLL update
+
+    Delivery time:
+      pcr_inc = pcr_in - prev_pcr_in
+      drift = freq_adj * pcr_inc
+      pcr_out_time += pcr_inc - drift
+
+    Bitrate calculation (piece-wise CBR model):
+      tp_itvl = pcr_out_time / pcr_tp_idx_inc
+
+      where:
+        pcr_tp_idx_inc is the TP index increment from previous master PCR.
+
+    PLL update:
+      tbo_in = pcr_in - pcr_arvl_time
+      tbo_est += drift
+      tbo_err = tbo_in - tbo_est
+      freq_adj = clamp(LPF(tbo_err / pcr_inc) * gain)
+
+    Output TBO (see below how to set tbo_adj):
+      tbo_out = tbo_est - tbo_adj
+
+    PCR restamping:
+      There are two FPGAs involved in video processing: CB and YF
+      There clock are locked but different in phase:
+        hw_adj = clk_YF - clk_CB
+
+      CB performs packet scheduling based on the out_time provided by SW.
+      YF performs PCR restamping based on its clock and tbo_out SW provides:
+        pcr_out = pcr_out_time' + tbo_out
+                = pcr_out_time + hw_adj + tbo_out
+
+  For 1st master PCR:
+      tbo_in = pcr - pcr_arvl_time
+      tbo_est = tbo_in
+
+    To set the first PCR to have mid delay:
+      pcr_out_time = pcr_arvl_time + mid_delay
+      mid_delay = max_jitter / 2 + drift_buf + headroom
+
+    where:
+      max_jitter is the configured max jitter for the session
+      drift_buf is to absorb drift accumulation
+      headroom is additional room to prevent buffer overflow or underflow
+    
+    In order to preserve the output PCR value, we have:
+      pcr_out = pcr_in = pcr_out_time + hw_adj + tbo_out
+
+    So we have:
+      tbo_out = pcr_in - pcr_out_time - hw_adj
+              = pcr_in - pcr_arvl_time - mid_delay - hw_adj
+              = tbo_est - (mid_delay + hw_adj)
+              = tbo_est - tbo_adj
+    and hence:
+      tbo_adj = mid_delay + hw_adj
+
+
+  For non-PCR TP:
+    Delivery time is computed in the output thread,
+    based on a piecewise CBR model between adjacent PCRs:
+      out_time += tp_itvl * tp_idx_inc
+
+    where:
+      tp_idx_inc is the TP index increment from previous non-NULL TP
+      
+
+  For slave PCR:
+    The following is performed in the input thread:
+      - out TBO calculation part 1
+
+    The following is performed in the output thread:
+      - delivery time computation
+      - out TBO calculation part 2
+
+    Delivery time is computed in the same way as non-PCR TP.
+
+    Out TBO:
+      tbo_out = pcr_in - out_time - hw_adj
+              = (pcr_in - anchor_out_time)
+                  - (out_time - anchor_out_time + hw_adj)
+
+    where anchor_out_time is the delivery time of previous master PCR,
+    and
+      out_time - anchor_out_time = tp_itvl * anchor_tp_idx_inc
+
+    tbo_out is calculated in two steps:
+      Input thread: tbo_out1 = pcr_in - anchor_out_time
+      Output thread: tbo_out2 = tbo_out1
+                                  - (tp_itvl * anchor_tp_idx_inc + hw_time_adj)
+           
+    Note: The valid_flag in pcr_info indicates what tbo_out1 or tbo_out2
+          is stored in the tbo_base and tbo_ext fields.
+
+
+  Time base discontinuity handling (refered to as new PCR):
+    Performed in the following scenarios:
+      - master PCR with discontinuity bit set
+      - master PCR jump detected
+
+    Idea is to process the new PCR as if it were a non-PCR TP,
+    using the same CBR model from last PCR.
+
+    Delivery time:
+      pcr_out_time += pcr_tp_idx_inc * tp_itvl
+
+    Out TBO:
+      tbo_out = pcr_in - pcr_out_time - hw_adj
+
+    State update:
+      tbo_est = tbo_out + tbo_adj
+

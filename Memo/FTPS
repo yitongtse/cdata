@@ -1,0 +1,14 @@
+FTP over ssh
+
+lftp
+
+Example:
+
+[ytse@sjc-ads-4109 v16121]$ lftp -u ytse swds.cisco.com:990
+Password:
+lftp ytse@swds.cisco.com:~> cd /swc/interim
+cd ok, cwd=/swc/interim
+lftp ytse@swds.cisco.com:/swc/interim> binary
+Unknown command `binary'.
+lftp ytse@swds.cisco.com:/swc/interim> put cbrsup-universalk9.2019-08-02_15.26_ytse.SSA.bin
+1860511364 bytes transferred in 66 seconds (26.79M/s)

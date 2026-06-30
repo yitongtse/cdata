@@ -1,0 +1,37 @@
+* IP data file (string) * dat.1x2
+* Data size (bytes) (int) * 122880
+* Local start time (int) * 0
+* Number of schedule windows to simulate (int) * 1000
+* Verbose (int) * 0
+* Number of QAMs (int) * 1
+* QAM rate (bps) (int) * 26870350
+* Number of input programs (int) * 2
+* 
+* Program 0
+* UDP destination port number (int) * 49152
+* Number of PIDs (int) * 4
+* Input PID (int) * 64
+* Output PID (int) * 100
+* PID type (1-Video 2-Audio, 3-PMT) (int) * 1
+* Input PID (int) * 65
+* Output PID (int) * 101
+* PID type (1-Video 2-Audio, 3-PMT) (int) * 2
+* Input PID (int) * 66
+* Output PID (int) * 102
+* PID type (1-Video 2-Audio, 3-PMT) (int) * 2
+* Input PID (int) * 89
+* Output PID (int) * 103
+* PID type (1-Video 2-Audio, 3-PMT) (int) * 3
+* 
+* Program 1
+* UDP destination port number (int) * 49154
+* Number of PIDs (int) * 3
+* Input PID (int) * 400
+* Output PID (int) * 110
+* PID type (1-Video 2-Audio, 3-PMT) (int) * 1
+* Input PID (int) * 401
+* Output PID (int) * 111
+* PID type (1-Video 2-Audio, 3-PMT) (int) * 2
+* Input PID (int) * 4128
+* Output PID (int) * 112
+* PID type (1-Video 2-Audio, 3-PMT) (int) * 3

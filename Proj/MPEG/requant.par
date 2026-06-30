@@ -1,0 +1,4 @@
+* Original qscale? (int) * 10
+* New qscale? (int) * 12
+* Quantizer matrix value? (int) * 16
+* Intra MB? (int) * 0

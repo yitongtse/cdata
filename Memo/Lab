@@ -1,0 +1,326 @@
+Analyzers
+---------
+  IneoQuest: 172.22.94.112
+
+  MTM400: 172.22.95.27 (by Emma's bench, pw: tek)
+  MTM400: 172.22.95.65 (by Xiaoxiao's bench, pw: tek)
+    Input power: ~0 dB
+    Interleaver setting: 128, 1 (video interleaver mode 1)
+
+  HP MPEG-analyzer
+    VNC: MPEGSCOPE4:23
+    IP: 172.22.95.64
+
+  Adherent MPEG analyzer (Sencore)
+    To record a stream:
+      Use the MPEG-2 Monitor/Recoder
+      Go to Settings: Change interface and make sure the right card and
+                      interface type are selected.
+      Make sure Settings: Mode is trigger in order to save data to disk.
+      If capturing to a new file, go to File: Create File and set up the file
+      size and packet size.
+      Go File: set output to select which file to store capture stream using
+      Click Start button to start recording.
+
+    To do buffer analysis:
+      Use Buffer Analyser program.
+      Go File: New to select the bitstream.  Specify the output report filename.
+      In the Stream List window, select the PID you want to analyze
+      Click the process button.
+
+    To use VNC to view the PC connected to Sencore:
+      Host name: ad953:23
+      Password: sencore
+
+  Need to manually select front port (Copper vs Fiber):
+      Go to Jacobs.  Point browser to Ineoquest's IP address.
+      Select System config: Front ports.
+
+
+Set top boxes
+-------------
+SA Explorer
+  To set up:
+    Connect serial port
+    Open Hyperterminal, use 57600 bps, 8 data bit, none parity,
+                            1 stop bit, none flow control 
+    Power cycle STB
+    Press Vol- button until you see a rolling LED
+    Type "tvtest" on PTV> prompt
+    Select 7 for Manual Menu
+    Select 3 for Tune Frequency
+    Select 6 for Play MPEG
+    (You may need to disconnect and then connect on hyperterminal to see
+     legible text)
+
+
+NSG
+  IP: 172.22.94.113
+  User: mpeg
+  Pw: vod
+
+
+IPTV Content Engine 590
+  Login: admin
+  Password: admin
+
+  To configure it, I connect my labtop directly to the Ethernet 0 port,
+  and set my laptop's IP address to 192.168.0.64.
+
+  To go to the PC, connect keyboard, mouse and monitor to the 
+  corresponding ports at the back of the chassie.
+  Login: Administrator
+  Password: (none)
+
+
+Tandberg Transport Stream Processor TT6020
+  console IP: 172.22.94.109 / 24
+  Media IP: 192.168.4.3 / 24
+
+  IP output port is currently connect to fa6/3 on my Cat4k
+
+  To support DOCSIS, select TSP and the service tab, and add PID 8190.
+
+
+Power switch
+Left port: use roll cable to connect to com server
+Right port: use straight cable to connect to console port of the device.
+
+
+-------------
+
+Using Mike Sin's test bed
+  Chassis name: Vodka
+  SUP: 2.9.19.11: 2009
+  MV:  2.9.19.11: 2010
+  TCC: 2.9.19.11: 2012
+
+--------------
+
+
+Ineoquest G1-T (loaner from DevTest) access:
+  172.22.24.167
+  pw: cisco123
+
+To reset Ineoquest, point the browser to its IP address,
+then go to system configuration, and then management port page:
+  user: Admin
+  pw: Su
+
+Ineoquest cricket access: (USB Lan thru the JDSU analyzer)
+  user: Admin
+  pw: Su
+
+
+Video streaming program that works for streams without PCR:
+\\sjc-filer17a\projects\shared\DevTest\art\Streamer Install Install
+Stream to 192.168.15.10:2024
+
+
+Test streams provided by DevTest:
+- Optical feed: short clips from Ineoquest, 240 sessions per feed
+  192.168.10.10: 49152 -
+
+- Kasenna streams
+  192.168.100.6: 49152 - 49161
+
+- Wayne's MTM400 access
+  172.22.24.163 from IExplorer
+  pw: tek
+
+- Freq:
+  723 MHz
+  177 MHz
+
+
+DevTest shared directory:
+  \\sjc-filer17a\projects\shared\DevTest\
+
+- My private VLAN is 192.168.100.6
+  My private SPTS feeds (from Ineoquest) are on udp 49152 to 49161.
+  My private MPTS feed (from CherryPicker) is on udp 1024.
+
+---------------------------------------------------
+Info after the lab move (7/8/08):
+
+My RFGW:
+  IP: 2.6.53.10/16
+  Gateway: 2.6.0.1
+
+Optical feed:
+  SPTS: 192.168.30.10  49152 - 
+  MPTS: 102.168.40.10  49152 -
+
+My MTM400: 172.22.22.48
+
+Mike's MTM400: 172.22.23.147
+
+---------------------------------------------------------
+Mike's chassic info:
+  SUP: 2.9.19.11 2009
+  LC3: 2.9.19.11 2010
+  LC4: 2.9.19.11 2011
+
+---------------------------------------------------------
+My Patch Panel:
+
+O4-8: my MTM400 RF input (Annex B)
+O4-7: my MTM400 ASI input
+O4-6: 
+O4-5: 
+O4-4: 
+O4-3: 
+O4-2: DigiTran ASI input
+O4-1: Tangberg ASI input
+
+----------------------------------------------------------
+
+MPEG compliance analysis SW tool:
+  MiraVid MSight (VNC): 172.22.23.32 (asrivist-lwxp01)
+
+--------------------------------------------------------------
+
+To access the SA bitstreams from Mike Sin's lab PC:
+\\172.22.23.53
+Log in as msin-w2k\Administrator, password cisco123
+Content\SPTV_Streams_SA\
+
+---------------------------------------------------------------
+GDB debugging:
+
+cd /vob/ios/sys/obj-ppc-rfgw
+gdb-ios rfgw-entservices-mz.sun
+target cisco 172.22.71.19:2002
+
+gdb kernel
+
+---------------------------------------------------------------
+Test devices:
+  Video servers:
+    Ineoquest "Tong & Sandeep": 172.22.71.23
+    Sencore: VNC 172.22.69.22, pw cisco123
+
+  My MTM400: 172.22.71.152
+
+---------------------------------------------------------------
+On the Sencore port 2 feed:
+  IP: 192.168.75.10
+  UDP 49177: G.1.1.1
+  UDP 49312: VBR MPTS test stream
+
+
+-----------------------
+Old g3/14 config:
+
+interface GigabitEthernet3/14
+ no switchport
+ ip address 192.168.21.10 255.255.255.0
+ ip pim sparse-dense-mode
+ carrier-delay msec 500
+end
+
+-----------------------
+Aruna's consoles: 172.22.70.47
+  SUP 2001, LC3 2003, LC4 2004
+
+
+----------------------------
+
+cable video group 10 udp 1 prog 1 repeat qam 3/1.1-3/6.4
+cable video group 10 udp 1 prog 1 repeat qam 3/7.1-3/12.4
+
+----------------------------
+
+I am using Santa's Ineoquest from Dragnet (vnc://172.22.80.39, pw: cisco123)
+
+My chassis mac address: 00.17.94.fe.aa.7f
+
+video add in 0 ssm 0 1.1.1.1-1.1.1.240 232.0.0.10
+
+My latest Ineoquest is 1.9.103.100 (Santa)
+  Port 1 is connected to my g6/13
+  Port 2 is connected to my g6/14
+
+
+============================================
+I have configure the APC power strip with this IP address: 1.9.85.99
+(connected thru my Cat4k)
+
+User: apc
+Password: apc
+
+My RFGW is connect to port 24 on this APC.
+
+# To power cycle my RFGW chassis, need to go to the 1.9 network (eg. Friday):
+# (login: apc, password: apc)
+telnet 1.9.85.99
+appcli
+off <port>
+on <port>
+quit
+
+
+DS-384 (P1B-43) is in slot 3 of my RFGW.  Console 172.22.80.23:2007
+
+
+cable video servers gqi
+   protocol gqi emulation 24-qam
+   server 1.43.17.1
+   mgmt-ip-address 1.9.85.2 mac-address 0022.9084.ee7f qam 3/1-6
+   active
+!
+cable video servers sdv
+   protocol sdv emulation 24-qam
+   mgmt-ip-address 1.9.85.2 mac-address 0022.9084.ee7f qam 3/1-6
+   active
+end
+
+
+video add in 0 udp 0 1.1.1.1 100
+
+============================================
+
+Test Equipments:
+
+My RFGW:
+  Power cycler: 1.9.85.99, port 24
+  mac address: 0022.9084.ee7f
+  vty: 1.9.85.2, pw: cisco123
+  uplink to labnet: t1/1 (to my Cat4k g5/7)
+
+My Cat4k setup (YI_TONG_CAT4K_SUP):
+  g5/1: to ceiling drop 1.3.325 Orange
+        (IP 1.9.85.1-255, gw 1.9.0.1, mask 255.255.0.0)
+  g5/7: my RFGW t1/1
+  Both ports in Vlan 5, ip address 1.9.85.9
+
+Mike's MTM400: 172.22.81.24
+
+JDSU MPEG analyzer (10/2011):
+- 1.3.292 Green
+- IP: 172.22.79.29
+- user lab, pw cisco123
+- (user DTSAdmin, pw dts)
+- Power (APC 1.9.85.99, port 23)
+
+Ineoquest:
+- Jim G10T-4: 1.9.85.31
+- Jim G10T-5: 1.9.85.32
+- G1T-B: 1.9.85.33
+
+The Ineoquests are normally configured on Jacobs (PC), which sits on the
+1.43.x.x network.  Need this route to let Jacobs see the 1.9.x.x network:
+- route add 1.9.0.0 mask 255.255.0.0 1.43.0.1
+
+Spirent:
+  Slot 7 port 1 & 2 are connected to my testbed t1/3 & t1/4
+  Remote Desktop to virtual PC mquek-2k8-v1: user labuser, pw Cisco123
+  My login: user PRIME\ytse, my csico pw
+  To start spirent, double click the config file
+      C:\Users\Public\Spirent\s7p12_188byte-chan33-48.tcc
+
+
+===================
+
+G10T-4 <=> RFGW t9/9
+G10T-5 <=> RFGW t9/10

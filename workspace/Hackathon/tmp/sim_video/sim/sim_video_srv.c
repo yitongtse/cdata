@@ -1,0 +1,445 @@
+///  Copyright (c) 2014-2015 by Cisco Systems, Inc.
+///  All rights reserved.
+///
+///  The IP packet sent by this server has the following format:
+///    - IP header (carrying the forwarding address)
+///    - UDP header (to video data port - 5000)
+///    - arrival time
+///    - IP header used for Video
+///    - UDP header used for Video
+///    - 1 to 7 TPs
+///
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <assert.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include "common.h"
+#include "bench.h"
+#include "param.h"
+#include "video.h"
+#include "video_util.h"
+#include "sim_video.h"
+
+
+typedef struct {
+    int8 seen    : 1;
+    int8 has_pcr : 1;
+    int8 cc_gap;
+    int8 cc_adj;
+    uint32 first_pcr_tpidx;
+    uint32 last_pcr_tpidx;
+    uint32 bitrate;
+    mpeg_time_t first_pcr;
+    mpeg_time_t last_pcr;
+    mpeg_time_t wrap_time;
+    mpeg_time_t pcr_adj;
+} pid_info_t;
+
+
+char in_file[256];
+int bitrate;
+int tp_per_ip;
+int num_ses;
+int wake_period;
+int report_period;
+int addr_family;
+char src_ip_addr[64];
+char dst_ip_addr[64];
+int dst_udp;
+int src_ip_inc;
+int dst_ip_inc;
+int dst_udp_inc;
+int rtp_flag;
+int num_pkt;
+char fwd_ip_addr[64];
+int fwd_udp_port;
+int adjust_pcr;
+int pcr_fo;
+int jitter_spec;
+
+sim_video_header_t sim_hdr;
+uint8 pyld_buf[BUF_SZ];
+
+pid_info_t pid_info[NUM_PIDS];
+
+mpeg_time_t PCR_RANGE = ((uint64)SCALE_BASE_EXT) << (FRAC_BITS_TIME + 32);
+
+
+static inline
+boolean tp_has_pcr (tp_header_t *tp_hdr, af_header_t *af_hdr)
+{
+    return (tp_hdr->af_ctrl & 2) && (af_hdr->len > 0) && af_hdr->pcr_flag;
+}
+
+
+void tp_prescan (uintptr_t tp_addr, int tp_idx)
+{
+    tp_header_t* tp_hdr = (tp_header_t*)tp_addr;
+    af_header_t* af_hdr = (af_header_t*)(tp_hdr + 1);
+
+    pid_info_t* info = &pid_info[tp_get_pid(tp_hdr)];
+
+    // Note: cc_gap used to store the first CC
+    // Note: cc_adj used to store the next expected CC
+    if (!info->seen) {
+        info->cc_gap = (tp_hdr->cc - (tp_hdr->af_ctrl & 1)) & 0xF;
+    }
+    info->cc_adj = tp_hdr->cc;
+
+    info->seen = 1;
+
+    // TP containint PCR
+    if (tp_has_pcr(tp_hdr, af_hdr)) {
+        mpeg_clock_t pcr;
+        af_get_pcr_mod(af_hdr, &pcr.base, &pcr.ext);
+        mpeg_time_t in_pcr = mpeg_clock_to_time(&pcr);
+
+        if (!info->has_pcr) {
+            info->first_pcr_tpidx = tp_idx;
+            info->first_pcr = in_pcr;
+        }
+        info->last_pcr_tpidx = tp_idx;
+        info->last_pcr = in_pcr;
+
+        info->has_pcr = 1;
+    }
+}
+
+
+// TODO: need to handle the case when PCR wraps around within the file
+//
+void pid_info_setup (int num_tp)
+{
+    int i;
+    pid_info_t* info = pid_info;
+    for (i=0; i<NUM_PIDS; i++, info++) {
+        // Compute CC gap
+        if (info->seen) {
+            info->cc_gap = (info->cc_adj - info->cc_gap + 16) & 0xF;
+            info->cc_adj = 0;
+        }
+
+        // Compute PCR wrap time
+        if (info->has_pcr) {
+            info->wrap_time = (uint64)(((double)(info->last_pcr
+                                                 - info->first_pcr)) /
+                (info->last_pcr_tpidx - info->first_pcr_tpidx) * num_tp + 0.5);
+            info->bitrate = (uint32)(((int64)num_tp) * TP_SIZE_BIT * EXT_FREQ
+                / (info->wrap_time >> FRAC_BITS_TIME));
+        }
+    }
+}
+
+
+void handle_wraparound (void)
+{
+    int i;
+    pid_info_t* info = pid_info;
+    for (i=0; i<NUM_PIDS; i++, info++) {
+        if (info->seen) {
+            info->cc_adj = (info->cc_adj + info->cc_gap) & 0xF;
+        }
+
+        if (info->has_pcr) {
+            info->pcr_adj += info->wrap_time;
+            if (info->pcr_adj > PCR_RANGE) {
+                info->pcr_adj -= PCR_RANGE;
+                printf("PCR range adjust\n");
+            }
+        }
+    }
+}
+
+
+void tp_adjust_header (uint8* tp_addr)
+{
+    tp_header_t* tp_hdr = (tp_header_t*)tp_addr;
+    af_header_t* af_hdr = (af_header_t*)(tp_hdr + 1);
+
+    pid_info_t* info = &pid_info[tp_get_pid(tp_hdr)];
+
+    // Adjust CC
+    tp_hdr->cc = (tp_hdr->cc + info->cc_adj) & 0xF;
+
+    // TP containint PCR
+    if (tp_has_pcr(tp_hdr, af_hdr)) {
+        mpeg_clock_t pcr;
+        af_get_pcr_mod(af_hdr, &pcr.base, &pcr.ext);
+        mpeg_time_t pcr_time = mpeg_clock_to_time(&pcr) + info->pcr_adj;
+        mpeg_time_to_clock(pcr_time, &pcr);
+        af_set_pcr_mod(af_hdr, pcr.base, pcr.ext);
+    }
+}
+
+
+void pid_info_print (void)
+{
+    int i;
+    pid_info_t* info = pid_info;
+    for (i=0; i<NUM_PIDS; i++, info++) {
+        if (info->seen) {
+            printf("Pid %d: cc_gap %d", i, info->cc_gap);
+        }
+
+        if (info->has_pcr) {
+            mpeg_clock_t first_pcr, last_pcr;
+            mpeg_time_to_clock(info->first_pcr, &first_pcr);
+            mpeg_time_to_clock(info->last_pcr, &last_pcr);
+
+            printf(", wrap_time %d, BR %d",
+                   mpeg_time_to_ms(info->wrap_time), info->bitrate);
+        }
+
+        if (info->seen)  printf("\n");
+    }
+}
+
+
+uint32 get_sim_jitter (uint32 jitter_spec)
+{
+    return jitter_spec == 0 ? 0 : random() % jitter_spec;
+}
+
+
+int main (int argc, char **argv)
+{
+    param_t par;
+
+    if (argc > 1) {
+        param_begin(&par, argc, argv);
+    } else {
+        param_read(&par, "sim_video_srv.par");
+    }
+    par.echo_flag = 1;
+
+    // Get input paremeters
+    param_comment(&par, "Video Server Parameters");
+    param_get_string(&par, "Bitstream file", in_file, "test.ts");
+    param_get_int(&par, "Bitrate", &bitrate, 3750000);
+    param_get_int(&par, "Number of sessions", &num_ses, 1);
+    param_get_int(&par, "Number of TPs per IP packet", &tp_per_ip, 7);
+    param_get_string(&par, "Source IP address", src_ip_addr, "1.1.1.1");
+    param_get_int(&par, "Source IP address increment", &src_ip_inc, 0);
+    param_get_string(&par, "Destination IP address " \
+                     "(232.x.x.x reserved for SSM)", dst_ip_addr,
+                     "192.168.0.10");
+    param_get_int(&par, "Destination IP address increment", &dst_ip_inc, 0);
+    param_get_int(&par, "Destination UDP", &dst_udp, 1);
+    param_get_int(&par, "Destination UDP increment", &dst_udp_inc, 1);
+    param_get_int(&par, "Use RTP header?", &rtp_flag, 0);
+    param_get_string(&par, "Forward IP address", fwd_ip_addr, "127.0.0.1");
+    param_get_int(&par, "Statistic report period in second (0 to turn off)?",
+                  &report_period, 0);
+    param_get_int(&par, "Number of packets to send (-1 means nonstop)",
+                  &num_pkt, -1);
+    param_get_int(&par, "Adjust PCR?", &adjust_pcr, 0);
+    param_get_int(&par, "PCR freq offset (ppm)", &pcr_fo, 0);
+    param_get_int(&par, "Network jitter (ms)", &jitter_spec, 0);
+    param_end(&par);
+
+    assert(num_ses == 1);
+
+    // Open input bitstream
+    FILE* fp = fopen(in_file, "r");
+    if (fp == NULL) {
+        printf("Error: Failed to open file %s\n", in_file);
+        exit(-1);
+    }
+
+    uint32 src_ip, dst_ip;
+    int rc = inet_pton(AF_INET, src_ip_addr, &src_ip);
+    if (rc == 0) {
+        printf("Illegal source IP address: %s\n", src_ip_addr);
+        exit(1);
+    }
+    rc = inet_pton(AF_INET, dst_ip_addr, &dst_ip);
+    if (rc == 0) {
+        printf("Illegal destination IP address: %s\n", dst_ip_addr);
+        exit(1);
+    }
+
+    jitter_spec *= SCALE_MS_BASE;       // convert to base ticks
+
+    int pyld_sz = TP_SIZE * tp_per_ip;
+    int ip_pkt_bits = pyld_sz * 8 * 1000;       // ignore overhead
+                                                // scaled
+
+    // Simulate PCR frequency offset by adjusting bitrate
+    printf("Bitrate adjustment to simulate PCR FO: %d", bitrate);
+    bitrate = (1e6 + pcr_fo) * bitrate / 1e6;
+    printf(" -> %d\n", bitrate);
+
+    // Compute inter IP packet interval
+    mpeg_time_t pkt_itvl = (8LL * TP_SIZE * tp_per_ip * EXT_FREQ
+                                << FRAC_BITS_TIME) / bitrate;
+
+    // Setup simulation header buffer
+    memset(&sim_hdr, 0, sizeof(sim_hdr));
+    sim_hdr.ip_hdr.ver = 4;
+    sim_hdr.ip_hdr.ihl = 5;
+    sim_hdr.ip_hdr.len = sizeof(udp_header_t) + pyld_sz;
+    sim_hdr.udp_hdr.length = pyld_sz;
+    sim_hdr.rtp_hdr.version = RTP_VERSION;
+    sim_hdr.rtp_hdr.payload_type = RTP_PAYLOAD_TYPE_MPEG2;
+    sim_hdr.rtp_hdr.ssrc = 0xbabeface;
+
+    // Set up IO vectors
+    struct iovec iov[2];
+    iov[0].iov_base = &sim_hdr;
+    iov[0].iov_len = sizeof(sim_hdr);
+    if (!rtp_flag)  iov[0].iov_len -= sizeof(rtp_header_t);
+    iov[1].iov_base = pyld_buf;
+    iov[1].iov_len = pyld_sz;
+
+    // Prescan the input file for PCR info
+    printf("Analyzing input file...\n");
+    memset(&pid_info, 0, sizeof(pid_info));
+    int tp_cnt = 0;
+    while (1) {
+        if (fread(pyld_buf, TP_SIZE, 1, fp) != 1)  break;
+        tp_prescan((uintptr_t)pyld_buf, ++tp_cnt);
+    }
+    printf("%d TP found in input file\n", tp_cnt);
+    pid_info_setup(tp_cnt);
+    pid_info_print();
+    rewind(fp);
+
+    // Setup socket for video data
+    struct sockaddr_in data_serv_addr;
+    memset(&data_serv_addr, 0, sizeof(data_serv_addr));
+    data_serv_addr.sin_family = AF_INET;
+    data_serv_addr.sin_addr.s_addr = inet_addr(fwd_ip_addr);
+    data_serv_addr.sin_port = htons(VIDEO_DATA_PORT);
+
+    int data_sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (data_sock_fd < 0) {
+        perror("socket");
+        exit(-1);
+    }
+
+    rc = connect(data_sock_fd, (struct sockaddr *)&data_serv_addr,
+                     sizeof(data_serv_addr));
+    if (rc < 0) {
+        perror("connect");
+        exit(-1);
+    }
+
+    struct msghdr msg;
+    msg.msg_name = (struct sockaddr *)&data_serv_addr;
+    msg.msg_namelen = sizeof(data_serv_addr);
+    msg.msg_iov = iov + 1;
+    msg.msg_iovlen = 1;
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+
+    // Setup socket for flow control
+    int ctrl_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (ctrl_sock_fd < 0) {
+        perror("socket2");
+        exit(-1);
+    }
+
+    struct sockaddr_in ctrl_serv_addr;
+    memset(&ctrl_serv_addr, 0, sizeof(ctrl_serv_addr));
+    ctrl_serv_addr.sin_family = AF_INET;
+    ctrl_serv_addr.sin_addr.s_addr = inet_addr(fwd_ip_addr);
+    ctrl_serv_addr.sin_port = htons(VIDEO_FLOWCTRL_PORT);
+    rc = connect(ctrl_sock_fd, (struct sockaddr *)&ctrl_serv_addr,
+                 sizeof(ctrl_serv_addr));
+    if (rc < 0) {
+        perror("connect");
+        exit(-1);
+    }
+
+    // Main loop
+    printf("Starting serving file\n");
+    boolean startup = TRUE;
+    mpeg_time_t send_time;      // time IP packet is send
+    uint32 arvl_time;           // time IP packet is received after jitter
+    int32 jitter = -1;          // jitter in ms
+
+    while (1) {
+        if (startup) {
+            send_time = mpeg_time_set(0, 0);	// TODO: use sys time instead
+            arvl_time = mpeg_time_to_base(send_time)
+                            + get_sim_jitter(jitter_spec);
+            startup = FALSE;
+        }
+
+        int i;
+        int num_tp = fread(pyld_buf, TP_SIZE, tp_per_ip, fp);
+
+        if (adjust_pcr) {
+            for (i=0; i<num_tp; i++) {
+                tp_adjust_header(&pyld_buf[i*TP_SIZE]);
+            }
+        }
+
+        if (num_tp != tp_per_ip) {
+            //printf("File wraparound\n");
+            rewind(fp);
+            handle_wraparound();
+
+            int num_cur_tp = fread(&pyld_buf[num_tp * TP_SIZE], TP_SIZE,
+                                   tp_per_ip-num_tp, fp);
+
+            if (adjust_pcr) {
+                for (i=0; i<num_cur_tp; i++) {
+                    tp_adjust_header(&pyld_buf[(i + num_tp) * TP_SIZE]);
+                }
+            }
+
+            num_tp = num_tp + num_cur_tp;
+            if (num_tp != tp_per_ip) {
+                printf("Error reading data from input file\n");
+                exit(-1);
+            }
+        }
+
+#if 0
+        sim_hdr.arvl_time = arvl_time;
+        sim_hdr.ip_hdr.src_ip = src_ip;
+        sim_hdr.ip_hdr.dst_ip = dst_ip;
+        sim_hdr.udp_hdr.dst_port = dst_udp;
+#endif
+
+//        printf("IP: %08x -> %08x, jit %d\n",
+//               mpeg_time_to_base(send_time), sim_hdr.arvl_time,
+//               (sim_hdr.arvl_time - mpeg_time_to_base(send_time)) / 45);
+
+        rc = sendmsg(data_sock_fd, &msg, 0);
+        if (rc == -1) {
+            perror("sendmsg");
+            exit(-1);
+        }
+
+#if 0
+        // Update for next session
+        sim_hdr.ip_hdr.src_ip += src_ip_inc;
+        sim_hdr.ip_hdr.dst_ip += dst_ip_inc;
+        sim_hdr.udp_hdr.dst_port += dst_udp_inc;
+#endif
+
+        // Update send time for next packet
+        send_time += pkt_itvl;
+        if (send_time > PCR_RANGE)  send_time -= PCR_RANGE;
+
+        // Simulate network jitter
+        if (jitter < 0)  jitter = get_sim_jitter(jitter_spec);
+        uint32 arvl_time2 = mpeg_time_to_base(send_time) + jitter;
+        if (arvl_time2 > arvl_time) {
+            arvl_time = arvl_time2;
+            jitter = -1;
+        }
+
+        usleep(1000);
+    }
+
+    return 0;
+}

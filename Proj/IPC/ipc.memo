@@ -1,0 +1,107 @@
+Utilities:
+  ipc_message_cleanup:
+    - update message buffer usage id
+    - remove it from tx_que
+    - for blocked message: unblock caller thread
+    - for non-blocked msg: notify caller and free message
+
+
+-------------------------------------------------------------
+
+Non-blocking reliable local:
+  - within window: notify caller and free message
+  - outside window: put on tx_que and arm timer
+  Resend:
+    - message cleanup
+  Give up: 
+    - message cleanup
+
+
+Non-blocking reliable remote:
+  - put on tx_queue
+  - within window: send message
+  - arm timer
+  Async ACK:
+    - RX: MSG_DONE pulse to TX
+    - TX: message cleanup
+  Resend/give up: same as local case
+
+
+Blocking reliable local:
+  - within window: free message
+  - outside window: put on tx_que and arm timer
+  Resend / give up:
+    - TX: message cleanup
+    - App: unblock, free message
+  
+
+Blocking reliable remote:
+  - put on tx_queue
+  - within window: send message
+  - arm timer
+  Async ACK:
+    - RX: MSG_DONE pulse to TX
+    - TX: message cleanup
+    - App: unblock, free message
+  Resend / give up: same as local case
+
+
+RPC local:
+  - put on tx_que
+  - within window: send message
+      - OK: ->PENDING, block
+      - OUT_OF_SEQ: RPC_Done pulse to TX, ????
+  - outside window: arm timer -> block
+  - AFTER unblock: free message
+
+
+RPC remote:
+  - put on tx_que
+  - within window: send message
+  - arm timer
+  - block
+  - AFTER unblock: free message
+
+
+-----------------------
+
+RPC reply: always forwarded thru the ipc reply port,
+           which in turn sends RPC_DONE pulse to TX
+  
+TX: RPC_DONE pulse handling
+  - if ACK: update last_ack
+  - message cleanup
+  
+
+=============================================
+
+Resend logic:
+
+if (msg already acked and is not RPC)
+  done
+
+if (msg nacked)
+  done
+
+if (msg has expiration and has expired)
+  done
+
+if (msg's seq < last_ack and is not RPC)
+  // should have been acked
+  done
+
+if (msg is outside seq window)
+  skip and flag the session's resend done
+
+. . .
+
+---------------------
+
+if (msg nacked) done
+
+if (msg is not RPC) {
+  if (msg acked) done
+  if (msg's seq < last_ack) done
+}
+
+if (msg has expiration and has expired) done

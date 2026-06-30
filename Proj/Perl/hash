@@ -1,0 +1,14 @@
+#! /usr/bin/perl -w
+
+open(TEST, "test");
+
+%count = ();
+
+while ($word = <TEST>) {
+    chomp($word);
+    $count{$word}++;
+}
+
+while (($key, $value) = each(%count)) {
+    print "$key: $value\n";
+}

@@ -1,0 +1,12 @@
+0-1023: well known
+1024-49151: registered ports
+49152 - 65535: dynamic/private ports
+
+
+7: echo server
+13: day time
+20: ftp data
+21: ftp control
+23: telnet
+25: smtp (Simple Mail Transfer Protocol)
+80: http

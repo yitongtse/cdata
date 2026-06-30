@@ -1,0 +1,162 @@
+
+// Adjust dejittered arrival time
+//
+inline void clkrec_adjust_dj_arvl_time (void)
+{
+    pb_buginf(PB_MODULE_CLKREC, "\nclkrec %04x-%d: adjust djAT by %.2f ms",
+        p_info->udp, p_info->tp_idx, p_info->mid_jitter * BASE_MS_SCALE);
+
+    // Center dejittered arrival time to middle of channel buffer
+    p_info->dj_arvl_time += p_info->mid_jitter;
+    p_info->min_jitter -= p_info->mid_jitter;
+    p_info->max_jitter -= p_info->mid_jitter;
+    p_info->mid_jitter = 0.0;
+}
+
+
+Dejitterig:
+  For 1st TP:
+      dj_arvl_time = arvl_time
+
+  Others:
+      arvl_inc = arvl_time - prev_arvl_time
+      tp_idx_inc = tp_idx - prev_tp_idx
+      in_tpi = arvl_inc / tp_idx_inc
+      dj_tpi = IIR(in_tpi)
+      dj_arvl_time += dj_tpi * tp_idx_inc
+
+
+Non-PCR TP out_time setting:
+  For 1st TP:
+      out_time = dj_arvl_time + sys_delay;
+      adj_out_time = out_time;
+
+  Others:
+      tp_idx_inc = tp_idx - prev_tp_idx;
+      out_time += out_tpi * tp_idx_inc;
+      adj_out_time = out_time;
+
+
+out_tbo setting:
+    out_tbo = est_tbo + out_tbo_adj
+
+
+// Adjust estimated TBO
+//   Note: this is for error handling
+//         For non-PCR packet, the dj_tbo and est_tbo should hold the values
+//         for the previous PCR packet.
+//
+static void clkrec_adjust_est_tbo (void)
+{
+    pb_buginf(PB_MODULE_CLKREC,
+              "\n# clkrec %04x-%d: err_tbo %.2f, adjust TBO %.2f -> %.2f",
+              p_info->udp, p_info->tp_idx, p_info->err_tbo,
+              p_info->est_tbo, p_info->dj_tbo);
+
+    p_info->est_tbo = p_info->dj_tbo;
+    p_info->out_tbo_adj -= p_info->err_tbo;
+    p_info->err_tbo = 0.0;
+    p_info->est_tbo_adjust_cnt++;
+}
+
+Lock output phase:
+    clkrec_adjust_dj_arvl_time();
+    p_info->dj_tbo = p_info->pcr_time - p_info->dj_arvl_time;
+    p_info->err_tbo = p_info->dj_tbo - p_info->est_tbo;
+    clkrec_adjust_est_tbo();
+
+
+// Adjust delivery time
+//   (for buffer underflow / overflow handling)
+//
+static void clkrec_adjust_out_time (void)
+{
+    clkrec_adjust_dj_arvl_time();
+    new_out_time = p_info->dj_arvl_time + clkrec_par.sys_delay;
+    diff = new_out_time - p_info->out_time;
+    p_info->out_tbo_adj -= diff;
+    p_info->prev_pcr_out_time += diff;
+    p_info->out_time = new_out_time;
+    p_info->stay_time = p_info->out_time - (float) p_info->arvl_time;
+}
+
+// Check buffer violation
+//   Buffer underflow if stay_time < min_stay_time
+//   Buffer overflow if stay_time > max_stay_time
+//
+void clkrec_check_buffer_violation (void)
+{
+    p_info->stay_time = p_info->out_time - (float) p_info->arvl_time;
+
+    // Check for buffer problems
+    if (p_info->stay_time < clkrec_par.min_stay_time) {
+        // Buffer underflow detected
+        // Handle by adjusting delivery time
+        clkrec_adjust_out_time();
+        p_info->underflow_cnt++;
+
+    } else if (p_info->stay_time > clkrec_par.max_stay_time) {
+        // Buffer overflow detected
+        // Handle by adjusting delivery time
+        clkrec_adjust_out_time();
+        p_info->drop_flag = TRUE;
+        p_info->overflow_cnt++;
+    }
+
+    // Extra handling to avoid buffer violation
+    if ((p_info->stay_time < clkrec_par.min_stay_time) ||
+        (p_info->stay_time > clkrec_par.max_stay_time)) {
+        clkrec_reset_jitter_measure();
+        clkrec_adjust_out_time();
+    }
+
+    if ((p_info->stay_time < clkrec_par.min_stay_time) ||
+        (p_info->stay_time > clkrec_par.max_stay_time)) {
+        // Temporarily fix for overflow or underflow problem
+        p_info->dj_arvl_time = p_info->arvl_time;
+        p_info->out_time = p_info->dj_arvl_time + clkrec_par.sys_delay;
+    }
+}
+
+
+Group initialization:
+    p_info->out_tpi = OUT_TPI;
+
+
+
+PCR TP processing:
+    dejitter()
+    lock_phase() if needed
+
+    dj_tbo = pcr_time - dj_arvl_time
+    pcr_inc = pcr_time - prev_pcr_time
+
+    1st PCR:
+        p_info->est_tbo = p_info->dj_tbo;
+        compute_out_time()
+        out_tbo_adj = dj_arvl_time - out_time;
+
+    Other PCR (PLL):
+        tbo_drift = pcr_inc * reg_freq_adj
+        est_tbo += tbo_drift
+        err_tbo = dj_tbo - est_tbo
+        adjust_est_tbo() if needed
+        norm_err_tbo = err_tbo / pcr_inc;
+        loop_filter();
+        filt_err_tbo += p_info->filt_err_tbo_adj;
+        new_freq_adj = loop_gain * filt_err_tbo;
+        slew_rate = (new_freq_adj - reg_freq_adj) / pcr_inc * SLEW_RATE_SCALE;
+        clamp()
+
+        pcr_tp_idx_inc = tp_idx - prev_pcr_tp_idx;
+        out_inc = pcr_inc - tbo_drift;
+        out_time = prev_pcr_out_time + out_inc;
+
+    check_buffer_violation();
+    clkrec_set_out_tbo()
+
+
+Non-PCR TP processing:
+    dejitter()
+    clkrec_compute_out_time();
+    clkrec_check_buffer_violation();

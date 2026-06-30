@@ -1,0 +1,13 @@
+extu (x, 31 - msb, 32 - nbits)
+
+clru (x, lsb, msb)
+
+setu (x, lsb, msb)
+
+
+where
+  msb: position of the most significant bit of the changed field
+  lsb: position of the least significant bit of the changed field
+  nbits: no of bits in the change field
+
+  position of the left most bit is 31, and the right most bit is 0.

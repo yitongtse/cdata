@@ -1,0 +1,57 @@
+Component Build System
+
+# First, clean up the view by doing (can skip this on a new view)
+#
+cd /vob/ios/sys
+ct lsprivate -other | xargs rm -fr
+cc_mksymlink_comp -comp_vob /vob/cisco.comp
+
+
+# Then create the derived objects (registry, MIBS, object directories, etc)
+#
+make components.derived
+
+# You can also create drived objects on a particular component or sub-component:
+#
+cd /vob/cisco.comp/rfgw/lc/common
+make derived -j10
+
+# Alternatively, you can also make derived for a particular component.
+# However, this may not create derived objects for dependent components.
+#
+make components.rfgw.derived -j10
+
+
+# To make the component target, you can do it on the component side.
+# Simply do a make under the component or sub-component directories.
+# The created targets will be under ./objects.  Naming convention for
+# all targets is that they should start with the "comp_".
+#
+cd /vob/cisco.comp/rfgw/lc/common
+make -j10
+
+# You can also remove all targets using:
+#
+make clean -j10
+
+
+# Alternatively, you can create component targets also on the packaging side.
+# The packaging side will ask the component side to make the target, and then
+# create a link to it.
+#
+cd /vob/ios/sys/obj-ppc-rfgw-lc/pb
+make comp_ipc_launch -j10
+
+# You can build the image on the packaging side
+#
+make -j10
+
+# or clean all targets
+#
+make clean -j10
+
+# or clean a component
+#
+make components.rfgw.superclean -j10
+# need to do derived again
+

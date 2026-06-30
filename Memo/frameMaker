@@ -1,0 +1,8 @@
+Adding TOC to a document:
+
+In reference page, insert a flow with tag TOC.  Then add a line with
+variables and format that control how TOC are generated.
+
+The flow tag can be set by selection the text frame as an object, and
+modify the object property.
+

@@ -1,0 +1,47 @@
+Clock Recovery Debugging info:
+
+RF -> Motorola STB
+  Picture will turn into B&W at PB overflow.  Color may come back after long period
+  of time (in minutes)
+
+  Audible audio click.  Corresponding ASI output, decoded by Digitran,
+  does not show audio click.
+
+
+Optical feed
+  Bitrate is mainly 3.75, but at some PCR pairs, it shoots up to 4 to 6 Mbps!
+
+
+PB overflow/underflow issue
+  Need to re-investigate system stability!
+
+
+Simulation tuning
+  Reducing loop gain from 0.0005 to 0.000005 reduces U/F and O/F
+  from (10, 8) to (1, 1).
+
+==============================================================================
+
+Palm Beach Clock Recovery Summary
+
+Start up sequence:
+  First TP found: set initial arrival time
+  First PCR found: set time base offset
+  Second PCR found: bit rate calculated
+  First jitter measurement window completed (2500 TPs): arrival jitter measured
+  (Output PSI ready)
+
+  When all the above conditions are met, on the next PCR, output time base
+  will be adjusted and locked.
+
+PB will perform special handling under the following conditions:
+  When output time base is locked at startup.
+  When internal buffer overflow or underflow occurs.
+  When input PCR jump is detected.
+In the above cases, PB will reset the buffer fullness level to middle, and
+signal PCR discontinuity at the output.
+
+PB will resnoop PSI in the following conditions:
+  When input PCR jump is detected.
+  When new PAT table version is detected.
+  When new PMT table version is detected.

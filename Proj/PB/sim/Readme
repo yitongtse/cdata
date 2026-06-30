@@ -1,0 +1,15 @@
+This directory contains code for software benchmark of Palm Beach
+packet processing.
+
+The following codes are released for Shan to benchmark:
+pb_dyn.c	Palm Beach packet processing (Dynamic table scheduling)
+pb_fifo.c	Palm Beach packet processing (FIFO scheduling from Pierre)
+
+
+pb.c		Palm Beach packet processing benchmark (developing version)
+
+Tools to generate test data:
+ipEncap.c	IP encapsulation of SPTS
+ipMux.c		Muxing several IP ecnapsulated SPTS into an MPTS
+
+

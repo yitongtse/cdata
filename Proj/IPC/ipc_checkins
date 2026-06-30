@@ -1,0 +1,91 @@
+flo_cable6_ipc:
+  - Added error handling in npm_cipc and ncm_cipc_en modules.
+  - Fixed logical bug in sequence number check for TX thread.
+
+
+flo_cable6_ipc:
+  - Use mutex for all queue insertions and deletion.
+  - Use connect and io function tables to modify port behavior.
+  - Add reply port handler for regular IPC port and Gateway port.
+  - Reserve port index 0 for control plane.
+  - Turn off TX retry time at only one place.
+  - Only do message removal in the TX thread.
+  - Make sure all port_name array are sized as IPC_PORT_NAME_MAX + 1.
+
+
+flo_cable6_ipc:
+  - Remove messages from TX queue by sending pulse to the TX thread.
+    This improves the response time of blocked send to the SUP.
+
+
+flo_cable6_ipc:
+  - Add debugging info for local IPC.
+  - Set IPC header flags according to IOS.
+  - Add sanity check for port features in send API.
+  - Improve the ipc test code:
+    - Add a new client thread in ipc_test.c to do the actual test,
+      instead of doing it in the RX or WK thread.
+    - Add notification callback to collect message send statistics.
+    - Add commands to show and clear statistics.
+
+
+flo_cable6_ipc:
+  - Free message buffer for asyn ACK.
+  - Use correct return value in ipc_io_devctl() when the source
+    is running low in message buffer.
+  - Avoid to use void pointer arithmetic in pool.c.
+
+
+flo_cable6_ipc:
+  - Use appropriate priority for IPC helper threads.
+
+
+flo_cable6_ipc:
+  - Add benchmarking to IPC test code.
+
+
+flo_cable6_ipc:
+  - Use msg_id_hi field in IPC header for fast ACK lookup.
+    The higher 16 bits are used to identify process_id,
+    the lower 16 bits are used to identify msg_id.
+
+  - Use PULSE_CODE_MSG_DONE pulse to signal the TX thread that a message
+    is done.  This unblocks the sender thread ASAP, instead of having to
+    wait for the next retry timer wakeup.
+
+  - Use PULSE_CODE_ACK pulse for asyn ACK, instead of using DCMD_IPC_ACK.
+    This way the SM will not need to be blocked for forwarding async ACK.
+    This will also help buffer contention problem when the load is high.
+
+  - When SM forwards a control message to the SUP, it backs up the original
+    msg_id_hi value in the msg_id_lo field in the original message,
+    and replace the msg_id_hi with its own value.  This way, when the ACK
+    from SUP is received, the msg_id_hi field in the ACK can be used to
+    lookup the message on the sm_out_que.  Then the msg_id_lo field can
+    be signaled to the original process for ACK processing.
+
+  - Moved the ipc_sm_add_process() call to the ipc_seat_info handler in SM.
+    So we no longer need special io_open handler for and Gateway port.
+
+  - Removed ipc_gw_open().
+
+  - Call ipc_find_seatmgr() inside ipc_init().
+
+  - Fixed a bug in TX resend message code.  The original code stop resending
+    messages of a session when IPC_REPLY_NONE is received, which is what
+    Gateway will return.
+
+  - Added utilities for logging messages in memory for debugging.
+
+  - Added benchmarking to the IPC test codes.
+
+  - Added message send delay and message handling delay parameters in
+    IPC test code.
+
+
+flo_cable6_ipc:
+  - Fixed server restart problem by always updating the message headers
+    with latest session attributes before the send.
+
+
+
